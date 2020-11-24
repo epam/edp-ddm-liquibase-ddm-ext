@@ -1,0 +1,6 @@
+1) Build the Maven project.
+2) Copy the digit*.jar to $LIQUIBASE_HOME
+
+	cd liquibase
+	mvn clean install
+	cp target/digit-1.0.0.jar $LIQUIBASE_HOME/lib/

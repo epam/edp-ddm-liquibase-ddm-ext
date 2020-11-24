@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+    <changeSet author="registry owner" id="grant/revoke analytic rights" context="sub">
+        <ext:grant>
+            <ext:role name="analytic_officer_level_1">
+                <ext:view name="registry_data_v"/>
+                <ext:view name="registry_info_v"/>
+            </ext:role>
+        </ext:grant>
+    </changeSet>
+
+</databaseChangeLog>

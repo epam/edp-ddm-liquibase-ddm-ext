@@ -1,0 +1,15 @@
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateDomainGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateMany2ManyGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateAbstractViewGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateSimpleSearchConditionGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateTypeGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmDistributeTableGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmDropDomainGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmDropSearchConditionGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmDropAnalyticsViewGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmDropTypeGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmPartialUpdateGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmReferenceTableGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmTruncateLocalDataAfterDistributingTableGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmUndistributeTableGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateSequenceGenerator

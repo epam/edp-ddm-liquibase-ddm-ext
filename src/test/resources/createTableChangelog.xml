@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+    <changeSet author="registry owner" id="create table FOP">
+        <createTable catalogName="catalogName" remarks="remarks" schemaName="schemaName" tableName="fop" ext:historyFlag="true" ext:isObject="true">
+            <column name="fop_id"  type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_fop_id"/>
+            </column>
+            <column name="subject_id" type="TEXT"/>
+            <column name="name" type="TEXT"/>
+            <column name="rnokpp" type="TEXT" ext:classify="confidential">
+                <constraints nullable="false" unique="true" checkConstraint="true" deferrable="true" deleteCascade="true" initiallyDeferred="true"
+                    notNullConstraintName="name" referencedColumnNames="column1, column2" primaryKeyTablespace="space" referencedTableCatalogName="cat"
+                    referencedTableSchemaName="schema" references="table(column1, column2)" uniqueConstraintName="uc" validateForeignKey="true"
+                    validateNullable="true" validatePrimaryKey="true" validateUnique="true"/>
+            </column>
+            <column name="address" type="TEXT" ext:classify="private"
+                value="value" computed="true" autoIncrement="true" defaultValue="def" defaultOnNull="true" defaultValueBoolean="true"
+                defaultValueComputed="count" defaultValueConstraintName="df" defaultValueDate="date" defaultValueNumeric="num"
+                defaultValueSequenceNext="next" descending="true" encoding="utf-8" generationType="type"
+                incrementBy="1" startWith="1" valueBlobFile="file" valueBoolean="true" valueClobFile="clob" valueComputed="comp"
+                valueDate="date" valueNumeric="num" valueSequenceCurrent="curr" valueSequenceNext="next"/>
+            <column name="referenced" type="UUID" remarks="remarks">
+                <constraints nullable="false"
+                    foreignKeyName="foreignKeyName"
+                    referencedTableName="referencedTableName"
+                    referencedColumnNames="referencedColumnNames"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

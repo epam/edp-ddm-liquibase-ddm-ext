@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+        <changeSet id="roles" author="registry owner">
+            <comment>SET PERMISSIONS</comment>
+            <ext:rbac>
+                <ext:role name="isAuthenticated">
+                    <ext:table name="person">
+                        <ext:column name="first_name" read="true"/>
+                        <ext:column name="last_name" read="true"/>
+                    </ext:table>
+                </ext:role>
+
+                <ext:role name="officer">
+                    <ext:table name="person">
+                        <ext:column name="first_name" read="true" update="true"/>
+                        <ext:column name="last_name" read="true" update="true"/>
+                        <ext:column name="passport" read="true"/>
+                    </ext:table>
+                </ext:role>
+
+                <ext:role name="passport_officer">
+                    <ext:table name="person">
+                        <ext:column name="passport" update="true"/>
+                    </ext:table>
+                </ext:role>
+
+                <ext:role name="inn_officer">
+                    <ext:table name="person">
+                        <ext:column name="inn" update="true"/>
+                    </ext:table>
+                </ext:role>
+
+                <ext:role name="birth_officer">
+                    <ext:table name="person" insert="true"/>
+                </ext:role>
+
+                <ext:role name="death_officer">
+                    <ext:table name="person" delete="true"/>
+                </ext:role>
+            </ext:rbac>
+        </changeSet>
+
+    </databaseChangeLog>
