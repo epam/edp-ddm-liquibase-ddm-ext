@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+
+    <changeSet author="registry owner" id="m2m">
+        <ext:createMany2Many mainTableName="mainTable" mainTableKeyField="mainKey" referenceTableName="referenceTable" referenceKeysArray="referenceKeys">
+            <ext:mainTableColumns>
+                <ext:column name="mainColumn1"/>
+                <ext:column name="mainColumn2" alias="mc2"/>
+            </ext:mainTableColumns>
+            <ext:referenceTableColumns>
+                <ext:column name="referenceColumn1" alias="rc1"/>
+                <ext:column name="referenceColumn2"/>
+            </ext:referenceTableColumns>
+        </ext:createMany2Many>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+    <changeSet author="registry owner" id="composite field_access_type">
+        <comment>CREATE TYPE field_access_type</comment>
+        <ext:createType name="field_access_type">
+            <ext:asComposite>
+                <ext:column name="masked_value" type="TEXT" collation="uk_UA.utf8"/>
+                <ext:column name="opened" type="BOOLEAN"/>
+                <ext:column name="private" type="BOOLEAN"/>
+                <ext:column name="private_denied_by_owner" type="BOOLEAN"/>
+                <ext:column name="confidential" type="BOOLEAN"/>
+                <ext:column name="secret" type="BOOLEAN"/>
+                <ext:column name="service" type="BOOLEAN"/>
+            </ext:asComposite>
+        </ext:createType>
+    </changeSet>
+
+</databaseChangeLog>

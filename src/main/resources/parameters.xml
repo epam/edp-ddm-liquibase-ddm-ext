@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    uniqueWithPrimaryKey - creates unique constraint with primary key; values- boolean, default - false
+    scope - for which table this column is applied; values - all/primary/history, default - all
+-->
+
+<ext:parameters
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext parameters.xsd">
+
+    <ext:historyFlag>
+        <ext:columns>
+            <ext:column name="ddm_created_at"
+                type="TIMESTAMPTZ"
+                scope="all"
+                uniqueWithPrimaryKey="true"
+                nullable="false"
+                defaultValueComputed="NOW()"/>
+            <ext:column name="ddm_created_by"
+                type="TEXT"
+                scope="all"
+                nullable="false"/>
+            <ext:column name="ddm_dml_op"
+                type="CHAR(1)"
+                scope="history"
+                nullable="false"/>
+            <ext:column name="ddm_updated_at"
+                type="TIMESTAMPTZ"
+                scope="primary"
+                nullable="false"
+                defaultValueComputed="NOW()"/>
+            <ext:column name="ddm_updated_by"
+                type="TEXT"
+                scope="primary"
+                nullable="false"/>
+            <ext:column name="ddm_system_id"
+                type="UUID"
+                scope="history"
+                nullable="false"/>
+            <ext:column name="ddm_application_id"
+                type="UUID"
+                scope="history"
+                nullable="false"/>
+            <ext:column name="ddm_business_process_id"
+                type="UUID"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_business_process_definition_id"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_business_process_instance_id"
+                type="UUID"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_business_activity"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_business_activity_instance_id"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_digital_sign"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_digital_sign_derived"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_digital_sign_checksum"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+            <ext:column name="ddm_digital_sign_derived_checksum"
+                type="TEXT"
+                scope="history"
+                nullable="true"/>
+        </ext:columns>
+
+        <ext:tableSuffix name="_hst"/>
+
+        <ext:subjectTable name="subject" column="subject_id" type="UUID"/>
+
+        <ext:dcmColumns>
+            <ext:column name="dcm_classification" type="typ_classification[]"/>
+            <ext:column name="dcm_access_role" type="typ_access_role[]"/>
+        </ext:dcmColumns>
+
+    </ext:historyFlag>
+</ext:parameters>

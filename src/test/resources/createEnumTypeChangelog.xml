@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+
+    <changeSet author="registry owner" id="enum typ_dml">
+        <comment>CREATE TYPE typ_dml</comment>
+        <ext:createType name="typ_dml">
+            <ext:asEnum>
+                <ext:label translation="Внесено">I</ext:label>
+                <ext:label translation="Змінено">U</ext:label>
+                <ext:label translation="Вилучено">D</ext:label>
+            </ext:asEnum>
+        </ext:createType>
+    </changeSet>
+
+</databaseChangeLog>

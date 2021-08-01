@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+
+    <changeSet author="registry owner" id="searchCondition">
+        <comment>CREATE search condition koatuu_equal_koatuu_id_name</comment>
+        <ext:createSearchCondition name="koatuu_equal_koatuu_id_name" limit="100" pagination="true">
+            <ext:cte name="some_cte" limit="10">
+                <ext:table name="table" alias="t">
+                    <ext:column name="table_id"/>
+                    <ext:column name="name"/>
+                    <ext:function name="count" columnName="table_id" alias="cnt"/>
+                </ext:table>
+                <ext:where>
+                    <ext:condition tableAlias="t" columnName="name" operator="eq" value="'name'"/>
+                </ext:where>
+            </ext:cte>
+            <ext:table name="koatuu" alias="np">
+                <ext:column name="koatuu_id" searchType="equal"/>
+                <ext:column name="name"/>
+                <ext:column name="code" returning="false"/>
+                <ext:function name="count" columnName="koatuu_id" alias="count_koatuu"/>
+            </ext:table>
+            <ext:table name="koatuu" alias="o">
+                <ext:column name="koatuu_id" alias="koatuu_id_obl"/>
+                <ext:column name="name" alias="name_obl"/>
+            </ext:table>
+            <ext:join type="left">
+                <ext:left alias="np">
+                    <ext:column name="level1"/>
+                </ext:left>
+                <ext:right alias="o">
+                    <ext:column name="code"/>
+                </ext:right>
+                <ext:condition logicOperator="and" tableAlias="o" columnName="type" operator="eq" value="'О'"/>
+            </ext:join>
+            <ext:where>
+                <ext:condition tableAlias="np" columnName="type" operator="eq" value="'НП'"/>
+            </ext:where>
+        </ext:createSearchCondition>
+    </changeSet>
+
+</databaseChangeLog>
