@@ -27,6 +27,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddDefaultValueStatement;
+import liquibase.statement.core.CreateIndexStatement;
 import liquibase.statement.core.CreateTableStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmReferenceTableStatement;
@@ -139,14 +140,15 @@ class DdmCreateTableChangeTest {
         change.setIsObject(true);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(7, statements.length);
+        Assertions.assertEquals(8, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[5] instanceof CreateIndexStatement);
         Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
     }
 
     @Test
@@ -326,15 +328,16 @@ class DdmCreateTableChangeTest {
         change.setHistoryFlag(true);
 
         SqlStatement[] statements = change.generateStatements(new PostgresDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(9, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof AddDefaultValueStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[5] instanceof CreateIndexStatement);
+        Assertions.assertTrue(statements[6] instanceof AddDefaultValueStatement);
         Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
     }
 
     @Test

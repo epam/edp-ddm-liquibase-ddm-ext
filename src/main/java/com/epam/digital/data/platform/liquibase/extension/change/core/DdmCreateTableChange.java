@@ -10,6 +10,7 @@ import com.epam.digital.data.platform.liquibase.extension.DdmHistoryTableColumn;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmReferenceTableStatement;
 import liquibase.Scope;
+import liquibase.change.AddColumnConfig;
 import liquibase.change.Change;
 import liquibase.change.ChangeFactory;
 import liquibase.change.ChangeMetaData;
@@ -36,6 +37,7 @@ import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.UniqueConstraint;
 import liquibase.statement.core.AddDefaultValueStatement;
+import liquibase.statement.core.CreateIndexStatement;
 import liquibase.statement.core.CreateTableStatement;
 import liquibase.statement.core.DropPrimaryKeyStatement;
 import liquibase.statement.core.RawSqlStatement;
@@ -282,7 +284,24 @@ public class DdmCreateTableChange extends CreateTableChange {
 
             historyTable.set(false);
 
-            statements.add(createStatement(database));
+            statement = createStatement(database);
+            statements.add(statement);
+
+            for (ForeignKeyConstraint foreignKey : statement.getForeignKeyConstraints()) {
+                AddColumnConfig column = new AddColumnConfig();
+                column.setName(foreignKey.getColumn());
+
+                statements.add(new CreateIndexStatement(
+                    DdmConstants.PREFIX_INDEX + foreignKey.getForeignKeyName(),
+                    null,
+                    null,
+                    getTableName(),
+                    false,
+                    null,
+                    column)
+                );
+            }
+
             generateClassifyDefaultValues(statements);
 
             if (Objects.nonNull(getDistribution())) {
