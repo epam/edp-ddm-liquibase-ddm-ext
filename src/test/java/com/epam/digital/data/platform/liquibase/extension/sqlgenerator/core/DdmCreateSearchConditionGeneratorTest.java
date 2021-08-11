@@ -382,13 +382,64 @@ class DdmCreateSearchConditionGeneratorTest {
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
-                "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
-                "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
-                "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column12 ON table1(column12);" +
-                "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+            "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
+            "\n\n" +
+            "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
+            "\n\n" +
+            "CREATE INDEX ix_$name$_table1_column12 ON table1(column12);" +
+            "\n\n" +
+            "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - indexing columns false")
+    public void validateSQLIndexingColumnsFalse() {
+        DdmColumnConfig column;
+        DdmTableConfig table;
+        DdmJoinConfig join;
+
+        table = new DdmTableConfig("table1");
+        table.setAlias("t1");
+
+        column = new DdmColumnConfig();
+        column.setName("column11");
+        column.setSearchType("equal");
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column12");
+        column.setSearchType("equal");
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        table = new DdmTableConfig("table2");
+        table.setAlias("t2");
+
+        column = new DdmColumnConfig();
+        column.setName("column21");
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column22");
+        column.setSearchType("equal");
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        join = new DdmJoinConfig();
+        join.setType("inner");
+        join.setLeftAlias("t1");
+        join.addLeftColumn("column11");
+        join.setRightAlias("t2");
+        join.addRightColumn("column21");
+        statement.addJoin(join);
+
+        statement.setIndexing(false);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
+            "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);", sqls[0].toSql());
     }
 
     @Test
@@ -433,8 +484,6 @@ class DdmCreateSearchConditionGeneratorTest {
         join.setRightAlias("t2");
         join.addRightColumn("column21");
         statement.addJoin(join);
-
-        statement.setIndexing(true);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
@@ -496,9 +545,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 text_pattern_ops);" +
+                "CREATE INDEX ix_$name$_table1_column11 ON table1 USING GIN (column11 gin_trgm_ops);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX ix_$name$_table2_column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -552,9 +601,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 bpchar_pattern_ops);\n" +
+                "CREATE INDEX ix_$name$_table1_column11 ON table1 USING GIN (column11 gin_trgm_ops);\n" +
                 "\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX ix_$name$_table2_column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
