@@ -7,9 +7,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
 
 
-    <changeSet author="registry owner" id="enum typ_dml">
-        <comment>CREATE TYPE typ_dml</comment>
-        <ext:createType name="typ_dml">
+    <changeSet author="registry owner" id="enum type_dml">
+        <comment>CREATE TYPE type_dml</comment>
+        <ext:createType name="type_dml">
             <ext:asEnum>
                 <ext:label translation="Внесено">I</ext:label>
                 <ext:label translation="Змінено">U</ext:label>

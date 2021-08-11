@@ -86,8 +86,8 @@
         <ext:subjectTable name="subject" column="subject_id" type="UUID"/>
 
         <ext:dcmColumns>
-            <ext:column name="dcm_classification" type="typ_classification[]"/>
-            <ext:column name="dcm_access_role" type="typ_access_role[]"/>
+            <ext:column name="dcm_classification" type="type_classification[]"/>
+            <ext:column name="dcm_access_role" type="type_access_role[]"/>
         </ext:dcmColumns>
 
     </ext:historyFlag>
