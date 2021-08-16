@@ -384,11 +384,11 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
             "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
             "\n\n" +
-            "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
+            "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11);" +
             "\n\n" +
-            "CREATE INDEX ix_$name$_table1_column12 ON table1(column12);" +
+            "CREATE INDEX IF NOT EXISTS ix_table1__column12 ON table1(column12);" +
             "\n\n" +
-            "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+            "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22);", sqls[0].toSql());
     }
 
     @Test
@@ -489,9 +489,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22);", sqls[0].toSql());
     }
 
     @Test
@@ -545,9 +545,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1 USING GIN (column11 gin_trgm_ops);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1 USING GIN (column11 gin_trgm_ops);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -601,9 +601,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1 USING GIN (column11 gin_trgm_ops);\n" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1 USING GIN (column11 gin_trgm_ops);\n" +
                 "\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -657,9 +657,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 text_pattern_ops);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11 text_pattern_ops);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -713,9 +713,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 bpchar_pattern_ops);\n" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11 bpchar_pattern_ops);\n" +
                 "\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
     }
 
     @Test

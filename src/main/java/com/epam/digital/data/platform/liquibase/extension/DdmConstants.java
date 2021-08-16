@@ -132,5 +132,7 @@ public class DdmConstants {
     public static final String OPERATOR_SIMILAR = "similar";  // ~
     public static final String OPERATOR_LIKE = "like";        // like
 
+    public static final Integer MAX_INDEX_NAME_LENGTH = 64;
+
     private DdmConstants() {}
 }

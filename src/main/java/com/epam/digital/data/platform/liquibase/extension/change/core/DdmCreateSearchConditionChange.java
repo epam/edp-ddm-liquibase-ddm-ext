@@ -97,6 +97,16 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
             }
         }
 
+        for (DdmTableConfig table : getTables()) {
+            for (DdmColumnConfig column : table.getColumns()) {
+                if (Objects.nonNull(column.getSearchType())
+                        && DdmUtils.getIndexName(table.getName(), column.getName()).length() >= DdmConstants.MAX_INDEX_NAME_LENGTH) {
+                    validationErrors.addWarning("For table: " + table.getName() + ", column: " + column.getName() +
+                        " name of index exceed length of 64 symbols.");
+                }
+            }
+        }
+
         return validationErrors;
     }
 
