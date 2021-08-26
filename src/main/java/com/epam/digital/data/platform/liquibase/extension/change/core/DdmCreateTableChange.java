@@ -243,24 +243,8 @@ public class DdmCreateTableChange extends CreateTableChange {
     }
 
     private void generateAccess(List<SqlStatement> statements, String table) {
-        StringBuilder buffer = new StringBuilder();
-
         statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + table + " FROM PUBLIC;"));
-
-        buffer.append("do $$");
-        buffer.append("begin");
-        buffer.append("  if exists(select 1 from pg_stat_replication) then");
-        buffer.append("    GRANT SELECT ON " + table + " TO application_role;");
-
-        if (historyTable.get()) {
-            buffer.append("  else");
-            buffer.append("    GRANT SELECT ON " + table + " TO historical_data_role;");
-        }
-
-        buffer.append("  end if;");
-        buffer.append("end; $$");
-
-        statements.add(new RawSqlStatement(buffer.toString()));
+        statements.add(new RawSqlStatement("GRANT SELECT ON " + table + " TO application_role;"));
     }
 
     @Override
