@@ -57,18 +57,11 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
                     buffer.append(column.getName());
                     buffer.append(" ON ");
                     buffer.append(table.getName());
-
-                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
-                        buffer.append(" USING GIN ");
-                    }
-
                     buffer.append("(");
 
                     String columnFormat = column.getName();
 
-                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
-                        columnFormat += " gin_trgm_ops";
-                    } else if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
+                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS) || column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
                         columnFormat += " ";
 
                         if (column.getType().equalsIgnoreCase(DdmConstants.TYPE_CHAR)) {
@@ -211,7 +204,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
 
         buffer.append(";");
 
-        if (!Boolean.FALSE.equals(statement.getIndexing())) {
+        if (Boolean.TRUE.equals(statement.getIndexing())) {
             buffer.append(generateIndexSql(statement.getName(), statement.getTables()));
         }
 
@@ -233,9 +226,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
             boolean hasExternalParenthesis = ((conditions.size() > 1) && Objects.nonNull(condition.getConditions()));
 
             if (Objects.nonNull(condition.getLogicOperator())) {
-                buffer.append(" ")
-                    .append(condition.getLogicOperator())
-                    .append(" ");
+                buffer.append(" " + condition.getLogicOperator() + " ");
             }
 
             if (hasExternalParenthesis) {
