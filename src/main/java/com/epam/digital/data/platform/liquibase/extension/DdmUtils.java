@@ -24,13 +24,10 @@ public class DdmUtils {
             database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_ATTRIBUTE_NAME) + ", " +
             database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_ATTRIBUTE_VALUE) +
             ") values (" +
-            DataTypeFactory.getInstance().fromObject(change_type, database).objectToSql(change_type, database) + ", " +
+            DataTypeFactory
+                .getInstance().fromObject(change_type, database).objectToSql(change_type, database) + ", " +
             DataTypeFactory.getInstance().fromObject(change_name, database).objectToSql(change_name, database) + ", " +
             DataTypeFactory.getInstance().fromObject(attributeName, database).objectToSql(attributeName, database) + ", " +
             DataTypeFactory.getInstance().fromObject(attributeValue, database).objectToSql(attributeValue, database) + ");\n\n";
-    }
-
-    public static String getIndexName(String tableName, String columnName) {
-        return DdmConstants.PREFIX_INDEX + tableName + "__" + columnName;
     }
 }

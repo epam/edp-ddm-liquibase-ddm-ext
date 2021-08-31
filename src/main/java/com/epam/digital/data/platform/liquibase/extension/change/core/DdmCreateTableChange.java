@@ -292,7 +292,7 @@ public class DdmCreateTableChange extends CreateTableChange {
                 column.setName(foreignKey.getColumn());
 
                 statements.add(new CreateIndexStatement(
-                    DdmConstants.PREFIX_INDEX + getTableName() + "_" + foreignKey.getReferencedTableName() + "__" + foreignKey.getColumn(),
+                    DdmConstants.PREFIX_INDEX + foreignKey.getForeignKeyName(),
                     null,
                     null,
                     getTableName(),

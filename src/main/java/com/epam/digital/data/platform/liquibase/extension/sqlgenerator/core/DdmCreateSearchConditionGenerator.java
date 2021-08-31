@@ -1,6 +1,5 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,8 +47,14 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
             for (DdmColumnConfig column : table.getColumns()) {
                 if (Objects.nonNull(column.getSearchType())) {
                     buffer.append("\n\n");
-                    buffer.append("CREATE INDEX IF NOT EXISTS ");
-                    buffer.append(DdmUtils.getIndexName(table.getName(), column.getName()));
+                    buffer.append("CREATE INDEX ");
+                    buffer.append(DdmConstants.PREFIX_INDEX);
+                    buffer.append("$");
+                    buffer.append(name);
+                    buffer.append("$_");
+                    buffer.append(table.getName());
+                    buffer.append("_");
+                    buffer.append(column.getName());
                     buffer.append(" ON ");
                     buffer.append(table.getName());
 
