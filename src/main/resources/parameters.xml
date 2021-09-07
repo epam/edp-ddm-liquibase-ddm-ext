@@ -52,7 +52,7 @@
                 scope="history"
                 nullable="true"/>
             <ext:column name="ddm_business_process_instance_id"
-                type="UUID"
+                type="TEXT"
                 scope="history"
                 nullable="true"/>
             <ext:column name="ddm_business_activity"
