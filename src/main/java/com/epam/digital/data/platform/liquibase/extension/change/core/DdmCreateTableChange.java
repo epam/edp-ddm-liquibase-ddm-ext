@@ -31,6 +31,7 @@ import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.sqlgenerator.SqlGeneratorFactory;
+import liquibase.statement.ColumnConstraint;
 import liquibase.statement.DatabaseFunction;
 import liquibase.statement.ForeignKeyConstraint;
 import liquibase.statement.NotNullConstraint;
@@ -200,7 +201,8 @@ public class DdmCreateTableChange extends CreateTableChange {
             if (!fieldExists(statement, parameters.getSubjectColumn())) {
                 statement.addColumn(
                     parameters.getSubjectColumn(),
-                    DataTypeFactory.getInstance().fromDescription(parameters.getSubjectColumnType(), database));
+                    DataTypeFactory.getInstance().fromDescription(parameters.getSubjectColumnType(), database),
+                    new ColumnConstraint[]{new NotNullConstraint(parameters.getSubjectColumn())});
             }
 
             if (!historyTable.get()) {

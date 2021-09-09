@@ -1,13 +1,16 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
+import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmReferenceTableStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import liquibase.Contexts;
-import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
 import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
 import liquibase.change.Change;
@@ -29,8 +32,6 @@ import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddDefaultValueStatement;
 import liquibase.statement.core.CreateIndexStatement;
 import liquibase.statement.core.CreateTableStatement;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmReferenceTableStatement;
 import liquibase.statement.core.DropPrimaryKeyStatement;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.statement.core.SetColumnRemarksStatement;
@@ -384,4 +385,22 @@ class DdmCreateTableChangeTest {
         Assertions.assertEquals(1, changeSets.size());
     }
 
+    @Test
+    @DisplayName("Check subject_id has 'not null' constraint")
+    public void checkSubjectIdNotNull() {
+        change.setHistoryFlag(true);
+        change.setIsObject(true);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+
+        List<CreateTableStatement> createTableStatements = Stream.of(statements)
+            .filter(x -> x instanceof CreateTableStatement)
+            .map(x -> (CreateTableStatement) x)
+            .collect(Collectors.toList());
+        Assertions.assertEquals(2, createTableStatements.size());
+
+        for (CreateTableStatement stm: createTableStatements) {
+            Assertions.assertTrue(stm.getNotNullColumns().containsKey("subject_id"));
+        }
+    }
 }
