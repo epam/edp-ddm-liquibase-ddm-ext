@@ -132,5 +132,8 @@ public class DdmConstants {
     public static final String OPERATOR_SIMILAR = "similar";  // ~
     public static final String OPERATOR_LIKE = "like";        // like
 
+    public static final String CONTEXT_PUB = "pub";
+    public static final String CONTEXT_SUB = "sub";
+
     private DdmConstants() {}
 }

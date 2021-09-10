@@ -43,11 +43,22 @@ import org.junit.jupiter.api.Test;
 
 class DdmCreateTableChangeTest {
     private DdmCreateTableChange change;
+    private ChangeLogParameters changeLogParameters;
 
     @BeforeEach
     void setUp() {
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+
+        changeLogParameters = new ChangeLogParameters();
+        changeLog.setChangeLogParameters(changeLogParameters);
+
+        ChangeSet changeSet = new ChangeSet(changeLog);
+
         change = new DdmCreateTableChange();
         change.setTableName("table");
+
+        changeSet.addChange(change);
+        changeLog.addChangeSet(changeSet);
 
         DdmColumnConfig column1 = new DdmColumnConfig();
         column1.setName("column1");
@@ -124,14 +135,73 @@ class DdmCreateTableChangeTest {
         change.setHistoryFlag(true);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(7, statements.length);
+        Assertions.assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
+    }
+
+    @Test
+    @DisplayName("Check statements - parameters PUB")
+    public void checkStatementsPub() {
+        change.setHistoryFlag(true);
+
+        Contexts contexts = new Contexts();
+        contexts.add("pub");
+        changeLogParameters.setContexts(contexts);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(7, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  // drop access
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  // grant app_role
         Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);  // drop access
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);  // grant app_role
+    }
+
+    @Test
+    @DisplayName("Check statements - parameters SUB")
+    public void checkStatementsSub() {
+        change.setHistoryFlag(true);
+
+        Contexts contexts = new Contexts();
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(6, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  // drop access
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  // grant hst_role
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);  // drop access
+    }
+
+    @Test
+    @DisplayName("Check statements - parameters PUB and SUB")
+    public void checkStatementsPubSub() {
+        change.setHistoryFlag(true);
+
+        Contexts contexts = new Contexts();
+        contexts.add("pub");
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(8, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  // drop access
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  // grant app_role
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  // grant hst_role
+        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);  // drop access
+        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);  // grant app_role
     }
 
     @Test
@@ -141,15 +211,13 @@ class DdmCreateTableChangeTest {
         change.setIsObject(true);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateIndexStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateIndexStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
     }
 
     @Test
@@ -159,14 +227,12 @@ class DdmCreateTableChangeTest {
         change.setDistribution("local");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(7, statements.length);
+        Assertions.assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
     }
 
     @Test
@@ -176,16 +242,14 @@ class DdmCreateTableChangeTest {
         change.setDistribution("distributeAll");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(9, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof DdmDistributeTableStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof DdmDistributeTableStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof DdmDistributeTableStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
@@ -195,15 +259,13 @@ class DdmCreateTableChangeTest {
         change.setDistribution("distributePrimary");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof DdmDistributeTableStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof DdmDistributeTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
     }
 
     @Test
@@ -213,15 +275,13 @@ class DdmCreateTableChangeTest {
         change.setDistribution("distributeHistory");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof DdmDistributeTableStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
     }
 
     @Test
@@ -231,16 +291,14 @@ class DdmCreateTableChangeTest {
         change.setDistribution("referenceAll");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(9, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof DdmReferenceTableStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof DdmReferenceTableStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof DdmReferenceTableStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
@@ -250,15 +308,13 @@ class DdmCreateTableChangeTest {
         change.setDistribution("referencePrimary");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof DdmReferenceTableStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof DdmReferenceTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
     }
 
     @Test
@@ -268,15 +324,13 @@ class DdmCreateTableChangeTest {
         change.setDistribution("referenceHistory");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(8, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof DdmReferenceTableStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
     }
 
     @Test
@@ -286,16 +340,14 @@ class DdmCreateTableChangeTest {
         change.setRemarks("remark");
 
         SqlStatement[] statements = change.generateStatements(new PostgresDatabase());
-        Assertions.assertEquals(9, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof SetTableRemarksStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof SetTableRemarksStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof SetTableRemarksStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
@@ -305,16 +357,14 @@ class DdmCreateTableChangeTest {
         change.getColumns().get(0).setRemarks("remark");
 
         SqlStatement[] statements = change.generateStatements(new PostgresDatabase());
-        Assertions.assertEquals(9, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof SetColumnRemarksStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[6] instanceof SetColumnRemarksStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof SetColumnRemarksStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
@@ -329,16 +379,14 @@ class DdmCreateTableChangeTest {
         change.setHistoryFlag(true);
 
         SqlStatement[] statements = change.generateStatements(new PostgresDatabase());
-        Assertions.assertEquals(9, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[5] instanceof CreateIndexStatement);
-        Assertions.assertTrue(statements[6] instanceof AddDefaultValueStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[8] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof CreateIndexStatement);
+        Assertions.assertTrue(statements[5] instanceof AddDefaultValueStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
@@ -368,7 +416,7 @@ class DdmCreateTableChangeTest {
         DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_CREATE_TABLE_FILE_NAME,
             new ChangeLogParameters(), resourceAccessor);
 
-        final List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
+        final List<ChangeSet> changeSets = new ArrayList<>();
 
         new ChangeLogIterator(changeLog).run(new ChangeSetVisitor() {
             @Override

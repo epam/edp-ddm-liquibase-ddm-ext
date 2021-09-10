@@ -244,9 +244,20 @@ public class DdmCreateTableChange extends CreateTableChange {
         }
     }
 
-    private void generateAccess(List<SqlStatement> statements, String table) {
-        statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + table + " FROM PUBLIC;"));
-        statements.add(new RawSqlStatement("GRANT SELECT ON " + table + " TO application_role;"));
+    private boolean hasContext(String context) {
+        return Boolean.TRUE.equals(this.getChangeSet().getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));
+    }
+
+    private void generateAccess(List<SqlStatement> statements, String tableName) {
+        statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + tableName + " FROM PUBLIC;"));
+
+        if (hasContext(DdmConstants.CONTEXT_PUB)) {
+            statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO application_role;"));
+        }
+
+        if (historyTable.get() && hasContext(DdmConstants.CONTEXT_SUB)) {
+            statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
+        }
     }
 
     @Override
