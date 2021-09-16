@@ -27,19 +27,12 @@ public class DdmDropSearchConditionGenerator extends AbstractSqlGenerator<DdmDro
         buffer.append(" where (").append(DdmConstants.METADATA_CHANGE_TYPE).append(" = '").append(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE).append("') and (");
         buffer.append(DdmConstants.METADATA_CHANGE_NAME).append(" = '").append(statement.getName()).append("');");
         buffer.append("\n\n");
-        buffer.append("do $$");
-        buffer.append("  declare");
-        buffer.append("    txt text; ");
-        buffer.append("begin");
-        buffer.append("  select");
-        buffer.append("    string_agg('drop index if exists ' || indexname, '; ') || ';'");
-        buffer.append("  into txt");
-        buffer.append("  from pg_indexes");
-        buffer.append("  where indexname like '").append(DdmConstants.PREFIX_INDEX).append("$").append(statement.getName()).append("$_%'; ");
-        buffer.append("  if txt is not null then");
-        buffer.append("    execute txt;");
-        buffer.append("  end if; ");
-        buffer.append("end; $$");
+        buffer.append("delete from ").append(DdmConstants.METADATA_TABLE);
+        buffer.append(" where (").append(DdmConstants.METADATA_CHANGE_TYPE).append(" = '").append(statement.getName()).append("');");
+        buffer.append("\n\n");
+        buffer.append("delete from ").append(DdmConstants.METADATA_TABLE);
+        buffer.append(" where (").append(DdmConstants.METADATA_ATTRIBUTE_NAME).append(" = '").append(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE).append("') and (");
+        buffer.append(DdmConstants.METADATA_ATTRIBUTE_VALUE).append(" = '").append(statement.getName()).append("');");
 
         return new Sql[]{
             new UnparsedSql(buffer.toString())

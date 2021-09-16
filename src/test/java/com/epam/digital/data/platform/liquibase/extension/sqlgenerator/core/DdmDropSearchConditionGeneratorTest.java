@@ -31,6 +31,9 @@ class DdmDropSearchConditionGeneratorTest {
                 "\n\n" +
                 "delete from ddm_liquibase_metadata where (change_type = 'searchCondition') and (change_name = 'name');" +
                 "\n\n" +
-                "do $$  declare    txt text; begin  select    string_agg('drop index if exists ' || indexname, '; ') || ';'  into txt  from pg_indexes  where indexname like 'ix_$name$_%';   if txt is not null then    execute txt;  end if; end; $$", sqls[0].toSql());
+                "delete from ddm_liquibase_metadata where (change_type = 'name');" +
+                "\n\n" +
+                "delete from ddm_liquibase_metadata where (attribute_name = 'searchCondition') and (attribute_value = 'name');"
+            , sqls[0].toSql());
     }
 }
