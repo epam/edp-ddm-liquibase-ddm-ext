@@ -1,6 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension;
 
 import liquibase.change.ColumnConfig;
+import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.datatype.DataTypeFactory;
 import liquibase.statement.core.InsertStatement;
@@ -29,5 +30,9 @@ public class DdmUtils {
             DataTypeFactory.getInstance().fromObject(change_name, database).objectToSql(change_name, database) + ", " +
             DataTypeFactory.getInstance().fromObject(attributeName, database).objectToSql(attributeName, database) + ", " +
             DataTypeFactory.getInstance().fromObject(attributeValue, database).objectToSql(attributeValue, database) + ");\n\n";
+    }
+
+    public static boolean hasContext(ChangeSet changeSet, String context) {
+        return Boolean.TRUE.equals(changeSet.getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));
     }
 }

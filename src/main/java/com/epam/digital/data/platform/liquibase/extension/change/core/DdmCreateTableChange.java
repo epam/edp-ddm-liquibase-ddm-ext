@@ -1,5 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -244,18 +245,14 @@ public class DdmCreateTableChange extends CreateTableChange {
         }
     }
 
-    private boolean hasContext(String context) {
-        return Boolean.TRUE.equals(this.getChangeSet().getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));
-    }
-
     private void generateAccess(List<SqlStatement> statements, String tableName) {
         statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + tableName + " FROM PUBLIC;"));
 
-        if (hasContext(DdmConstants.CONTEXT_PUB)) {
+        if (DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_PUB)) {
             statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO application_role;"));
         }
 
-        if (historyTable.get() && hasContext(DdmConstants.CONTEXT_SUB)) {
+        if (historyTable.get() && DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_SUB)) {
             statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
         }
     }
@@ -263,7 +260,7 @@ public class DdmCreateTableChange extends CreateTableChange {
     @Override
     public SqlStatement[] generateStatements(Database database) {
         if (Boolean.TRUE.equals(getHistoryFlag())) {
-            List<SqlStatement> statements = new ArrayList();
+            List<SqlStatement> statements = new ArrayList<>();
 
             historyTable.set(true);
 

@@ -36,10 +36,21 @@ import java.util.Set;
 
 class DdmCreateSearchConditionChangeTest {
     private DdmCreateSearchConditionChange change;
+    private ChangeLogParameters changeLogParameters;
 
     @BeforeEach
     void setUp() {
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+
+        changeLogParameters = new ChangeLogParameters();
+        changeLog.setChangeLogParameters(changeLogParameters);
+
+        ChangeSet changeSet = new ChangeSet(changeLog);
+
         change = new DdmCreateSearchConditionChange();
+
+        changeSet.addChange(change);
+        changeLog.addChangeSet(changeSet);
     }
 
     @Test
@@ -155,10 +166,21 @@ class DdmCreateSearchConditionChangeTest {
     @Test
     @DisplayName("Validate change - search column is not defined")
     public void validateChangeIndexingColumn() {
-        change = new DdmCreateSearchConditionChange("name");
-        change.setLimit("all");
-        change.setIndexing(true);
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        DatabaseChangeLog changeLog1 = new DatabaseChangeLog("path");
+
+        ChangeLogParameters changeLogParameters1 = new ChangeLogParameters();
+        changeLog1.setChangeLogParameters(changeLogParameters1);
+
+        ChangeSet changeSet1 = new ChangeSet(changeLog1);
+
+        DdmCreateSearchConditionChange change1 = new DdmCreateSearchConditionChange("name");
+
+        changeSet1.addChange(change1);
+        changeLog1.addChangeSet(changeSet1);
+
+        change1.setLimit("all");
+        change1.setIndexing(true);
+        Assertions.assertEquals(1, change1.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -211,6 +233,27 @@ class DdmCreateSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - parameters SUB")
+    public void checkStatementsSub() {
+        Contexts contexts = new Contexts();
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
+
+        DdmTableConfig table = new DdmTableConfig("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        table.addColumn(column);
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(4, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[3] instanceof InsertStatement);  //  column or alias
+    }
+
+    @Test
     @DisplayName("Check load")
     public void checkLoad() throws ChangeLogParseException, Exception {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
@@ -218,7 +261,7 @@ class DdmCreateSearchConditionChangeTest {
         DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_CREATE_SEARCH_CONDITION_FILE_NAME,
                 new ChangeLogParameters(), resourceAccessor);
 
-        final List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
+        final List<ChangeSet> changeSets = new ArrayList<>();
 
         new ChangeLogIterator(changeLog).run(new ChangeSetVisitor() {
             @Override

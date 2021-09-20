@@ -119,6 +119,10 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
         statements.add(statement);
         statements.add(new RawSqlStatement("GRANT SELECT ON " + statement.getViewName() + " TO application_role;"));
 
+        if (DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_SUB)) {
+            statements.add(new RawSqlStatement("GRANT SELECT ON " + statement.getViewName() + " TO analytics_admin;"));
+        }
+
         //  create insert statements for metadata table
         for (DdmTableConfig table : getTables()) {
             for (DdmColumnConfig column : table.getColumns()) {
