@@ -19,9 +19,9 @@ class DdmDistributeTableChangeTest {
     @Test
     @DisplayName("Check statements")
     public void checkStatements() {
-        change.setScope("");
+        change.setScope("all");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
+        Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmDistributeTableStatement);
     }
 
@@ -56,7 +56,7 @@ class DdmDistributeTableChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
-        change.setScope("");
+        change.setScope("all");
         change.setTableName("name");
         change.setDistributionColumn("column");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
@@ -65,7 +65,7 @@ class DdmDistributeTableChangeTest {
     @Test
     @DisplayName("Validate change - tableName is required")
     public void validateChangeName() {
-        change.setScope("");
+        change.setScope("all");
         change.setDistributionColumn("column");
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -73,7 +73,7 @@ class DdmDistributeTableChangeTest {
     @Test
     @DisplayName("Validate change - distributionColumn is required")
     public void validateChangeType() {
-        change.setScope("");
+        change.setScope("all");
         change.setTableName("name");
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }

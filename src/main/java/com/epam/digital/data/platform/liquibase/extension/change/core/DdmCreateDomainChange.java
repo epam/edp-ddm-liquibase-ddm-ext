@@ -113,7 +113,7 @@ public class DdmCreateDomainChange extends AbstractChange {
         this.defaultValue = defaultValue;
     }
 
-    @DatabaseChangeProperty(requiredForDatabase = "all")
+    @DatabaseChangeProperty()
     public List<DdmDomainConstraintConfig> getConstraints() {
         if (constraints == null) {
             return new ArrayList<>();
@@ -139,7 +139,7 @@ public class DdmCreateDomainChange extends AbstractChange {
         super.load(parsedNode, resourceAccessor);
 
         for (ParsedNode child : parsedNode.getChildren()) {
-            if (child.getName() == "constraint") {
+            if ("constraint".equalsIgnoreCase(child.getName())) {
                 String cName = child.getChildValue(null, "name", String.class);
                 String cImplementation = child.getChildValue(null, "implementation", String.class);
 
