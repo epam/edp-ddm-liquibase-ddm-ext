@@ -48,10 +48,16 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
         StringBuilder buffer = new StringBuilder();
 
         buffer.append("SELECT ");
-        buffer.append(statement.getMainTableName() + "." + statement.getMainTableKeyField());
-        buffer.append(", UNNEST(" + statement.getMainTableName() + "." + statement.getReferenceKeysArray() + ")");
+        buffer.append(statement.getMainTableName())
+            .append(".")
+            .append(statement.getMainTableKeyField());
+        buffer.append(", UNNEST(")
+            .append(statement.getMainTableName())
+            .append(".")
+            .append(statement.getReferenceKeysArray())
+            .append(")");
         buffer.append(" AS ");
-        buffer.append(statement.getReferenceTableName() + DdmConstants.SUFFIX_ID);
+        buffer.append(getColumnId(statement.getReferenceTableName()));
 
         if (!statement.getMainTableColumns().isEmpty()) {
             buffer.append(", ");
@@ -60,6 +66,51 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
 
         buffer.append(" FROM ");
         buffer.append(statement.getMainTableName());
+
+        return buffer;
+    }
+
+    private String getColumnId(String tableName) {
+        return tableName + DdmConstants.SUFFIX_ID;
+    }
+
+
+    private StringBuilder getTriggerSql(DdmCreateMany2ManyStatement statement) {
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("CREATE TRIGGER ");
+        buffer.append("trg_")
+            .append(statement.getReferenceTableName())
+            .append("_integrity_")
+            .append(statement.getMainTableName())
+            .append("_")
+            .append(statement.getReferenceKeysArray());
+        buffer.append(" BEFORE UPDATE OR DELETE ON ")
+            .append(statement.getReferenceTableName());
+        buffer.append(" FOR EACH ROW");
+        buffer.append(" EXECUTE FUNCTION f_trg_check_m2m_integrity('")
+            .append(getColumnId(statement.getReferenceTableName()))
+            .append("', '")
+            .append(statement.getMainTableName())
+            .append("', '")
+            .append(statement.getReferenceKeysArray())
+            .append("');");
+
+        return buffer;
+    }
+
+    private StringBuilder getIndexSql(DdmCreateMany2ManyStatement statement) {
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("CREATE INDEX ");
+        buffer.append(DdmConstants.PREFIX_INDEX)
+            .append(statement.getName())
+            .append(DdmConstants.SUFFIX_M2M);
+        buffer.append(" ON ");
+        buffer.append(statement.getMainTableName());
+        buffer.append(" USING gin(")
+            .append(statement.getReferenceKeysArray())
+            .append(");");
 
         return buffer;
     }
@@ -77,8 +128,11 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
             buffer.append(getMainSql(statement));
             buffer.append(") ");
             buffer.append("SELECT ");
-            buffer.append("main_cte." + statement.getMainTableKeyField() + ", ");
-            buffer.append("main_cte." + statement.getReferenceTableName() + DdmConstants.SUFFIX_ID);
+            buffer.append("main_cte.")
+                .append(statement.getMainTableKeyField())
+                .append(", ");
+            buffer.append("main_cte.")
+                .append(getColumnId(statement.getReferenceTableName()));
 
             if (!statement.getMainTableColumns().isEmpty()) {
                 buffer.append(", ");
@@ -90,7 +144,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
             buffer.append(" FROM main_cte");
             buffer.append(" JOIN ").append(statement.getReferenceTableName());
             buffer.append(" USING (");
-            buffer.append(statement.getReferenceTableName() + DdmConstants.SUFFIX_ID);
+            buffer.append(getColumnId(statement.getReferenceTableName()));
             buffer.append(")");
         } else {
             buffer.append(getMainSql(statement));
@@ -99,16 +153,10 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
         buffer.append(";");
 
         buffer.append("\n\n");
+        buffer.append(getIndexSql(statement));
 
-        buffer.append("CREATE INDEX ");
-        buffer.append(DdmConstants.PREFIX_INDEX);
-        buffer.append(statement.getName());
-        buffer.append(DdmConstants.SUFFIX_M2M);
-        buffer.append(" ON ");
-        buffer.append(statement.getMainTableName());
-        buffer.append(" USING gin(");
-        buffer.append(statement.getReferenceKeysArray());
-        buffer.append(");");
+        buffer.append("\n\n");
+        buffer.append(getTriggerSql(statement));
 
         return new Sql[] {
             new UnparsedSql(buffer.toString())
