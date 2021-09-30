@@ -19,6 +19,7 @@ class DdmTruncateLocalDataAfterDistributingTableChangeTest {
     @Test
     @DisplayName("Check statements")
     public void checkStatements() {
+        change.setScope("");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(1, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmTruncateLocalDataAfterDistributingTableStatement);
@@ -55,7 +56,7 @@ class DdmTruncateLocalDataAfterDistributingTableChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
-        change.setScope("all");
+        change.setScope("");
         change.setTableName("name");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -63,7 +64,7 @@ class DdmTruncateLocalDataAfterDistributingTableChangeTest {
     @Test
     @DisplayName("Validate change - tableName is required")
     public void validateChangeName() {
-        change.setScope("all");
+        change.setScope("");
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
