@@ -1,5 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import java.util.Objects;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
@@ -9,7 +10,6 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.DdmPair;
 import liquibase.change.AbstractChange;
 import liquibase.change.ChangeMetaData;
-import liquibase.change.ColumnConfig;
 import liquibase.change.DatabaseChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
@@ -18,7 +18,6 @@ import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.DeleteStatement;
-import liquibase.statement.core.InsertStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,25 +79,6 @@ public class DdmRbacChange extends AbstractChange {
         return validationErrors;
     }
 
-    private InsertStatement insertTableAccess(String role, String table, String operation) {
-        InsertStatement insertStatement= new InsertStatement(null, null, DdmConstants.ROLE_PERMISSION_TABLE);
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_ROLE_NAME).setValue(role));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_OBJECT_NAME).setValue(table));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_OPERATION).setValue(operation));
-
-        return insertStatement;
-    }
-
-    private InsertStatement insertColumnAccess(String role, String table, String column, String operation) {
-        InsertStatement insertStatement= new InsertStatement(null, null, DdmConstants.ROLE_PERMISSION_TABLE);
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_ROLE_NAME).setValue(role));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_OBJECT_NAME).setValue(table));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_COLUMN_NAME).setValue(column));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.ROLE_PERMISSION_OPERATION).setValue(operation));
-
-        return insertStatement;
-    }
-
     @Override
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>();
@@ -107,28 +87,28 @@ public class DdmRbacChange extends AbstractChange {
         for (DdmRoleConfig role : getRoles()) {
             for (DdmTableConfig table : role.getTables()) {
                 if (Boolean.TRUE.equals(table.getRoleCanInsert())) {
-                    statements.add(insertTableAccess(role.getName(), table.getName(), "I"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "I"));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanDelete())) {
-                    statements.add(insertTableAccess(role.getName(), table.getName(), "D"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "D"));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanRead())) {
-                    statements.add(insertTableAccess(role.getName(), table.getName(), "S"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "S"));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanUpdate())) {
-                    statements.add(insertTableAccess(role.getName(), table.getName(), "U"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "U"));
                 }
 
                 for (DdmColumnConfig column : table.getColumns()) {
                     if (Boolean.TRUE.equals(column.getRoleCanRead())) {
-                        statements.add(insertColumnAccess(role.getName(), table.getName(), column.getName(), "S"));
+                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "S"));
                     }
 
                     if (Boolean.TRUE.equals(column.getRoleCanUpdate())) {
-                        statements.add(insertColumnAccess(role.getName(), table.getName(), column.getName(), "U"));
+                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "U"));
                     }
                 }
             }

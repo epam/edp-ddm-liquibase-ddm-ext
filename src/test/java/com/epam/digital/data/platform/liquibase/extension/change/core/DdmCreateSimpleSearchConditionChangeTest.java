@@ -5,7 +5,7 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
-import liquibase.statement.core.InsertStatement;
+import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ class DdmCreateSimpleSearchConditionChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
-        Assertions.assertTrue(statements[1] instanceof InsertStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
     }
 
     @Test
@@ -52,7 +52,7 @@ class DdmCreateSimpleSearchConditionChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
-        Assertions.assertTrue(statements[1] instanceof InsertStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
     }
 
     @Test
@@ -69,7 +69,7 @@ class DdmCreateSimpleSearchConditionChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
-        Assertions.assertTrue(statements[1] instanceof InsertStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
     }
 
     @Test
@@ -87,7 +87,7 @@ class DdmCreateSimpleSearchConditionChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
-        Assertions.assertTrue(statements[1] instanceof InsertStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
     }
 
     @Test

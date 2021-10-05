@@ -20,7 +20,6 @@ import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSearchConditionStatement;
-import liquibase.statement.core.InsertStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,8 +99,8 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
         return validationErrors;
     }
 
-    private InsertStatement insertSearchConditionMetadata(String attributeName, String attributeValue) {
-        return DdmUtils.insertMetadata(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), attributeName, attributeValue);
+    private RawSqlStatement insertSearchConditionMetadata(String attributeName, String attributeValue) {
+        return DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), attributeName, attributeValue);
     }
 
     @Override
@@ -129,7 +128,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
                 statements.add(insertSearchConditionMetadata(DdmConstants.ATTRIBUTE_COLUMN, column.getNameOrAlias()));
 
                 if (Boolean.TRUE.equals(column.getReturning())) {
-                    statements.add(DdmUtils.insertMetadata(getName(), table.getName(), column.getName(), column.getNameOrAlias()));
+                    statements.add(DdmUtils.insertMetadataSql(getName(), table.getName(), column.getName(), column.getNameOrAlias()));
                 }
 
                 if (Objects.nonNull(column.getSearchType())) {

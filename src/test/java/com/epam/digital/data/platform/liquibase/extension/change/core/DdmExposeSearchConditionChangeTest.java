@@ -4,7 +4,7 @@ import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
-import liquibase.statement.core.InsertStatement;
+import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ class DdmExposeSearchConditionChangeTest {
         change.setName("name");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof InsertStatement);
+        Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
     }
 
     @Test

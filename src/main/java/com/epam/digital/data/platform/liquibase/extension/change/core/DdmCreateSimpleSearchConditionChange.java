@@ -2,17 +2,19 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
-import liquibase.change.*;
+import liquibase.change.AbstractChange;
+import liquibase.change.ChangeMetaData;
+import liquibase.change.DatabaseChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.statement.SqlStatement;
-import liquibase.statement.core.InsertStatement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,10 +73,6 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
         //  create insert statement for metadata table
         if (!Objects.isNull(statement.getSearchColumn()) && !isNull(statement.getSearchColumn().getSearchType())) {
-            InsertStatement insertStatement = new InsertStatement(null, null, DdmConstants.METADATA_TABLE);
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_TYPE).setValue(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE));
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_NAME).setValue(getName()));
-
             String val;
             if (getSearchColumn().getSearchType().equals(DdmConstants.ATTRIBUTE_EQUAL)) {
                 val = DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
@@ -84,20 +82,11 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
                 val = DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
             }
 
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_NAME).setValue(val));
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_VALUE).setValue(getSearchColumn().getName()));
-
-            statements.add(insertStatement);
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), val, getSearchColumn().getName()));
         }
 
         if (!DdmParameters.isNull(getLimit()) && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
-            InsertStatement insertStatement = new InsertStatement(null, null, DdmConstants.METADATA_TABLE);
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_TYPE).setValue(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE));
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_NAME).setValue(getName()));
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_NAME).setValue(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT));
-            insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_VALUE).setValue(getLimit()));
-
-            statements.add(insertStatement);
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
         }
 
         return statements.toArray(new SqlStatement[statements.size()]);

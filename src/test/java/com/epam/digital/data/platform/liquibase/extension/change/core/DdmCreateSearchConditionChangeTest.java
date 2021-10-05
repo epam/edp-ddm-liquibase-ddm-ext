@@ -78,9 +78,9 @@ class DdmCreateSearchConditionChangeTest {
         Assertions.assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[2] instanceof InsertStatement);  //  column or alias
-        Assertions.assertTrue(statements[3] instanceof InsertStatement);  //  mapping column
-        Assertions.assertTrue(statements[4] instanceof InsertStatement);  //  searchType
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  searchType
     }
 
     @Test
@@ -99,10 +99,10 @@ class DdmCreateSearchConditionChangeTest {
         Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[2] instanceof InsertStatement);  //  column or alias
-        Assertions.assertTrue(statements[3] instanceof InsertStatement);  //  mapping column
-        Assertions.assertTrue(statements[4] instanceof InsertStatement);  //  searchType
-        Assertions.assertTrue(statements[5] instanceof InsertStatement);  //  limit
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  searchType
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);  //  limit
     }
 
     @Test
@@ -227,9 +227,9 @@ class DdmCreateSearchConditionChangeTest {
         Assertions.assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[2] instanceof InsertStatement);  //  column or alias
-        Assertions.assertTrue(statements[3] instanceof InsertStatement);  //  mapping column
-        Assertions.assertTrue(statements[4] instanceof InsertStatement);  //  pagination
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  pagination
     }
 
     @Test
@@ -250,7 +250,7 @@ class DdmCreateSearchConditionChangeTest {
         Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[3] instanceof InsertStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  column or alias
     }
 
     @Test

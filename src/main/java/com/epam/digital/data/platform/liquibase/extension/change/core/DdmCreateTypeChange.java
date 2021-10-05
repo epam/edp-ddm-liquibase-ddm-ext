@@ -48,7 +48,7 @@ public class DdmCreateTypeChange extends AbstractChange {
         statements.add(statement);
 
         if (asEnum != null) {
-            statements.addAll(generateMetadataStatements());
+            statements.addAll(generateMetadataStatements(database));
         }
 
         return statements.toArray(new SqlStatement[statements.size()]);
@@ -58,14 +58,14 @@ public class DdmCreateTypeChange extends AbstractChange {
         return new DdmCreateTypeStatement(getName(), getAsComposite(), getAsEnum());
     }
 
-    private List<SqlStatement> generateMetadataStatements() {
+    private List<SqlStatement> generateMetadataStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>();
 
         for (DdmLabelConfig label : asEnum.getLabels()) {
-            statements.add(DdmUtils.insertMetadata(DdmConstants.TYPE_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.TYPE_METADATA_ATTRIBUTE_NAME_LABEL, label.getLabel()));
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.TYPE_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.TYPE_METADATA_ATTRIBUTE_NAME_LABEL, label.getLabel()));
 
             //  add translation
-            statements.add(DdmUtils.insertMetadata(DdmConstants.TYPE_METADATA_ATTRIBUTE_NAME_LABEL, getName(), label.getLabel(), label.getTranslation()));
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.TYPE_METADATA_ATTRIBUTE_NAME_LABEL, getName(), label.getLabel(), label.getTranslation()));
         }
 
         return statements;

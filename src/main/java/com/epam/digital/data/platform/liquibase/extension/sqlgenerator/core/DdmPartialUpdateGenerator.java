@@ -51,7 +51,7 @@ public class DdmPartialUpdateGenerator extends AbstractSqlGenerator<DdmPartialUp
 
         for (DdmTableConfig table : statement.getTables()) {
             for (DdmColumnConfig column : table.getColumns()) {
-                buffer.append(DdmUtils.insertMetadataSql("partialUpdate", statement.getName(), table.getName(), column.getName(), database));
+                buffer.append(DdmUtils.insertMetadataSql("partialUpdate", statement.getName(), table.getName(), column.getName()));
             }
         }
 

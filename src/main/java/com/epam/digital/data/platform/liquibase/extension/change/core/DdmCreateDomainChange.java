@@ -1,7 +1,11 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.change.DdmDomainConstraintConfig;
-import liquibase.change.*;
+import liquibase.change.AbstractChange;
+import liquibase.change.Change;
+import liquibase.change.ChangeMetaData;
+import liquibase.change.DatabaseChange;
+import liquibase.change.DatabaseChangeProperty;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.parser.core.ParsedNode;
@@ -113,7 +117,7 @@ public class DdmCreateDomainChange extends AbstractChange {
         this.defaultValue = defaultValue;
     }
 
-    @DatabaseChangeProperty(requiredForDatabase = "all")
+    @DatabaseChangeProperty()
     public List<DdmDomainConstraintConfig> getConstraints() {
         if (constraints == null) {
             return new ArrayList<>();
@@ -139,7 +143,7 @@ public class DdmCreateDomainChange extends AbstractChange {
         super.load(parsedNode, resourceAccessor);
 
         for (ParsedNode child : parsedNode.getChildren()) {
-            if (child.getName() == "constraint") {
+            if ("constraint".equals(child.getName())) {
                 String cName = child.getChildValue(null, "name", String.class);
                 String cImplementation = child.getChildValue(null, "implementation", String.class);
 

@@ -86,7 +86,7 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
     @Override
     public SqlStatement[] generateStatements(Database database) {
         return new SqlStatement[]{
-            DdmUtils.insertMetadata(DdmConstants.ATTRIBUTE_EXPOSE, getConsumer(), DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName())
+            DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, getConsumer(), DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName())
         };
     }
 

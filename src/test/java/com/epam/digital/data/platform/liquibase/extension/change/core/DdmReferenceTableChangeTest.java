@@ -17,15 +17,6 @@ class DdmReferenceTableChangeTest {
     }
 
     @Test
-    @DisplayName("Check statements")
-    public void checkStatements() {
-        change.setScope("");
-        SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmReferenceTableStatement);
-    }
-
-    @Test
     @DisplayName("Check statements - scope=all")
     public void checkStatementsAll() {
         change.setScope("all");
@@ -56,7 +47,7 @@ class DdmReferenceTableChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
-        change.setScope("");
+        change.setScope("all");
         change.setTableName("name");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -64,7 +55,7 @@ class DdmReferenceTableChangeTest {
     @Test
     @DisplayName("Validate change - tableName is required")
     public void validateChangeName() {
-        change.setScope("");
+        change.setScope("all");
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 

@@ -1,35 +1,35 @@
 package com.epam.digital.data.platform.liquibase.extension;
 
-import liquibase.change.ColumnConfig;
+import java.util.Objects;
 import liquibase.changelog.ChangeSet;
-import liquibase.database.Database;
-import liquibase.datatype.DataTypeFactory;
-import liquibase.statement.core.InsertStatement;
+import liquibase.statement.core.RawSqlStatement;
 
 public class DdmUtils {
 
-    public static InsertStatement insertMetadata(String change_type, String change_name, String attributeName, String attributeValue) {
-        InsertStatement insertStatement = new InsertStatement(null, null, DdmConstants.METADATA_TABLE);
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_TYPE).setValue(change_type));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_CHANGE_NAME).setValue(change_name));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_NAME).setValue(attributeName));
-        insertStatement.addColumn(new ColumnConfig().setName(DdmConstants.METADATA_ATTRIBUTE_VALUE).setValue(attributeValue));
-
-        return insertStatement;
+    public static RawSqlStatement insertMetadataSql(String changeType, String changeName, String attributeName, String attributeValue) {
+        return new RawSqlStatement("insert into " + DdmConstants.METADATA_TABLE + "(" +
+            DdmConstants.METADATA_CHANGE_TYPE + ", " +
+            DdmConstants.METADATA_CHANGE_NAME + ", " +
+            DdmConstants.METADATA_ATTRIBUTE_NAME + ", " +
+            DdmConstants.METADATA_ATTRIBUTE_VALUE +
+            ") values (" +
+            "'" + changeType + "', " +
+            "'" + changeName + "', " +
+            "'" + attributeName + "', " +
+            "'" + attributeValue + "');\n\n");
     }
 
-    public static String insertMetadataSql(String change_type, String change_name, String attributeName, String attributeValue, Database database) {
-        return "insert into " + database.escapeTableName(null, null, DdmConstants.METADATA_TABLE) + "(" +
-            database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_CHANGE_TYPE) + ", " +
-            database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_CHANGE_NAME) + ", " +
-            database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_ATTRIBUTE_NAME) + ", " +
-            database.escapeColumnName(null, null, DdmConstants.METADATA_TABLE, DdmConstants.METADATA_ATTRIBUTE_VALUE) +
+    public static RawSqlStatement insertRolePermissionSql(String role, String table, String column, String operation) {
+        return new RawSqlStatement("insert into " + DdmConstants.ROLE_PERMISSION_TABLE + "(" +
+            DdmConstants.ROLE_PERMISSION_ROLE_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_OBJECT_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_COLUMN_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_OPERATION +
             ") values (" +
-            DataTypeFactory
-                .getInstance().fromObject(change_type, database).objectToSql(change_type, database) + ", " +
-            DataTypeFactory.getInstance().fromObject(change_name, database).objectToSql(change_name, database) + ", " +
-            DataTypeFactory.getInstance().fromObject(attributeName, database).objectToSql(attributeName, database) + ", " +
-            DataTypeFactory.getInstance().fromObject(attributeValue, database).objectToSql(attributeValue, database) + ");\n\n";
+            "'" + role + "', " +
+            "'" + table + "', " +
+            (Objects.isNull(column) ? "null" : "'" + column + "'") + ", " +
+            "'" + operation + "');\n\n");
     }
 
     public static boolean hasContext(ChangeSet changeSet, String context) {
