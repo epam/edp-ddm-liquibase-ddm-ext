@@ -17,10 +17,10 @@ import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.statement.SqlStatement;
-import liquibase.statement.core.DeleteStatement;
 
 import java.util.ArrayList;
 import java.util.List;
+import liquibase.statement.core.RawSqlStatement;
 
 /**
  * Creates a new RBAC.
@@ -82,7 +82,7 @@ public class DdmRbacChange extends AbstractChange {
     @Override
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>();
-        statements.add(new DeleteStatement(null, null, DdmConstants.ROLE_PERMISSION_TABLE));
+        statements.add(new RawSqlStatement("DELETE FROM " + DdmConstants.ROLE_PERMISSION_TABLE));
 
         for (DdmRoleConfig role : getRoles()) {
             for (DdmTableConfig table : role.getTables()) {

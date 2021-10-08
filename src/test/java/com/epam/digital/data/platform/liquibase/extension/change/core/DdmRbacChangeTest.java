@@ -5,7 +5,9 @@ import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmRoleConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
-import liquibase.*;
+import liquibase.Contexts;
+import liquibase.LabelExpression;
+import liquibase.RuntimeEnvironment;
 import liquibase.changelog.ChangeLogIterator;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
@@ -18,7 +20,6 @@ import liquibase.exception.ChangeLogParseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
-import liquibase.statement.core.DeleteStatement;
 import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,7 @@ class DdmRbacChangeTest {
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(5, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DeleteStatement);
+        Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
@@ -92,7 +93,7 @@ class DdmRbacChangeTest {
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(3, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DeleteStatement);
+        Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
     }
@@ -132,7 +133,7 @@ class DdmRbacChangeTest {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
         DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
         DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_RBAC_FILE_NAME,
-                new ChangeLogParameters(), resourceAccessor);
+            new ChangeLogParameters(), resourceAccessor);
 
         final List<ChangeSet> changeSets = new ArrayList<>();
 
