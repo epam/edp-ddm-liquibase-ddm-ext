@@ -44,7 +44,7 @@ import java.sql.Statement;
 public class DdmAddColumnChange extends AddColumnChange {
 
     private Boolean historyFlag;
-    private DdmParameters parameters = new DdmParameters();;
+    private DdmParameters parameters = new DdmParameters();
     private Boolean isHistoryTable = false;
     private SnapshotGeneratorFactory snapshotGeneratorFactory;
 
@@ -86,7 +86,7 @@ public class DdmAddColumnChange extends AddColumnChange {
             try {
                 statement = ((JdbcConnection) database.getConnection()).createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
-                String sql = "SELECT " + DdmConstants.METADATA_ATTRIBUTE_VALUE + " FROM " + database.escapeTableName(null, null, DdmConstants.METADATA_TABLE) +
+                String sql = "SELECT " + DdmConstants.METADATA_ATTRIBUTE_VALUE + " FROM " + DdmConstants.METADATA_TABLE +
                     " WHERE " + DdmConstants.METADATA_CHANGE_TYPE + " = '" + DdmConstants.VERSIONING_METADATA_CHANGE_TYPE_VALUE + "'" +
                     " AND " + DdmConstants.METADATA_CHANGE_NAME + " = '" + DdmConstants.VERSIONING_METADATA_CHANGE_NAME_VALUE + "'" +
                     " AND " + DdmConstants.METADATA_ATTRIBUTE_NAME + " = '" + DdmConstants.VERSIONING_METADATA_ATTRIBUTE_NAME_CURRENT + "'";

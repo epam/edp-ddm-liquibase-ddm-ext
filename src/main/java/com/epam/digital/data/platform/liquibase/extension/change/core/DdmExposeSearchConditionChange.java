@@ -55,7 +55,7 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
             try {
                 statement = ((JdbcConnection) database.getConnection()).createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
-                String sql = "SELECT " + DdmConstants.METADATA_CHANGE_NAME + " FROM " + database.escapeTableName(null, null, DdmConstants.METADATA_TABLE) +
+                String sql = "SELECT " + DdmConstants.METADATA_CHANGE_NAME + " FROM " + DdmConstants.METADATA_TABLE +
                     " WHERE " + DdmConstants.METADATA_CHANGE_TYPE + " = '" + DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE + "'" +
                     " AND " + DdmConstants.METADATA_CHANGE_NAME + " = '" + getName() + "';";
 
