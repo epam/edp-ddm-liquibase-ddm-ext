@@ -160,22 +160,18 @@ public class DdmAddColumnChange extends AddColumnChange {
                     }
                 }
 
-                statements.add(statement);
-
+                statement.getUniqueConstraints().clear();
                 for (UniqueConstraint uniqueConstraint : snapshotTable.getUniqueConstraints()) {
-                    List<String> columns = new ArrayList<>();
+                    liquibase.statement.UniqueConstraint uc = new liquibase.statement.UniqueConstraint(uniqueConstraint.getName());
 
                     for (Column column : uniqueConstraint.getColumns()) {
-                        columns.add(column.getName());
+                        uc.addColumns(column.getName());
                     }
 
-                    statements.add(new AddUniqueConstraintStatement(null,
-                        null,
-                        snapshotTable.getName(),
-                        ColumnConfig.arrayFromNames(String.join(", ", columns)),
-                        uniqueConstraint.getName()));
+                    statement.addColumnConstraint(uc);
                 }
 
+                statements.add(statement);
                 statements.add(new RawSqlStatement("CALL p_init_new_hist_table('" + newTableName + "', '" + snapshotTable.getName() + "');"));
                 statements.add(new RawSqlStatement("ALTER TABLE " + newTableName + " SET SCHEMA archive;"));
             }

@@ -87,7 +87,7 @@ class DdmMakeObjectChangeTest {
         DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_MAKE_OBJECT_FILE_NAME,
             new ChangeLogParameters(), resourceAccessor);
 
-        final List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
+        final List<ChangeSet> changeSets = new ArrayList<>();
 
         new ChangeLogIterator(changeLog).run(new ChangeSetVisitor() {
             @Override
@@ -114,14 +114,13 @@ class DdmMakeObjectChangeTest {
     @DisplayName("Check statements")
     public void checkStatements() {
         SqlStatement[] statements = snapshotChange.generateStatements(new MockDatabase());
-        Assertions.assertEquals(7, statements.length);
+        Assertions.assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
         Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
         Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
         Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[4] instanceof AddUniqueConstraintStatement);
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
