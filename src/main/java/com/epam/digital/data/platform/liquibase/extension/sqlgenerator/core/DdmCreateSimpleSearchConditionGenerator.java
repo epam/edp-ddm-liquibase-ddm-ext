@@ -1,7 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
@@ -9,8 +8,6 @@ import liquibase.sql.Sql;
 import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
-
-import static com.epam.digital.data.platform.liquibase.extension.DdmParameters.isNull;
 
 public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerator<DdmCreateSimpleSearchConditionStatement> {
 
@@ -76,14 +73,12 @@ public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerato
 
         buffer.append(";");
 
-        if (!DdmParameters.isNull(statement.getIndexing()) && statement.getIndexing()) {
+        if (statement.getIndexing()) {
             buffer.append("\n\n");
             buffer.append(generateIndexSql(statement, statement.getSearchColumn().getSearchType(), false));
         }
 
-        return new Sql[] {
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[] { new UnparsedSql(buffer.toString()) };
     }
 
 }

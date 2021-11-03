@@ -37,7 +37,6 @@ public class DdmPartialUpdateChange extends AbstractChange {
                 tables.add(table.getName());
             }
         }
-
         return validationErrors;
     }
 
@@ -45,19 +44,14 @@ public class DdmPartialUpdateChange extends AbstractChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(validateDoubledTables());
-
         return validationErrors;
     }
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-
         DdmPartialUpdateStatement statement = new DdmPartialUpdateStatement(getName());
         statement.setTables(getTables());
-
-        return new SqlStatement[]{
-            statement
-        };
+        return new SqlStatement[]{ statement };
     }
 
     @Override

@@ -4,7 +4,7 @@ import liquibase.statement.AbstractSqlStatement;
 import liquibase.statement.CompoundStatement;
 
 public class DdmReferenceTableStatement extends AbstractSqlStatement implements CompoundStatement {
-    private String tableName;
+    private final String tableName;
 
     public DdmReferenceTableStatement(String tableName) {
         this.tableName = tableName;

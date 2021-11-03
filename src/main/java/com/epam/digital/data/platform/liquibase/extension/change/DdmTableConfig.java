@@ -1,9 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
-import java.util.Objects;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
@@ -11,6 +8,7 @@ import liquibase.resource.ResourceAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import liquibase.serializer.AbstractLiquibaseSerializable;
+import liquibase.util.StringUtil;
 
 public class DdmTableConfig extends AbstractLiquibaseSerializable {
 
@@ -60,9 +58,7 @@ public class DdmTableConfig extends AbstractLiquibaseSerializable {
         }
     }
 
-    public boolean hasAlias() {
-        return Objects.nonNull(getAlias()) && !DdmParameters.isEmpty(getAlias());
-    }
+    public boolean hasAlias() { return !StringUtil.isEmpty(getAlias()); }
 
     public String getSchemaName() {
         return schemaName;

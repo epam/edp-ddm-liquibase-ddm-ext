@@ -19,12 +19,7 @@ public class DdmDropDomainGenerator extends AbstractSqlGenerator<DdmDropDomainSt
 
     @Override
     public Sql[] generateSql(DdmDropDomainStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("DROP DOMAIN ").append(statement.getName()).append(";");
-
-        return new Sql[]{
-            new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql("DROP DOMAIN " + statement.getName() + ";") };
     }
 
  }

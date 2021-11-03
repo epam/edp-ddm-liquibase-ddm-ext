@@ -33,8 +33,8 @@ import liquibase.util.JdbcUtils;
 public class DdmMakeObjectChange extends AbstractChange {
 
     private List<DdmTableConfig> tables = new ArrayList<>();
-    private DdmParameters parameters = new DdmParameters();
-    private SnapshotGeneratorFactory snapshotGeneratorFactory;
+    private final DdmParameters parameters = new DdmParameters();
+    private final SnapshotGeneratorFactory snapshotGeneratorFactory;
 
     public DdmMakeObjectChange() {
         this(SnapshotGeneratorFactory.getInstance());
@@ -100,7 +100,7 @@ public class DdmMakeObjectChange extends AbstractChange {
             }
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     @Override

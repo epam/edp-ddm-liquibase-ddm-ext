@@ -15,6 +15,7 @@ import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateDomainStatement;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,13 +40,11 @@ public class DdmCreateDomainChange extends AbstractChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
-
         return validationErrors;
     }
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-
         DdmCreateDomainStatement statement = generateDdmCreateDomainStatement();
         statement.setNullable(getNullable());
         statement.setCollation(getCollation());
@@ -55,7 +54,7 @@ public class DdmCreateDomainChange extends AbstractChange {
         List<SqlStatement> statements = new ArrayList<>();
         statements.add(statement);
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     protected DdmCreateDomainStatement generateDdmCreateDomainStatement() {
@@ -66,10 +65,7 @@ public class DdmCreateDomainChange extends AbstractChange {
     protected Change[] createInverses() {
         DdmDropDomainChange inverse = new DdmDropDomainChange();
         inverse.setName(getName());
-
-        return new Change[]{
-                inverse
-        };
+        return new Change[]{ inverse };
     }
 
     @DatabaseChangeProperty()
@@ -119,10 +115,7 @@ public class DdmCreateDomainChange extends AbstractChange {
 
     @DatabaseChangeProperty()
     public List<DdmDomainConstraintConfig> getConstraints() {
-        if (constraints == null) {
-            return new ArrayList<>();
-        }
-        return this.constraints;
+        return constraints == null ? Collections.emptyList() : this.constraints;
     }
 
     public void setConstraints(List<DdmDomainConstraintConfig> constraints) {
@@ -146,7 +139,6 @@ public class DdmCreateDomainChange extends AbstractChange {
             if ("constraint".equals(child.getName())) {
                 String cName = child.getChildValue(null, "name", String.class);
                 String cImplementation = child.getChildValue(null, "implementation", String.class);
-
                 addConstraint(new DdmDomainConstraintConfig(cName, cImplementation));
             }
         }

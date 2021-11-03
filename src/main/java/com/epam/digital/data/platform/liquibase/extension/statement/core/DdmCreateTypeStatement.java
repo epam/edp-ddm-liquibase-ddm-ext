@@ -5,9 +5,9 @@ import liquibase.statement.AbstractSqlStatement;
 import liquibase.statement.CompoundStatement;
 
 public class DdmCreateTypeStatement extends AbstractSqlStatement implements CompoundStatement {
-    private String name;
-    private DdmTypeConfig asComposite;
-    private DdmTypeConfig asEnum;
+    private final String name;
+    private final DdmTypeConfig asComposite;
+    private final DdmTypeConfig asEnum;
 
     public DdmCreateTypeStatement(String name, DdmTypeConfig asComposite, DdmTypeConfig asEnum) {
         this.name = name;

@@ -8,10 +8,8 @@ import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import liquibase.Scope;
 import liquibase.change.AbstractChange;
-import liquibase.change.Change;
 import liquibase.change.ChangeMetaData;
 import liquibase.change.DatabaseChange;
-import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
@@ -30,20 +28,11 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
 
     private boolean existsInChangeLog() {
         boolean scExists = false;
-
-        for (ChangeSet changeSet : this.getChangeSet().getChangeLog().getChangeSets()) {
-            for (Change change: changeSet.getChanges()) {
-                if (change instanceof DdmCreateSearchConditionChange) {
-                    DdmCreateSearchConditionChange searchConditionChange = (DdmCreateSearchConditionChange) change;
-                    if (searchConditionChange.getName().equals(getName())) {
-                        scExists = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return scExists;
+        return this.getChangeSet().getChangeLog().getChangeSets().stream().anyMatch(
+            changeSet -> changeSet.getChanges().stream()
+                .filter(change -> change instanceof DdmCreateSearchConditionChange)
+                .map(change -> (DdmCreateSearchConditionChange) change)
+                .anyMatch(searchConditionChange -> searchConditionChange.getName().equals(getName()))) || scExists;
     }
 
     private ValidationErrors validateViewExists(Database database) {
@@ -70,7 +59,6 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
                 JdbcUtils.close(resultSet, statement);
             }
         }
-
         return validationErrors;
     }
 
@@ -79,7 +67,6 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
         validationErrors.addAll(validateViewExists(database));
-
         return validationErrors;
     }
 

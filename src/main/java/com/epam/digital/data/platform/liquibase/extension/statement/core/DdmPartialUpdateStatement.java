@@ -7,9 +7,7 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import liquibase.statement.AbstractSqlStatement;
 
 public class DdmPartialUpdateStatement extends AbstractSqlStatement {
-
     private List<DdmTableConfig> tables;
-
     private String name;
 
     public DdmPartialUpdateStatement(String name) {

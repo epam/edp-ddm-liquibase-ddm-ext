@@ -9,6 +9,7 @@ import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmUndistributeTableStatement;
+import liquibase.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,6 @@ public class DdmUndistributeTableChange extends AbstractChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
-
         return validationErrors;
     }
 
@@ -37,19 +37,18 @@ public class DdmUndistributeTableChange extends AbstractChange {
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>();
 
-        if (DdmParameters.isNull(getScope())
-                || DdmParameters.isEmpty(getScope())
+        if (StringUtil.isEmpty(getScope())
                 || DdmParameters.isAll(getScope())
                 || DdmParameters.isPrimary(getScope())) {
             statements.add(generateUndistributeTableStatement(getTableName()));
         }
 
-        if (!DdmParameters.isNull(getScope()) && (DdmParameters.isAll(getScope()) || DdmParameters.isHistory(getScope()))) {
+        if (getScope() != null && (DdmParameters.isAll(getScope()) || DdmParameters.isHistory(getScope()))) {
             DdmParameters parameters = new DdmParameters();
             statements.add(generateUndistributeTableStatement(getTableName() + parameters.getHistoryTableSuffix()));
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     protected DdmUndistributeTableStatement generateUndistributeTableStatement(String tableName) {

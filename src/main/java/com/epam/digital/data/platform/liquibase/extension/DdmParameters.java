@@ -20,8 +20,8 @@ public class DdmParameters {
     private String subjectTable;
     private String subjectColumn;
     private String subjectColumnType;
-    private List<DdmHistoryTableColumn> historyTableColumns;
-    private List<DdmHistoryTableColumn> dcmColumns;
+    private final List<DdmHistoryTableColumn> historyTableColumns;
+    private final List<DdmHistoryTableColumn> dcmColumns;
 
     public enum Scope {ALL, PRIMARY, HISTORY}
 
@@ -33,22 +33,6 @@ public class DdmParameters {
         setHistoryTableColumns();
         setSubjects();
         setDcmColumns();
-    }
-
-    public static boolean isNull(String scope) {
-        return scope == null;
-    }
-
-    public static boolean isNull(Boolean bool) {
-        return bool == null;
-    }
-
-    public static boolean isNull(Number num) {
-        return num == null;
-    }
-
-    public static boolean isEmpty(String scope) {
-        return "".equals(scope);
     }
 
     public static boolean isAll(String scope) {
@@ -102,8 +86,8 @@ public class DdmParameters {
                     historyTableColumn.setName(column.getAttribute(DdmConstants.ATTRIBUTE_NAME));
                     historyTableColumn.setType(column.getAttribute(DdmConstants.ATTRIBUTE_TYPE));
                     historyTableColumn.setScope(column.getAttribute(DdmConstants.ATTRIBUTE_SCOPE));
-                    historyTableColumn.setUniqueWithPrimaryKey(column.getAttribute(DdmConstants.ATTRIBUTE_UNIQUE_WITH_PRIMARY_KEY).equals("true"));
-                    historyTableColumn.setNullable(column.getAttribute(DdmConstants.ATTRIBUTE_NULLABLE).equals("true"));
+                    historyTableColumn.setUniqueWithPrimaryKey(column.getAttribute(DdmConstants.ATTRIBUTE_UNIQUE_WITH_PRIMARY_KEY).equals(DdmConstants.ATTRIBUTE_TRUE));
+                    historyTableColumn.setNullable(column.getAttribute(DdmConstants.ATTRIBUTE_NULLABLE).equals(DdmConstants.ATTRIBUTE_TRUE));
                     historyTableColumn.setDefaultValueComputed(column.getAttribute(DdmConstants.ATTRIBUTE_DEFAULT_VALUE_COMPUTED));
 
                     historyTableColumns.add(historyTableColumn);

@@ -27,9 +27,7 @@ public class DdmDropDomainChange extends AbstractChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-        return new SqlStatement[]{
-            new DdmDropDomainStatement(getName())
-        };
+        return new SqlStatement[]{ new DdmDropDomainStatement(getName()) };
     }
 
     @Override

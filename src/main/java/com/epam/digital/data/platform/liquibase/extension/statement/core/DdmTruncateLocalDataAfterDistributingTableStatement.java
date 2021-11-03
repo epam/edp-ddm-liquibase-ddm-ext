@@ -4,7 +4,7 @@ import liquibase.statement.AbstractSqlStatement;
 import liquibase.statement.CompoundStatement;
 
 public class DdmTruncateLocalDataAfterDistributingTableStatement extends AbstractSqlStatement implements CompoundStatement {
-    private String tableName;
+    private final String tableName;
 
     public DdmTruncateLocalDataAfterDistributingTableStatement(String tableName) {
         this.tableName = tableName;

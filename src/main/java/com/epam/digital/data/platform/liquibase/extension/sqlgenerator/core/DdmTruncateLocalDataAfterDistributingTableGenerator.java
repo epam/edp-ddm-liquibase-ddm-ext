@@ -14,21 +14,15 @@ public class DdmTruncateLocalDataAfterDistributingTableGenerator extends Abstrac
     public ValidationErrors validate(DdmTruncateLocalDataAfterDistributingTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("tableName", statement.getTableName());
-
         return validationErrors;
     }
 
     @Override
     public Sql[] generateSql(DdmTruncateLocalDataAfterDistributingTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+        String buffer = "SELECT truncate_local_data_after_distributing_table('"
+            + statement.getTableName() + "')";
 
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("SELECT truncate_local_data_after_distributing_table('");
-        buffer.append(statement.getTableName());
-        buffer.append("')");
-
-        return new Sql[]{
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer) };
     }
 
 }

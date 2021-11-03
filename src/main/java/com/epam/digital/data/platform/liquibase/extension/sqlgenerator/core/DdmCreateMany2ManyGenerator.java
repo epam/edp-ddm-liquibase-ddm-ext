@@ -1,8 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
@@ -27,21 +26,14 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
     }
 
     private String getListOfColumns(String tableAlias, List<DdmColumnConfig> columns) {
-        List<String> listColumns = new ArrayList<>();
-        for (DdmColumnConfig column : columns) {
-            listColumns.add(tableAlias + "." + column.getNameAsAlias());
-        }
-
-        return String.join(", ", listColumns);
+        return columns.stream().map(column -> tableAlias + "." + column.getNameAsAlias())
+            .collect(Collectors.joining(", "));
     }
 
-    private String getListOfAliases(String tableAlias, List<DdmColumnConfig> columns) {
-        List<String> listColumns = new ArrayList<>();
-        for (DdmColumnConfig column : columns) {
-            listColumns.add(tableAlias + "." + (Objects.isNull(column.getAlias()) ? column.getName() : column.getAlias()));
-        }
-
-        return String.join(", ", listColumns);
+    private String getListOfAliases(List<DdmColumnConfig> columns) {
+        return columns.stream()
+            .map(column -> "main_cte" + "." + (column.getAlias() == null ? column.getName() : column.getAlias()))
+            .collect(Collectors.joining(", "));
     }
 
     private StringBuilder getMainSql(DdmCreateMany2ManyStatement statement) {
@@ -136,7 +128,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
 
             if (!statement.getMainTableColumns().isEmpty()) {
                 buffer.append(", ");
-                buffer.append(getListOfAliases("main_cte", statement.getMainTableColumns()));
+                buffer.append(getListOfAliases(statement.getMainTableColumns()));
             }
 
             buffer.append(", ");
@@ -158,9 +150,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
         buffer.append("\n\n");
         buffer.append(getTriggerSql(statement));
 
-        return new Sql[] {
-            new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer.toString()) };
     }
 
 }

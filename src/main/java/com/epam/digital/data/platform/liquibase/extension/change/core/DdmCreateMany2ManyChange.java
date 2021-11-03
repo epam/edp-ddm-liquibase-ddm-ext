@@ -40,10 +40,9 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
         statement.setReferenceKeysArray(getReferenceKeysArray());
         statement.setMainTableColumns(getMainTableColumns());
         statement.setReferenceTableColumns(getReferenceTableColumns());
-
         statements.add(statement);
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     public String getRelationName() {

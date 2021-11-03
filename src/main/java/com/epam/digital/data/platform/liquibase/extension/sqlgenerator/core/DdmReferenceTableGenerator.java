@@ -14,21 +14,15 @@ public class DdmReferenceTableGenerator extends AbstractSqlGenerator<DdmReferenc
     public ValidationErrors validate(DdmReferenceTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("tableName", statement.getTableName());
-
         return validationErrors;
     }
 
     @Override
     public Sql[] generateSql(DdmReferenceTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+        String buffer = "SELECT create_reference_table('"
+            + statement.getTableName() + "')";
 
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("SELECT create_reference_table('");
-        buffer.append(statement.getTableName());
-        buffer.append("')");
-
-        return new Sql[]{
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer) };
     }
 
 }

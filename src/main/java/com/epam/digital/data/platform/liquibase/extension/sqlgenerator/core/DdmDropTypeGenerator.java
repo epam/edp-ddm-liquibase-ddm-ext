@@ -19,12 +19,7 @@ public class DdmDropTypeGenerator extends AbstractSqlGenerator<DdmDropTypeStatem
 
     @Override
     public Sql[] generateSql(DdmDropTypeStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("DROP TYPE ").append(statement.getName()).append(";");
-
-        return new Sql[]{
-            new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql("DROP TYPE " + statement.getName() + ";") };
     }
 
  }

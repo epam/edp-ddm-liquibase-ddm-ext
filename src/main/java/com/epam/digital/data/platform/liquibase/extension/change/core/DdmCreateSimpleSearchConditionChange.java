@@ -1,7 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
@@ -18,9 +17,6 @@ import liquibase.statement.SqlStatement;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import static com.epam.digital.data.platform.liquibase.extension.DdmParameters.isNull;
 
 /**
  * Creates a new simple search condition.
@@ -31,7 +27,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
     private String name;
     private DdmTableConfig table;
     private DdmColumnConfig searchColumn;
-    private Boolean indexing;
+    private boolean indexing;
     private String limit;
 
     public DdmCreateSimpleSearchConditionChange() {
@@ -48,14 +44,13 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
 
-        if (!DdmParameters.isNull(getIndexing()) && getIndexing() && Objects.isNull(getSearchColumn())) {
+        if (indexing && getSearchColumn() == null) {
             validationErrors.addError("searchColumn is not defined!");
         }
 
-        if (!DdmParameters.isNull(getIndexing()) && getIndexing() && !Objects.isNull(getSearchColumn()) && DdmParameters.isNull(getSearchColumn().getSearchType())) {
+        if (indexing && getSearchColumn() != null && getSearchColumn().getSearchType() == null) {
             validationErrors.addError("searchType is not defined!");
         }
-
         return validationErrors;
     }
 
@@ -72,7 +67,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         statements.add(statement);
 
         //  create insert statement for metadata table
-        if (!Objects.isNull(statement.getSearchColumn()) && !isNull(statement.getSearchColumn().getSearchType())) {
+        if (statement.getSearchColumn() != null && statement.getSearchColumn().getSearchType() != null) {
             String val;
             if (getSearchColumn().getSearchType().equals(DdmConstants.ATTRIBUTE_EQUAL)) {
                 val = DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
@@ -85,11 +80,11 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
             statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), val, getSearchColumn().getName()));
         }
 
-        if (!DdmParameters.isNull(getLimit()) && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
+        if (getLimit() != null && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
             statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     protected DdmCreateSimpleSearchConditionStatement generateCreateSimpleSearchConditionStatement() {
@@ -137,11 +132,11 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         this.name = name;
     }
 
-    public Boolean getIndexing() {
+    public boolean getIndexing() {
         return indexing;
     }
 
-    public void setIndexing(Boolean indexing) {
+    public void setIndexing(boolean indexing) {
         this.indexing = indexing;
     }
 

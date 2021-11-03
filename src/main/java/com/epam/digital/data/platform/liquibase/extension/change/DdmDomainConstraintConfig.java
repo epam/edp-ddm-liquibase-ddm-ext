@@ -19,9 +19,8 @@ public class DdmDomainConstraintConfig extends AbstractLiquibaseSerializable {
         return name;
     }
 
-    public DdmDomainConstraintConfig setName(String name) {
+    public void setName(String name) {
         this.name = name;
-        return this;
     }
 
     @DatabaseChangeProperty(requiredForDatabase = "all")
@@ -29,9 +28,8 @@ public class DdmDomainConstraintConfig extends AbstractLiquibaseSerializable {
         return implementation;
     }
 
-    public DdmDomainConstraintConfig setImplementation(String implementation) {
+    public void setImplementation(String implementation) {
         this.implementation = implementation;
-        return this;
     }
 
     @Override

@@ -23,23 +23,18 @@ public class DdmConstants {
     public static final String ATTRIBUTE_ALIAS = "alias";
     public static final String ATTRIBUTE_TABLE_ALIAS = "tableAlias";
     public static final String ATTRIBUTE_SEARCH_COLUMN = "searchColumn";
-    public static final String ATTRIBUTE_SEARCHING = "searching";
     public static final String ATTRIBUTE_RETURNING = "returning";
     public static final String ATTRIBUTE_SORTING = "sorting";
-    public static final String ATTRIBUTE_NONE = "none";
     public static final String ATTRIBUTE_EQUAL = "equal";
     public static final String ATTRIBUTE_CONTAINS = "contains";
     public static final String ATTRIBUTE_STARTS_WITH = "startsWith";
     public static final String ATTRIBUTE_EQUAL_COLUMN = "equalColumn";
     public static final String ATTRIBUTE_CONTAINS_COLUMN = "containsColumn";
     public static final String ATTRIBUTE_STARTS_WITH_COLUMN = "startsWithColumn";
-    public static final String ATTRIBUTE_LIKE = "like";
-    public static final String ATTRIBUTE_BOTH = "both";
     public static final String ATTRIBUTE_JOIN = "join";
     public static final String ATTRIBUTE_WHERE = "where";
     public static final String ATTRIBUTE_LEFT = "left";
     public static final String ATTRIBUTE_RIGHT = "right";
-    public static final String ATTRIBUTE_ASC = "asc";
     public static final String ATTRIBUTE_DESC = "desc";
     public static final String ATTRIBUTE_ALL = "all";
     public static final String ATTRIBUTE_TRUE = "true";
@@ -51,11 +46,6 @@ public class DdmConstants {
     public static final String ATTRIBUTE_LOGIC_OPERATOR = "logicOperator";
     public static final String ATTRIBUTE_PARAMETER = "parameter";
     public static final String ATTRIBUTE_FUNCTION = "function";
-    public static final String ATTRIBUTE_FUNCTION_MIN = "min";
-    public static final String ATTRIBUTE_FUNCTION_MAX = "max";
-    public static final String ATTRIBUTE_FUNCTION_AVG = "avg";
-    public static final String ATTRIBUTE_FUNCTION_COUNT = "count";
-    public static final String ATTRIBUTE_FUNCTION_SUM = "sum";
     public static final String ATTRIBUTE_FUNCTION_STRING_AGG = "string_agg";
     public static final String ATTRIBUTE_ROLE = "role";
     public static final String ATTRIBUTE_INSERT = "insert";
@@ -63,7 +53,6 @@ public class DdmConstants {
     public static final String ATTRIBUTE_DELETE = "delete";
     public static final String ATTRIBUTE_READ = "read";
     public static final String ATTRIBUTE_EXPOSE = "expose";
-    public static final String ATTRIBUTE_IS_OBJECT = "isObject";
     public static final String ATTRIBUTE_CLASSIFY = "classify";
     public static final String ATTRIBUTE_MAIN_TABLE_COLUMNS = "mainTableColumns";
     public static final String ATTRIBUTE_REFERENCE_TABLE_COLUMNS = "referenceTableColumns";
@@ -81,7 +70,6 @@ public class DdmConstants {
     public static final String DISTRIBUTION_REFERENCE_ALL = "referenceAll";
     public static final String DISTRIBUTION_REFERENCE_PRIMARY = "referencePrimary";
     public static final String DISTRIBUTION_REFERENCE_HISTORY = "referenceHistory";
-    public static final String DISTRIBUTION_LOCAL = "local";
 
     public static final String SUFFIX_ID = "_id";
     public static final String SUFFIX_VIEW = "_v";
@@ -93,7 +81,6 @@ public class DdmConstants {
 
     public static final String TYPE_TEXT = "text";
     public static final String TYPE_CHAR = "char";
-    public static final String TYPE_VARCHAR = "varchar";
 
     public static final String ROLE_PERMISSION_TABLE = "ddm_role_permission";
     public static final String ROLE_PERMISSION_ROLE_NAME = "role_name";
@@ -108,7 +95,6 @@ public class DdmConstants {
     public static final String METADATA_ATTRIBUTE_VALUE = "attribute_value";
 
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
-    public static final String SEARCH_METADATA_ATTRIBUTE_NAME_SEARCH_COLUMN = "searchColumn";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION = "pagination";
 
@@ -118,7 +104,6 @@ public class DdmConstants {
     public static final String VERSIONING_METADATA_CHANGE_TYPE_VALUE = "versioning";
     public static final String VERSIONING_METADATA_CHANGE_NAME_VALUE = "registry_version";
     public static final String VERSIONING_METADATA_ATTRIBUTE_NAME_CURRENT = "current";
-    public static final String VERSIONING_METADATA_ATTRIBUTE_NAME_PREVIOUS = "previous";
 
     public static final String OPERATOR_EQ = "eq";            // equal
     public static final String OPERATOR_NE = "ne";            // not equal

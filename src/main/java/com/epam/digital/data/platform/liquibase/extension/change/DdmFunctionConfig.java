@@ -1,14 +1,11 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
-import static com.epam.digital.data.platform.liquibase.extension.DdmParameters.isEmpty;
-
-import java.util.Objects;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
 import liquibase.serializer.AbstractLiquibaseSerializable;
+import liquibase.util.StringUtil;
 
 public class DdmFunctionConfig extends AbstractLiquibaseSerializable {
     private String name;
@@ -25,11 +22,11 @@ public class DdmFunctionConfig extends AbstractLiquibaseSerializable {
     }
 
     public boolean hasTableAlias() {
-        return Objects.nonNull(getTableAlias()) && !isEmpty(getTableAlias());
+        return !StringUtil.isEmpty(getTableAlias());
     }
 
     public boolean hasParameter() {
-        return Objects.nonNull(getParameter()) && !isEmpty(getParameter());
+        return !StringUtil.isEmpty(getParameter());
     }
 
     @Override

@@ -1,6 +1,9 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
-import liquibase.change.*;
+import liquibase.change.AbstractChange;
+import liquibase.change.DatabaseChange;
+import liquibase.change.ChangeMetaData;
+import liquibase.change.DatabaseChangeProperty;
 import liquibase.database.Database;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropSearchConditionStatement;
@@ -15,9 +18,7 @@ public class DdmDropSearchConditionChange extends AbstractChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-        return new SqlStatement[]{
-                new DdmDropSearchConditionStatement(getName())
-        };
+        return new SqlStatement[]{ new DdmDropSearchConditionStatement(getName()) };
     }
 
     @Override

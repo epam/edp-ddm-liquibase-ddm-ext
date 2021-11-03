@@ -3,7 +3,6 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
@@ -23,7 +22,6 @@ import liquibase.exception.ValidationErrors;
 import liquibase.snapshot.SnapshotGeneratorFactory;
 import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
-import liquibase.statement.core.AddUniqueConstraintStatement;
 import liquibase.statement.core.CreateTableStatement;
 import liquibase.statement.core.DropUniqueConstraintStatement;
 import liquibase.statement.core.RawSqlStatement;
@@ -43,10 +41,10 @@ import java.sql.Statement;
 @DatabaseChange(name="addColumn", description = "Adds a new column to an existing table with history", priority = ChangeMetaData.PRIORITY_DEFAULT + 50, appliesTo = "table")
 public class DdmAddColumnChange extends AddColumnChange {
 
-    private Boolean historyFlag;
-    private DdmParameters parameters = new DdmParameters();
-    private Boolean isHistoryTable = false;
-    private SnapshotGeneratorFactory snapshotGeneratorFactory;
+    private boolean historyFlag;
+    private final DdmParameters parameters = new DdmParameters();;
+    private boolean isHistoryTable = false;
+    private final SnapshotGeneratorFactory snapshotGeneratorFactory;
 
     public DdmAddColumnChange() {
         this(SnapshotGeneratorFactory.getInstance());
@@ -62,17 +60,16 @@ public class DdmAddColumnChange extends AddColumnChange {
         validationErrors.addAll(super.validate(database));
 
         for (AddColumnConfig column : getColumns()) {
-            if (Objects.isNull(column.getDefaultValueObject())
-                && Objects.nonNull(column.getConstraints())
+            if (column.getDefaultValueObject() == null
+                && column.getConstraints() != null
                 && !column.getConstraints().isNullable()) {
                 validationErrors.addError("Please set default value to not nullable column " + column.getName());
             }
         }
 
-        if (Objects.isNull(getVersion(database))) {
+        if (getVersion(database) == null) {
             validationErrors.addError("Cannot select version!");
         }
-
         return validationErrors;
     }
 
@@ -109,10 +106,9 @@ public class DdmAddColumnChange extends AddColumnChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-        List<SqlStatement> statements = new ArrayList<>();
-        statements.addAll(Arrays.asList(super.generateStatements(database)));
+        List<SqlStatement> statements = new ArrayList<>(Arrays.asList(super.generateStatements(database)));
 
-        if (Boolean.TRUE.equals(getHistoryFlag())) {
+        if (historyFlag) {
             isHistoryTable = true;
             String newTableName = getTableName() + getVersion(database);
 
@@ -123,7 +119,7 @@ public class DdmAddColumnChange extends AddColumnChange {
                 Scope.getCurrentScope().getLog(database.getClass()).info("Cannot generate snapshot of table " + getTableName() + " on " + database.getShortName() + " database", e);
             }
 
-            if (Objects.nonNull(snapshotTable)) {
+            if (snapshotTable != null) {
                 for (UniqueConstraint uniqueConstraint : snapshotTable.getUniqueConstraints()) {
                     statements.add(new DropUniqueConstraintStatement(null, null, snapshotTable.getName(), uniqueConstraint.getName()));
                 }
@@ -131,7 +127,7 @@ public class DdmAddColumnChange extends AddColumnChange {
 
             statements.add(new RenameTableStatement(null, null, getTableName(), newTableName));
 
-            if (Objects.nonNull(snapshotTable)) {
+            if (snapshotTable != null) {
                 CreateTableStatement statement = new CreateTableStatement(null, null, snapshotTable.getName(), snapshotTable.getRemarks());
 
                 for (Column column : snapshotTable.getColumns()) {
@@ -150,24 +146,18 @@ public class DdmAddColumnChange extends AddColumnChange {
                     statement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
 
                     ConstraintsConfig constraints = column.getConstraints();
-                    if (constraints != null) {
-                        if (constraints.isNullable() != null && !constraints.isNullable()) {
-                            NotNullConstraint notNullConstraint = new NotNullConstraint(column.getName());
-                            notNullConstraint.setConstraintName(constraints.getNotNullConstraintName());
-                            notNullConstraint.setValidateNullable(constraints.getValidateNullable() == null ? true : constraints.getValidateNullable());
-                            statement.addColumnConstraint(notNullConstraint);
-                        }
+                    if (constraints != null && constraints.isNullable() != null && !constraints.isNullable()) {
+                        NotNullConstraint notNullConstraint = new NotNullConstraint(column.getName());
+                        notNullConstraint.setConstraintName(constraints.getNotNullConstraintName());
+                        notNullConstraint.setValidateNullable(constraints.getValidateNullable() == null || constraints.getValidateNullable());
+                        statement.addColumnConstraint(notNullConstraint);
                     }
                 }
 
                 statement.getUniqueConstraints().clear();
                 for (UniqueConstraint uniqueConstraint : snapshotTable.getUniqueConstraints()) {
                     liquibase.statement.UniqueConstraint uc = new liquibase.statement.UniqueConstraint(uniqueConstraint.getName());
-
-                    for (Column column : uniqueConstraint.getColumns()) {
-                        uc.addColumns(column.getName());
-                    }
-
+                    uniqueConstraint.getColumns().stream().map(Column::getName).forEach(uc::addColumns);
                     statement.addColumnConstraint(uc);
                 }
 
@@ -179,23 +169,22 @@ public class DdmAddColumnChange extends AddColumnChange {
             isHistoryTable = false;
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
-    public Boolean getHistoryFlag() {
+    public boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(Boolean historyFlag) {
+    public void setHistoryFlag(boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 
     @Override
     public String getTableName() {
-        if (Objects.nonNull(historyFlag) && historyFlag) {
+        if (historyFlag) {
             return super.getTableName() + (isHistoryTable ? parameters.getHistoryTableSuffix() : "");
-        } else {
-            return super.getTableName();
         }
+        return super.getTableName();
     }
 }

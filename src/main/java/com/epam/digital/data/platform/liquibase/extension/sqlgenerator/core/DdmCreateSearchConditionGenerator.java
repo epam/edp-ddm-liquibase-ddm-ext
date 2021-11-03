@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
-import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
@@ -45,7 +44,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
 
         for (DdmTableConfig table : tables) {
             for (DdmColumnConfig column : table.getColumns()) {
-                if (Objects.nonNull(column.getSearchType())) {
+                if (column.getSearchType() != null) {
                     buffer.append("\n\n");
                     buffer.append("CREATE INDEX ");
                     buffer.append(DdmConstants.PREFIX_INDEX);
@@ -98,7 +97,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
 
                 groupColumns.add((table.hasAlias() ? table.getAlias() + "." : "") + column.getName());
 
-                if (Objects.nonNull(column.getSorting())) {
+                if (column.getSorting() != null) {
                     orderColumns.add((table.hasAlias() ? table.getAlias() + "." : "") +
                             column.getName() +
                             (column.getSorting().equalsIgnoreCase(DdmConstants.ATTRIBUTE_DESC) ? " " + column.getSorting().toUpperCase() : ""));
@@ -162,17 +161,17 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
             buffer.append(generateConditionSql(join.getConditions(), false));
         }
 
-        if (Objects.nonNull(conditions) && conditions.size() > 0) {
+        if (conditions != null && !conditions.isEmpty()) {
             buffer.append(" WHERE ");
             buffer.append(generateConditionSql(conditions, false));
         }
 
-        if (orderColumns.size() > 0) {
+        if (!orderColumns.isEmpty()) {
             buffer.append(" ORDER BY ");
             buffer.append(String.join(", ", orderColumns));
         }
 
-        if ((groupColumns.size() > 0) && hasFunctions) {
+        if (!groupColumns.isEmpty() && hasFunctions) {
             buffer.append(" GROUP BY ");
             buffer.append(String.join(", ", groupColumns));
         }
@@ -188,58 +187,50 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         buffer.append(statement.getViewName());
         buffer.append(" AS ");
 
-        if (statement.getCtes().size() > 0) {
-            List<String> cteSelectSql = new ArrayList<>();
+        if (!statement.getCtes().isEmpty()) {
             buffer.append("WITH ");
 
-            for (DdmCteConfig cte : statement.getCtes()) {
-                cteSelectSql.add(cte.getName() + " AS (" +
-                        generateSelectSql(cte.getTables(), cte.getJoins(), cte.getConditions()) + ")");
-            }
+            String cteSelectSql = statement.getCtes().stream().map(cte -> cte.getName() + " AS (" +
+                    generateSelectSql(cte.getTables(), cte.getJoins(), cte.getConditions()) + ")")
+                .collect(Collectors.joining(", "));
 
-            buffer.append(String.join(", ", cteSelectSql)).append(" ");
+            buffer.append(cteSelectSql).append(" ");
         }
 
         buffer.append(generateSelectSql(statement.getTables(), statement.getJoins(), statement.getConditions()));
-
         buffer.append(";");
 
-        if (Boolean.TRUE.equals(statement.getIndexing())) {
+        if (statement.getIndexing() != null && statement.getIndexing()) {
             buffer.append(generateIndexSql(statement.getName(), statement.getTables()));
         }
 
-        return new Sql[] {
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer.toString()) };
     }
 
     private StringBuilder generateConditionSql(List<DdmConditionConfig> conditions, boolean hasInternalParenthesis) {
         StringBuilder buffer = new StringBuilder();
 
-        if (Objects.isNull(conditions)) {
+        if (conditions == null) {
             return buffer;
         }
 
         boolean firstCondition = true;
 
         for (DdmConditionConfig condition : conditions) {
-            boolean hasExternalParenthesis = ((conditions.size() > 1) && Objects.nonNull(condition.getConditions()));
+            boolean hasExternalParenthesis = ((conditions.size() > 1) && condition.getConditions() != null);
 
-            if (Objects.nonNull(condition.getLogicOperator())) {
-                buffer.append(" " + condition.getLogicOperator() + " ");
+            if (condition.getLogicOperator() != null) {
+                buffer.append(" ").append(condition.getLogicOperator()).append(" ");
             }
 
             if (hasExternalParenthesis) {
                 buffer.append("(");
             }
 
-            if (firstCondition) {
-                if (hasInternalParenthesis) {
-                    buffer.append("(");
-                }
-
-                firstCondition = false;
+            if (firstCondition && hasInternalParenthesis) {
+                buffer.append("(");
             }
+            firstCondition = false;
 
             buffer.append("(");
 
@@ -302,7 +293,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
 
             buffer.append(")");
 
-            boolean needParenthesis = (Objects.nonNull(condition.getConditions()) && condition.getConditions().size() > 1);
+            boolean needParenthesis = (condition.getConditions() != null && condition.getConditions().size() > 1);
             buffer.append(generateConditionSql(condition.getConditions(), needParenthesis));
 
             if (hasExternalParenthesis) {

@@ -14,21 +14,15 @@ public class DdmUndistributeTableGenerator extends AbstractSqlGenerator<DdmUndis
     public ValidationErrors validate(DdmUndistributeTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("tableName", statement.getTableName());
-
         return validationErrors;
     }
 
     @Override
     public Sql[] generateSql(DdmUndistributeTableStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+        String buffer = "SELECT undistribute_table('"
+            + statement.getTableName() + "')";
 
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("SELECT undistribute_table('");
-        buffer.append(statement.getTableName());
-        buffer.append("')");
-
-        return new Sql[]{
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer) };
     }
 
 }

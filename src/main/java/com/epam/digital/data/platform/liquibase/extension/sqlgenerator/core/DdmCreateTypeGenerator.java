@@ -1,7 +1,5 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
-import com.epam.digital.data.platform.liquibase.extension.change.DdmLabelConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateTypeStatement;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
@@ -10,10 +8,8 @@ import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Objects.isNull;
+import java.util.stream.Collectors;
 
 public class DdmCreateTypeGenerator extends AbstractSqlGenerator<DdmCreateTypeStatement> {
 
@@ -25,7 +21,8 @@ public class DdmCreateTypeGenerator extends AbstractSqlGenerator<DdmCreateTypeSt
             validationErrors.checkRequiredField("labels", statement.getAsEnum().getLabels());
         } else if (statement.getAsComposite() != null) {
             validationErrors.checkRequiredField("columns", statement.getAsComposite().getColumns());
-        }        return validationErrors;
+        }
+        return validationErrors;
     }
 
     @Override
@@ -34,30 +31,24 @@ public class DdmCreateTypeGenerator extends AbstractSqlGenerator<DdmCreateTypeSt
         buffer.append("CREATE TYPE ");
         buffer.append(statement.getName());
 
-        if (!isNull(statement.getAsEnum())) {
-            List<String> labels = new ArrayList<>();
-
+        if (statement.getAsEnum() != null) {
             buffer.append(" as ENUM (");
 
-            for (DdmLabelConfig label : statement.getAsEnum().getLabels()) {
-                labels.add("'" + label.getLabel() + "'");
-            }
+            String labels = statement.getAsEnum().getLabels().stream().map(label -> "'" + label.getLabel() + "'")
+                .collect(Collectors.joining(", "));
 
-            buffer.append(String.join(", ", labels)).append(");");
-        } else if (!isNull(statement.getAsComposite())) {
-            List<String> columns = new ArrayList<>();
+            buffer.append(labels).append(");");
+        } else if (statement.getAsComposite() != null) {
             buffer.append(" as (");
 
-            for (DdmColumnConfig column : statement.getAsComposite().getColumns()) {
-                columns.add(column.getName() + " " + column.getType() +
-                        ((!isNull(column.getCollation())) ? " COLLATE \"" + column.getCollation() + "\"" : ""));
-            }
+            String columns = statement.getAsComposite().getColumns().stream()
+                .map(column -> column.getName() + " " + column.getType() +
+                    ((column.getCollation() != null) ? " COLLATE \"" + column.getCollation() + "\"" : ""))
+                .collect(Collectors.joining(", "));
 
-            buffer.append(String.join(", ", columns)).append(");");
+            buffer.append(columns).append(");");
         }
 
-        return new Sql[] {
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer.toString()) };
     }
 }

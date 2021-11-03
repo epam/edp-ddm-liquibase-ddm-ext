@@ -6,8 +6,6 @@ import liquibase.change.core.RenameColumnChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 
-import java.util.Objects;
-
 /**
  * Renames an existing column.
  */
@@ -20,26 +18,20 @@ import java.util.Objects;
 )
 public class DdmRenameColumnChange extends RenameColumnChange {
 
-    private Boolean historyFlag;
+    private boolean historyFlag;
 
     @Override
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
-
-        if (Objects.nonNull(getHistoryFlag()) && getHistoryFlag()) {
-            validationErrors.addError("'renameColumn' is not allowed");
-        } else {
+        return historyFlag ? validationErrors.addError("'renameColumn' is not allowed") :
             validationErrors.addAll(super.validate(database));
-        }
-
-        return validationErrors;
     }
 
-    public Boolean getHistoryFlag() {
+    public boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(Boolean historyFlag) {
+    public void setHistoryFlag(boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 }

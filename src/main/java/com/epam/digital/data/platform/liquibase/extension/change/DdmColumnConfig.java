@@ -1,13 +1,11 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
-import java.util.Objects;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import liquibase.change.ColumnConfig;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
+import liquibase.util.StringUtil;
 
 public class DdmColumnConfig extends ColumnConfig {
 
@@ -45,9 +43,7 @@ public class DdmColumnConfig extends ColumnConfig {
         return getName() + (hasAlias() ? " AS " + getAlias() : "") ;
     }
 
-    public boolean hasAlias() {
-        return Objects.nonNull(getAlias()) && !DdmParameters.isEmpty(getAlias());
-    }
+    public boolean hasAlias() { return !StringUtil.isEmpty(getAlias()); }
 
     public Boolean getRoleCanRead() {
         return getRead();

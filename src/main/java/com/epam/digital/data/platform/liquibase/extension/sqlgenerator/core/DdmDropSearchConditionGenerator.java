@@ -34,9 +34,7 @@ public class DdmDropSearchConditionGenerator extends AbstractSqlGenerator<DdmDro
         buffer.append(" where (").append(DdmConstants.METADATA_ATTRIBUTE_NAME).append(" = '").append(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE).append("') and (");
         buffer.append(DdmConstants.METADATA_ATTRIBUTE_VALUE).append(" = '").append(statement.getName()).append("');");
 
-        return new Sql[]{
-            new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer.toString()) };
     }
 
  }

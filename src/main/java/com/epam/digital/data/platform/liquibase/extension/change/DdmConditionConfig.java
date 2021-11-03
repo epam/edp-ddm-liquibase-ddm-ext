@@ -1,16 +1,14 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
-import java.util.Objects;
-
+import java.util.Collections;
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
-
 import java.util.ArrayList;
 import java.util.List;
 import liquibase.serializer.AbstractLiquibaseSerializable;
+import liquibase.util.StringUtil;
 
 public class DdmConditionConfig extends AbstractLiquibaseSerializable {
     private String logicOperator;
@@ -30,7 +28,7 @@ public class DdmConditionConfig extends AbstractLiquibaseSerializable {
 
     public static List<DdmConditionConfig> loadConditions(ParsedNode whereNode, ResourceAccessor resourceAccessor) throws ParsedNodeException {
         if (whereNode == null) {
-            return null;
+            return Collections.emptyList();
         }
 
         List<DdmConditionConfig> conditionConfig = new ArrayList<>();
@@ -39,7 +37,7 @@ public class DdmConditionConfig extends AbstractLiquibaseSerializable {
                 DdmConditionConfig condition = new DdmConditionConfig();
                 condition.load(child, resourceAccessor);
 
-                if (child.getChildren(null, DdmConstants.ATTRIBUTE_CONDITION).size() != 0) {
+                if (!child.getChildren(null, DdmConstants.ATTRIBUTE_CONDITION).isEmpty()) {
                     condition.setConditions(loadConditions(child, resourceAccessor));
                 }
 
@@ -50,9 +48,7 @@ public class DdmConditionConfig extends AbstractLiquibaseSerializable {
         return conditionConfig;
     }
 
-    public boolean hasTableAlias() {
-        return Objects.nonNull(getTableAlias()) && !DdmParameters.isEmpty(getTableAlias());
-    }
+    public boolean hasTableAlias() { return !StringUtil.isEmpty(getTableAlias()); }
 
     public String getTableAlias() {
         return tableAlias;

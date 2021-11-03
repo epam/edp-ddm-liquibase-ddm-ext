@@ -2,7 +2,6 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import java.util.Collection;
-import java.util.Objects;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
@@ -49,6 +48,7 @@ import liquibase.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Creates a new table with history.
@@ -59,8 +59,8 @@ public class DdmCreateTableChange extends CreateTableChange {
 
     private Boolean historyFlag;
     private Boolean isObject;
-    private ThreadLocal<Boolean> historyTable = new ThreadLocal<>();
-    private DdmParameters parameters = new DdmParameters();
+    private final ThreadLocal<Boolean> historyTable = new ThreadLocal<>();
+    private final DdmParameters parameters = new DdmParameters();
     private String distribution;
 
     public DdmCreateTableChange() {
@@ -91,48 +91,27 @@ public class DdmCreateTableChange extends CreateTableChange {
         SqlStatement[] statements = super.generateStatements(database);
         CreateTableStatement statement = (CreateTableStatement) statements[0];
 
-        if (Objects.isNull(statement.getPrimaryKeyConstraint())) {
+        if (statement.getPrimaryKeyConstraint() == null) {
             validationErrors.addError("Table " + getTableName() + " does not have primary key");
         }
-
         return validationErrors;
     }
 
     private boolean fieldExists(CreateTableStatement statement, String fieldName) {
-        for (String column : statement.getColumns()) {
-            if (column.equalsIgnoreCase(fieldName)) {
-                return true;
-            }
-        }
-
-        return false;
+        return statement.getColumns().stream().anyMatch(column -> column.equalsIgnoreCase(fieldName));
     }
 
     private boolean hasClassify() {
-        for (ColumnConfig column : getColumns()) {
-            DdmColumnConfig col = (DdmColumnConfig) column;
-            if (Objects.nonNull(col.getClassify())) {
-                return true;
-            }
-        }
-
-        return false;
+        return getColumns().stream().map(column -> (DdmColumnConfig) column)
+            .anyMatch(col -> col.getClassify() != null);
     }
 
     private void generateClassifyDefaultValues(List<SqlStatement> statements) {
-        String defaultValue;
-        List<String> defaultValues = new ArrayList<>();
+        String defaultValue = getColumns().stream().map(column -> (DdmColumnConfig) column)
+            .filter(col -> col.getClassify() != null)
+            .map(col -> "\"(" + col.getName() + "," + col.getClassify() + ")\"").collect(Collectors.joining(", "));
 
-        for (ColumnConfig column : getColumns()) {
-            DdmColumnConfig col = (DdmColumnConfig) column;
-            if (Objects.nonNull(col.getClassify())) {
-                defaultValues.add("\"("+ col.getName() + "," + col.getClassify() + ")\"");
-            }
-        }
-
-        defaultValue = String.join(", ", defaultValues);
-
-        if (!DdmParameters.isEmpty(defaultValue)) {
+        if (!StringUtil.isEmpty(defaultValue)) {
             defaultValue = "{" + defaultValue + "}";
             statements.add(new AddDefaultValueStatement(null, null, getTableName(), DdmConstants.FIELD_CLASSIFICATION, DdmConstants.TYPE_TEXT, defaultValue));
         }
@@ -144,15 +123,13 @@ public class DdmCreateTableChange extends CreateTableChange {
         validationErrors.addAll(super.validate(database));
         validationErrors.addAll(validatePrimaryKey(database));
 
-        if ((Objects.isNull(getHistoryFlag()) || !getHistoryFlag())
-            && Objects.nonNull(getDistribution())
+        if (!Boolean.TRUE.equals(getHistoryFlag()) && getDistribution() != null
             && (getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_ALL)
             || getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_HISTORY)
             || getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_ALL)
             || getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_HISTORY))) {
             validationErrors.addError("distribution cannot be applied since history flag is not enabled");
         }
-
         return validationErrors;
     }
 
@@ -161,21 +138,19 @@ public class DdmCreateTableChange extends CreateTableChange {
         CreateTableStatement statement = (CreateTableStatement) statements[0];
 
         UniqueConstraint uc = new UniqueConstraint(DdmConstants.PREFIX_UNIQUE_INDEX + getTableName());
-        if (Objects.nonNull(statement.getPrimaryKeyConstraint())) {
-            for (String column : statement.getPrimaryKeyConstraint().getColumns()) {
-                uc.addColumns(column);
-            }
+        if (statement.getPrimaryKeyConstraint() != null) {
+            statement.getPrimaryKeyConstraint().getColumns().forEach(uc::addColumns);
         }
 
         for (DdmHistoryTableColumn column : parameters.getHistoryTableColumns()) {
-            if (DdmParameters.isEmpty(column.getScope())
+            if (StringUtil.isEmpty(column.getScope())
                 || DdmParameters.isAll(column.getScope())
                 || (DdmParameters.isPrimary(column.getScope()) && (!historyTable.get()))
                 || (DdmParameters.isHistory(column.getScope()) && (historyTable.get()))) {
                 statement.addColumn(
                     column.getName(),
                     DataTypeFactory.getInstance().fromDescription(column.getType(), database),
-                    !DdmParameters.isEmpty(column.getDefaultValueComputed()) ? new DatabaseFunction(column.getDefaultValueComputed()) : null);
+                    !StringUtil.isEmpty(column.getDefaultValueComputed()) ? new DatabaseFunction(column.getDefaultValueComputed()) : null);
             }
 
             if (!column.getNullable()) {
@@ -188,12 +163,10 @@ public class DdmCreateTableChange extends CreateTableChange {
         }
 
         if (hasClassify()) {
-            for (DdmHistoryTableColumn column : parameters.getDcmColumns()) {
-                statement.addColumn(
-                    column.getName(),
-                    DataTypeFactory.getInstance().fromDescription(column.getType(), database),
-                    null);
-            }
+            parameters.getDcmColumns().forEach(column -> statement.addColumn(
+                column.getName(),
+                DataTypeFactory.getInstance().fromDescription(column.getType(), database),
+                null));
 
             setIsObject(true);
         }
@@ -271,17 +244,17 @@ public class DdmCreateTableChange extends CreateTableChange {
             statement.getForeignKeyConstraints().clear();
             statements.add(statement);
 
-            if (Objects.nonNull(statement.getPrimaryKeyConstraint())) {
+            if (statement.getPrimaryKeyConstraint() != null) {
                 pkName = StringUtil.trimToNull(statement.getPrimaryKeyConstraint().getConstraintName());
             }
 
-            if (Objects.isNull(pkName)) {
+            if (pkName == null) {
                 pkName = database.generatePrimaryKeyName(getTableName());
             }
 
             statements.add(new DropPrimaryKeyStatement(getCatalogName(), getSchemaName(), getTableName(), pkName));
 
-            if (Objects.nonNull(getDistribution())) {
+            if (getDistribution() != null) {
                 if (getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_ALL) || getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_HISTORY)) {
                     statements.add(new DdmDistributeTableStatement(getTableName(), statement.getPrimaryKeyConstraint().getColumns().get(0)));
                 } else if (getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_ALL) || getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_HISTORY)) {
@@ -314,7 +287,7 @@ public class DdmCreateTableChange extends CreateTableChange {
 
             generateClassifyDefaultValues(statements);
 
-            if (Objects.nonNull(getDistribution())) {
+            if (getDistribution() != null) {
                 if (getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_ALL) || getDistribution().equals(DdmConstants.DISTRIBUTION_DISTRIBUTE_PRIMARY)) {
                     statements.add(new DdmDistributeTableStatement(getTableName(), statement.getPrimaryKeyConstraint().getColumns().get(0)));
                 } else if (getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_ALL) || getDistribution().equals(DdmConstants.DISTRIBUTION_REFERENCE_PRIMARY)) {
@@ -325,7 +298,7 @@ public class DdmCreateTableChange extends CreateTableChange {
             generateRemarks(statements, database);
             generateAccess(statements, getTableName());
 
-            return (SqlStatement[]) statements.toArray(new SqlStatement[statements.size()]);
+            return statements.toArray(new SqlStatement[0]);
         } else {
             return super.generateStatements(database);
         }
@@ -349,9 +322,7 @@ public class DdmCreateTableChange extends CreateTableChange {
             DropTableChange inverseHistory = createDropChange(getTableName());
             historyTable.set(false);
 
-            return new Change[]{
-                inverse, inverseHistory
-            };
+            return new Change[]{ inverse, inverseHistory };
         } else {
             return super.createInverses();
         }
@@ -413,7 +384,7 @@ public class DdmCreateTableChange extends CreateTableChange {
                     if ((childValue == null) && (param.getSerializationType() == SerializationType.DIRECT_VALUE)) {
                         childValue = parsedNode.getValue();
                     }
-                    if(null != childValue) {
+                    if(childValue != null) {
                         param.setValue(this, childValue);
                     }
                 }

@@ -1,9 +1,8 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
-import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmPartialUpdateStatement;
 import liquibase.Scope;
@@ -21,20 +20,18 @@ import liquibase.structure.core.Table;
 
 public class DdmPartialUpdateGenerator extends AbstractSqlGenerator<DdmPartialUpdateStatement> {
 
-    private SnapshotGeneratorFactory snapshotGeneratorFactory;
+    private final SnapshotGeneratorFactory snapshotGeneratorFactory;
 
     public DdmPartialUpdateGenerator() {
         this(SnapshotGeneratorFactory.getInstance());
     }
 
-    DdmPartialUpdateGenerator(SnapshotGeneratorFactory instance) {
+    public DdmPartialUpdateGenerator(SnapshotGeneratorFactory instance) {
         snapshotGeneratorFactory = instance;
     }
 
     @Override
     public Sql[] generateSql(DdmPartialUpdateStatement statement, Database database, SqlGeneratorChain<DdmPartialUpdateStatement> sqlGeneratorChain) {
-        StringBuilder buffer = new StringBuilder();
-
         for (DdmTableConfig table : statement.getTables()) {
             Table snapshotTable = null;
 
@@ -44,20 +41,19 @@ public class DdmPartialUpdateGenerator extends AbstractSqlGenerator<DdmPartialUp
                 Scope.getCurrentScope().getLog(database.getClass()).info("Cannot create snapshotTable", e);
             }
 
-            if (Objects.isNull(snapshotTable)) {
+            if (snapshotTable == null) {
                 throw new UnexpectedLiquibaseException("Table " + table.getName() + " does not exist");
             }
         }
 
+        String buffer = "";
         for (DdmTableConfig table : statement.getTables()) {
-            for (DdmColumnConfig column : table.getColumns()) {
-                buffer.append(DdmUtils.insertMetadataSql("partialUpdate", statement.getName(), table.getName(), column.getName()));
-            }
+            buffer = table.getColumns().stream().map(column -> String.valueOf(
+                    DdmUtils.insertMetadataSql("partialUpdate", statement.getName(), table.getName(), column.getName())))
+                .collect(Collectors.joining());
         }
 
-        return new Sql[]{
-            new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer) };
     }
 
     @Override

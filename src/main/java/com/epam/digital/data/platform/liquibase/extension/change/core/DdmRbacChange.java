@@ -1,8 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
-import java.util.Objects;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmRoleConfig;
@@ -52,13 +50,13 @@ public class DdmRbacChange extends AbstractChange {
                 }
 
                 for (DdmColumnConfig column : table.getColumns()) {
-                    if (Objects.nonNull(table.getRoleCanRead()) && Objects.nonNull(column.getRoleCanRead())) {
+                    if (table.getRoleCanRead() != null && column.getRoleCanRead() != null) {
                         validationErrors.addError("Values for read are ambiguous: role=" + role.getName() +
                             ", table=" + table.getName() +
                             ", column=" + column.getName());
                     }
 
-                    if (Objects.nonNull(table.getRoleCanUpdate()) && Objects.nonNull(column.getRoleCanUpdate())) {
+                    if (table.getRoleCanUpdate() != null && column.getRoleCanUpdate() != null) {
                         validationErrors.addError("Values for update are ambiguous: role - " + role.getName() +
                             ", table - " + table.getName() +
                             ", column - " + column.getName());
@@ -66,7 +64,6 @@ public class DdmRbacChange extends AbstractChange {
                 }
             }
         }
-
         return validationErrors;
     }
 
@@ -75,7 +72,6 @@ public class DdmRbacChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
         validationErrors.addAll(validateConflicts());
-
         return validationErrors;
     }
 
@@ -114,7 +110,7 @@ public class DdmRbacChange extends AbstractChange {
             }
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     @Override

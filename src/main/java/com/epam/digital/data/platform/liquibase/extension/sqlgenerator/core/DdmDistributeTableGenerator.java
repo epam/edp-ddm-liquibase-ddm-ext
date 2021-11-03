@@ -1,6 +1,5 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
@@ -9,8 +8,6 @@ import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
 
-import static com.epam.digital.data.platform.liquibase.extension.DdmParameters.isNull;
-
 public class DdmDistributeTableGenerator extends AbstractSqlGenerator<DdmDistributeTableStatement> {
 
     @Override
@@ -18,7 +15,6 @@ public class DdmDistributeTableGenerator extends AbstractSqlGenerator<DdmDistrib
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("tableName", statement.getTableName());
         validationErrors.checkRequiredField("distributionColumn", statement.getDistributionColumn());
-
         return validationErrors;
     }
 
@@ -32,13 +28,13 @@ public class DdmDistributeTableGenerator extends AbstractSqlGenerator<DdmDistrib
         buffer.append(statement.getDistributionColumn());
         buffer.append("'");
 
-        if (!DdmParameters.isNull(statement.getDistributionType())) {
+        if (statement.getDistributionType() != null) {
             buffer.append(", '");
             buffer.append(statement.getDistributionType());
             buffer.append("'");
         }
 
-        if (!DdmParameters.isNull(statement.getColocateWith())) {
+        if (statement.getColocateWith() != null) {
             buffer.append(", colocate_with=>'");
             buffer.append(statement.getColocateWith());
             buffer.append("'");
@@ -46,8 +42,6 @@ public class DdmDistributeTableGenerator extends AbstractSqlGenerator<DdmDistrib
 
         buffer.append(")");
 
-        return new Sql[]{
-                new UnparsedSql(buffer.toString())
-        };
+        return new Sql[]{ new UnparsedSql(buffer.toString()) };
     }
 }

@@ -1,7 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
-import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
@@ -23,8 +22,8 @@ import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCrea
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import liquibase.statement.core.RawSqlStatement;
+import liquibase.util.StringUtil;
 
 /**
  * Creates a new search condition.
@@ -38,7 +37,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
     private String name;
     private Boolean indexing;
     private String limit;
-    private Boolean pagination;
+    private boolean pagination;
     private List<DdmConditionConfig> conditions;
 
     public DdmCreateSearchConditionChange() {
@@ -61,21 +60,15 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
 
-        for (DdmJoinConfig join : getJoins()) {
-            if (join.getLeftColumns().size() != join.getRightColumns().size()) {
-                validationErrors.addError("Different amount of columns in join clause");
-            }
-        }
+        getJoins().stream().filter(join -> join.getLeftColumns().size() != join.getRightColumns().size())
+            .map(join -> "Different amount of columns in join clause").forEach(validationErrors::addError);
 
         if (Boolean.TRUE.equals(getIndexing())) {
             boolean hasSearchColumns = false;
 
             for (DdmTableConfig table : getTables()) {
-                for (DdmColumnConfig column : table.getColumns()) {
-                    if (Objects.nonNull(column.getSearchType())) {
-                        hasSearchColumns = true;
-                        break;
-                    }
+                if (table.getColumns().stream().anyMatch(column -> column.getSearchType() != null)) {
+                    hasSearchColumns = true;
                 }
             }
 
@@ -86,16 +79,14 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
 
         for (DdmTableConfig table : getTables()) {
             for (DdmFunctionConfig function : table.getFunctions()) {
-                if (function.getName().equals(DdmConstants.ATTRIBUTE_FUNCTION_STRING_AGG)) {
-                    if (Objects.isNull(function.getParameter()) || DdmParameters.isEmpty(function.getParameter())) {
-                        validationErrors.addError("function " + function.getName().toUpperCase() + " required additional parameter!");
-                    }
+                if (function.getName().equals(DdmConstants.ATTRIBUTE_FUNCTION_STRING_AGG) &&
+                    StringUtil.isEmpty(function.getParameter())) {
+                    validationErrors.addError("function " + function.getName().toUpperCase() + " required additional parameter!");
                 } else if (function.hasParameter()) {
                     validationErrors.addError("function " + function.getName().toUpperCase() + " doesn't required additional parameter!");
                 }
             }
         }
-
         return validationErrors;
     }
 
@@ -131,9 +122,8 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
                     statements.add(DdmUtils.insertMetadataSql(getName(), table.getName(), column.getName(), column.getNameOrAlias()));
                 }
 
-                if (Objects.nonNull(column.getSearchType())) {
+                if (column.getSearchType() != null) {
                     String val;
-
                     if (DdmConstants.ATTRIBUTE_EQUAL.equals(column.getSearchType())) {
                         val = DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
                     } else if (DdmConstants.ATTRIBUTE_CONTAINS.equals(column.getSearchType())) {
@@ -147,15 +137,15 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
             }
         }
 
-        if (Objects.nonNull(getLimit()) && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
+        if (getLimit() != null && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
             statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
         }
 
-        if (Boolean.TRUE.equals(getPagination())) {
-            statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, getPagination().toString()));
+        if (pagination) {
+            statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, Boolean.toString(true)));
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     protected DdmCreateSearchConditionStatement generateCreateSearchConditionStatement() {
@@ -166,10 +156,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
     protected Change[] createInverses() {
         DdmDropSearchConditionChange inverse = new DdmDropSearchConditionChange();
         inverse.setName(getName());
-
-        return new Change[]{
-                inverse
-        };
+        return new Change[]{ inverse };
     }
 
     @Override
@@ -268,7 +255,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
         this.conditions = conditions;
     }
 
-    public Boolean getPagination() {
+    public boolean getPagination() {
         return pagination;
     }
 

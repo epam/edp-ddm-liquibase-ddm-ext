@@ -27,7 +27,6 @@ public class DdmCreateTypeChange extends AbstractChange {
     private DdmTypeConfig asComposite;
     private DdmTypeConfig asEnum;
 
-
     public DdmCreateTypeChange() {
         super();
     }
@@ -36,7 +35,6 @@ public class DdmCreateTypeChange extends AbstractChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
-
         return validationErrors;
     }
 
@@ -51,7 +49,7 @@ public class DdmCreateTypeChange extends AbstractChange {
             statements.addAll(generateMetadataStatements(database));
         }
 
-        return statements.toArray(new SqlStatement[statements.size()]);
+        return statements.toArray(new SqlStatement[0]);
     }
 
     protected DdmCreateTypeStatement generateCreateTypeStatement() {
@@ -76,9 +74,7 @@ public class DdmCreateTypeChange extends AbstractChange {
         DdmDropTypeChange inverse = new DdmDropTypeChange();
         inverse.setName(getName());
 
-        return new Change[]{
-                inverse
-        };
+        return new Change[]{ inverse };
     }
 
     @DatabaseChangeProperty()

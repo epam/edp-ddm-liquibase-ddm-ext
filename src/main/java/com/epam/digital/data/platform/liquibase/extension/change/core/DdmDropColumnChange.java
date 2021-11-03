@@ -6,8 +6,6 @@ import liquibase.change.core.DropColumnChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 
-import java.util.Objects;
-
 
 /**
  * Drops an existing column from a table.
@@ -25,26 +23,20 @@ import java.util.Objects;
     appliesTo = "column")
 public class DdmDropColumnChange extends DropColumnChange {
 
-    private Boolean historyFlag;
+    private boolean historyFlag;
 
     @Override
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
-
-        if (Objects.nonNull(getHistoryFlag()) && getHistoryFlag()) {
-            validationErrors.addError("'dropColumn' is not allowed");
-        } else {
+        return historyFlag ? validationErrors.addError("'dropColumn' is not allowed") :
             validationErrors.addAll(super.validate(database));
-        }
-
-        return validationErrors;
     }
 
-    public Boolean getHistoryFlag() {
+    public boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(Boolean historyFlag) {
+    public void setHistoryFlag(boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 }

@@ -10,7 +10,6 @@ import liquibase.util.ObjectUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class DdmTypeConfig extends AbstractLiquibaseSerializable {
     private List<DdmColumnConfig> columns;
@@ -38,13 +37,13 @@ public class DdmTypeConfig extends AbstractLiquibaseSerializable {
                 DdmLabelConfig label = new DdmLabelConfig();
                 label.setLabel(child.getChildValue(null, DdmConstants.ATTRIBUTE_LABEL, String.class));
 
-                if (Objects.isNull(label.getLabel())) {
+                if (label.getLabel() == null) {
                     label.setLabel((String) child.getValue());
                 }
 
                 label.setTranslation(child.getChildValue(null, DdmConstants.ATTRIBUTE_TRANSLATION, String.class));
 
-                if (Objects.isNull(label.getTranslation())) {
+                if (label.getTranslation() == null) {
                     label.setTranslation(label.getLabel());
                 }
 
