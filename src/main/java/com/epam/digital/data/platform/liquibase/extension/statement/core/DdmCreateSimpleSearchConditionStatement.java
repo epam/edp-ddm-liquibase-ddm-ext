@@ -10,7 +10,7 @@ public class DdmCreateSimpleSearchConditionStatement extends AbstractSqlStatemen
     private String name;
     private DdmTableConfig table;
     private DdmColumnConfig searchColumn;
-    private boolean indexing;
+    private Boolean indexing;
     private String limit;
 
     public DdmCreateSimpleSearchConditionStatement(String name) {
@@ -34,11 +34,11 @@ public class DdmCreateSimpleSearchConditionStatement extends AbstractSqlStatemen
         this.name = name;
     }
 
-    public boolean getIndexing() {
+    public Boolean getIndexing() {
         return indexing;
     }
 
-    public void setIndexing(boolean indexing) {
+    public void setIndexing(Boolean indexing) {
         this.indexing = indexing;
     }
 

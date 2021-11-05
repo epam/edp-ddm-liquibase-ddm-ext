@@ -41,9 +41,9 @@ import java.sql.Statement;
 @DatabaseChange(name="addColumn", description = "Adds a new column to an existing table with history", priority = ChangeMetaData.PRIORITY_DEFAULT + 50, appliesTo = "table")
 public class DdmAddColumnChange extends AddColumnChange {
 
-    private boolean historyFlag;
-    private final DdmParameters parameters = new DdmParameters();;
-    private boolean isHistoryTable = false;
+    private Boolean historyFlag;
+    private final DdmParameters parameters = new DdmParameters();
+    private boolean isHistoryTable;
     private final SnapshotGeneratorFactory snapshotGeneratorFactory;
 
     public DdmAddColumnChange() {
@@ -108,7 +108,7 @@ public class DdmAddColumnChange extends AddColumnChange {
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>(Arrays.asList(super.generateStatements(database)));
 
-        if (historyFlag) {
+        if (Boolean.TRUE.equals(historyFlag)) {
             isHistoryTable = true;
             String newTableName = getTableName() + getVersion(database);
 
@@ -172,17 +172,17 @@ public class DdmAddColumnChange extends AddColumnChange {
         return statements.toArray(new SqlStatement[0]);
     }
 
-    public boolean getHistoryFlag() {
+    public Boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(boolean historyFlag) {
+    public void setHistoryFlag(Boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 
     @Override
     public String getTableName() {
-        if (historyFlag) {
+        if (Boolean.TRUE.equals(historyFlag)) {
             return super.getTableName() + (isHistoryTable ? parameters.getHistoryTableSuffix() : "");
         }
         return super.getTableName();

@@ -23,20 +23,21 @@ import liquibase.exception.ValidationErrors;
     appliesTo = "column")
 public class DdmDropColumnChange extends DropColumnChange {
 
-    private boolean historyFlag;
+    private Boolean historyFlag;
 
     @Override
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
-        return historyFlag ? validationErrors.addError("'dropColumn' is not allowed") :
+        return Boolean.TRUE.equals(historyFlag) ?
+            validationErrors.addError("'dropColumn' is not allowed") :
             validationErrors.addAll(super.validate(database));
     }
 
-    public boolean getHistoryFlag() {
+    public Boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(boolean historyFlag) {
+    public void setHistoryFlag(Boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 }

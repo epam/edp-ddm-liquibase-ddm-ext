@@ -27,7 +27,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
     private String name;
     private DdmTableConfig table;
     private DdmColumnConfig searchColumn;
-    private boolean indexing;
+    private Boolean indexing;
     private String limit;
 
     public DdmCreateSimpleSearchConditionChange() {
@@ -44,11 +44,11 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
 
-        if (indexing && getSearchColumn() == null) {
+        if (Boolean.TRUE.equals(indexing) && getSearchColumn() == null) {
             validationErrors.addError("searchColumn is not defined!");
         }
 
-        if (indexing && getSearchColumn() != null && getSearchColumn().getSearchType() == null) {
+        if (Boolean.TRUE.equals(indexing) && getSearchColumn() != null && getSearchColumn().getSearchType() == null) {
             validationErrors.addError("searchType is not defined!");
         }
         return validationErrors;
@@ -132,11 +132,11 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         this.name = name;
     }
 
-    public boolean getIndexing() {
+    public Boolean getIndexing() {
         return indexing;
     }
 
-    public void setIndexing(boolean indexing) {
+    public void setIndexing(Boolean indexing) {
         this.indexing = indexing;
     }
 

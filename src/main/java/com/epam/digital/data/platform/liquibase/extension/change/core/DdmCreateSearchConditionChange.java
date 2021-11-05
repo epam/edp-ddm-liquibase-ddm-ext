@@ -37,7 +37,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
     private String name;
     private Boolean indexing;
     private String limit;
-    private boolean pagination;
+    private Boolean pagination;
     private List<DdmConditionConfig> conditions;
 
     public DdmCreateSearchConditionChange() {
@@ -141,7 +141,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
             statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
         }
 
-        if (pagination) {
+        if (Boolean.TRUE.equals(pagination)) {
             statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, Boolean.toString(true)));
         }
 
@@ -255,7 +255,7 @@ public class DdmCreateSearchConditionChange extends AbstractChange {
         this.conditions = conditions;
     }
 
-    public boolean getPagination() {
+    public Boolean getPagination() {
         return pagination;
     }
 

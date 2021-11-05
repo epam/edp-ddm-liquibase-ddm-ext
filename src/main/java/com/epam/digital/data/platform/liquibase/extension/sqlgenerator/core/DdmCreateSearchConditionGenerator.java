@@ -200,7 +200,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         buffer.append(generateSelectSql(statement.getTables(), statement.getJoins(), statement.getConditions()));
         buffer.append(";");
 
-        if (statement.getIndexing() != null && statement.getIndexing()) {
+        if (Boolean.TRUE.equals(statement.getIndexing())) {
             buffer.append(generateIndexSql(statement.getName(), statement.getTables()));
         }
 

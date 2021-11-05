@@ -18,7 +18,7 @@ import liquibase.statement.core.ModifyDataTypeStatement;
     appliesTo = "column")
 public class DdmModifyDataTypeChange extends ModifyDataTypeChange {
 
-    private boolean historyFlag;
+    private Boolean historyFlag;
     private final DdmParameters parameters = new DdmParameters();
 
     @Override
@@ -27,7 +27,7 @@ public class DdmModifyDataTypeChange extends ModifyDataTypeChange {
 
         statements.add(new ModifyDataTypeStatement(getCatalogName(), getSchemaName(), getTableName(), getColumnName(), getNewDataType()));
 
-        if (historyFlag) {
+        if (Boolean.TRUE.equals(historyFlag)) {
             String historyTableName = getTableName() + parameters.getHistoryTableSuffix();
             statements.add(new ModifyDataTypeStatement(getCatalogName(), getSchemaName(), historyTableName, getColumnName(), getNewDataType()));
         }
@@ -35,11 +35,11 @@ public class DdmModifyDataTypeChange extends ModifyDataTypeChange {
         return statements.toArray(new SqlStatement[0]);
     }
 
-    public boolean getHistoryFlag() {
+    public Boolean getHistoryFlag() {
         return historyFlag;
     }
 
-    public void setHistoryFlag(boolean historyFlag) {
+    public void setHistoryFlag(Boolean historyFlag) {
         this.historyFlag = historyFlag;
     }
 }

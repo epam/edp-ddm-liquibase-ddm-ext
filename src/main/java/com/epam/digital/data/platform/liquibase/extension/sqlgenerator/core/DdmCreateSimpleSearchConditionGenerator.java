@@ -73,7 +73,7 @@ public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerato
 
         buffer.append(";");
 
-        if (statement.getIndexing()) {
+        if (Boolean.TRUE.equals(statement.getIndexing())) {
             buffer.append("\n\n");
             buffer.append(generateIndexSql(statement, statement.getSearchColumn().getSearchType(), false));
         }
