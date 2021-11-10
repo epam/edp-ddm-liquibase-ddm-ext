@@ -1,5 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import liquibase.change.ChangeMetaData;
 import liquibase.change.DatabaseChange;
 import liquibase.change.core.RenameColumnChange;
@@ -23,6 +24,8 @@ public class DdmRenameColumnChange extends RenameColumnChange {
     @Override
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
+        validationErrors.addAll(DdmUtils.validateHistoryFlag(getHistoryFlag()));
+        
         return Boolean.TRUE.equals(historyFlag) ?
             validationErrors.addError("'renameColumn' is not allowed") :
             validationErrors.addAll(super.validate(database));

@@ -67,12 +67,13 @@ class DdmAddColumnChangeTest {
         column2.setType("type2");
         change.addColumn(column2);
 
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(2, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - default value")
     public void validateChangeDefaultValue() {
+        change.setHistoryFlag(true);
         AddColumnConfig column1 = new AddColumnConfig();
         column1.setName("column1");
         column1.setType("type1");

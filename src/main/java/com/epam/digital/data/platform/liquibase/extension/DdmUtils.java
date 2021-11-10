@@ -3,6 +3,7 @@ package com.epam.digital.data.platform.liquibase.extension;
 import java.util.Objects;
 import liquibase.changelog.ChangeSet;
 import liquibase.statement.core.RawSqlStatement;
+import liquibase.exception.ValidationErrors;
 
 public class DdmUtils {
 
@@ -34,5 +35,10 @@ public class DdmUtils {
 
     public static boolean hasContext(ChangeSet changeSet, String context) {
         return Boolean.TRUE.equals(changeSet.getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));
+    }
+
+    public static ValidationErrors validateHistoryFlag(Boolean historyFlag) {
+        return !Boolean.TRUE.equals(historyFlag) ?
+            new ValidationErrors().addError("historyFlag attribute is required and must be set as 'true'") : new ValidationErrors();
     }
 }

@@ -22,22 +22,14 @@ class DdmModifyDataTypeChangeTest {
     @Test
     @DisplayName("Validate change")
     void validate() {
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
-
-        SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof ModifyDataTypeStatement);
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - historyFlag=false")
     void validateHistoryFlagFalse() {
         change.setHistoryFlag(false);
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
-
-        SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof ModifyDataTypeStatement);
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test

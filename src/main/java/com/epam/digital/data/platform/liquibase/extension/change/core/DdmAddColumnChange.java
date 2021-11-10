@@ -1,5 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +59,7 @@ public class DdmAddColumnChange extends AddColumnChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
+        validationErrors.addAll(DdmUtils.validateHistoryFlag(getHistoryFlag()));
 
         for (AddColumnConfig column : getColumns()) {
             if (column.getDefaultValueObject() == null

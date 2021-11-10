@@ -121,6 +121,7 @@ public class DdmCreateTableChange extends CreateTableChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
+        validationErrors.addAll(DdmUtils.validateHistoryFlag(getHistoryFlag()));
         validationErrors.addAll(validatePrimaryKey(database));
 
         if (!Boolean.TRUE.equals(getHistoryFlag()) && getDistribution() != null

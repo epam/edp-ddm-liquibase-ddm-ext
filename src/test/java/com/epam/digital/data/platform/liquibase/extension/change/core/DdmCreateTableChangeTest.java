@@ -77,12 +77,22 @@ class DdmCreateTableChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
+        change.setHistoryFlag(true);
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Validate change - historyFlag")
+    public void validateChangeHistoryFlag() {
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        change.setHistoryFlag(false);
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - local")
     public void validateChangeLocal() {
+        change.setHistoryFlag(true);
         change.setDistribution("local");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -90,6 +100,7 @@ class DdmCreateTableChangeTest {
     @Test
     @DisplayName("Validate change - distributePrimary")
     public void validateChangeDistributePrimary() {
+        change.setHistoryFlag(true);
         change.setDistribution("distributePrimary");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -97,20 +108,23 @@ class DdmCreateTableChangeTest {
     @Test
     @DisplayName("Validate change - distributeAll")
     public void validateChangeDistributeAll() {
+        change.setHistoryFlag(true);
         change.setDistribution("distributeAll");
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - distributeHistory")
     public void validateChangeDistributeHistory() {
+        change.setHistoryFlag(true);
         change.setDistribution("distributeHistory");
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - referencePrimary")
     public void validateChangeReferencePrimary() {
+        change.setHistoryFlag(true);
         change.setDistribution("referencePrimary");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
@@ -118,15 +132,17 @@ class DdmCreateTableChangeTest {
     @Test
     @DisplayName("Validate change - referenceAll")
     public void validateChangeReferenceAll() {
+        change.setHistoryFlag(true);
         change.setDistribution("referenceAll");
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - referenceHistory")
     public void validateChangeReferenceHistory() {
+        change.setHistoryFlag(true);
         change.setDistribution("referenceHistory");
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test

@@ -20,14 +20,14 @@ class DdmRenameColumnChangeTest {
     @Test
     @DisplayName("Validate change")
     void validate() {
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - historyFlag=false")
     void validateHistoryFlagFalse() {
         change.setHistoryFlag(false);
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
