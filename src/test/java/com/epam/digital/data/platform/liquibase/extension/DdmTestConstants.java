@@ -13,4 +13,3 @@ public class DdmTestConstants {
 
     private DdmTestConstants() {}
 }
-
