@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import liquibase.Scope;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.ChangeMetaData;
@@ -23,18 +24,20 @@ import liquibase.exception.ValidationErrors;
 import liquibase.snapshot.SnapshotGeneratorFactory;
 import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
+import liquibase.statement.UniqueConstraint;
 import liquibase.statement.core.CreateTableStatement;
 import liquibase.statement.core.DropUniqueConstraintStatement;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.statement.core.RenameTableStatement;
 import liquibase.structure.core.Column;
+import liquibase.structure.core.Index;
 import liquibase.structure.core.Table;
-import liquibase.structure.core.UniqueConstraint;
 import liquibase.util.JdbcUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.stream.Collectors;
 
 /**
  * Adds a column to an existing table with history.
@@ -121,49 +124,45 @@ public class DdmAddColumnChange extends AddColumnChange {
                 Scope.getCurrentScope().getLog(database.getClass()).info("Cannot generate snapshot of table " + getTableName() + " on " + database.getShortName() + " database", e);
             }
 
+            List<Index> uniqueConstraints = new ArrayList<>();
             if (snapshotTable != null) {
-                for (UniqueConstraint uniqueConstraint : snapshotTable.getUniqueConstraints()) {
-                    statements.add(new DropUniqueConstraintStatement(null, null, snapshotTable.getName(), uniqueConstraint.getName()));
-                }
+                uniqueConstraints = getHstTableUniqueConstraints(snapshotTable);
+                uniqueConstraints.forEach(index -> statements.add(new DropUniqueConstraintStatement(null, null, getTableName(), index.getName())));
             }
 
             statements.add(new RenameTableStatement(null, null, getTableName(), newTableName));
 
             if (snapshotTable != null) {
-                CreateTableStatement statement = new CreateTableStatement(null, null, snapshotTable.getName(), snapshotTable.getRemarks());
+                CreateTableStatement createHstTableStatement = new CreateTableStatement(null, null, snapshotTable.getName(), snapshotTable.getRemarks());
 
                 for (Column column : snapshotTable.getColumns()) {
                     LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(column.getType().getTypeName(), database);
-                    statement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
+                    createHstTableStatement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
 
                     if (!column.isNullable()) {
                         NotNullConstraint notNullConstraint = new NotNullConstraint(column.getName());
                         notNullConstraint.setValidateNullable(column.getValidateNullable());
-                        statement.addColumnConstraint(notNullConstraint);
+                        createHstTableStatement.addColumnConstraint(notNullConstraint);
                     }
                 }
 
                 for (ColumnConfig column : getColumns()) {
                     LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(column.getType(), database);
-                    statement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
+                    createHstTableStatement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
 
                     ConstraintsConfig constraints = column.getConstraints();
                     if (constraints != null && constraints.isNullable() != null && !constraints.isNullable()) {
                         NotNullConstraint notNullConstraint = new NotNullConstraint(column.getName());
                         notNullConstraint.setConstraintName(constraints.getNotNullConstraintName());
                         notNullConstraint.setValidateNullable(constraints.getValidateNullable() == null || constraints.getValidateNullable());
-                        statement.addColumnConstraint(notNullConstraint);
+                        createHstTableStatement.addColumnConstraint(notNullConstraint);
                     }
                 }
+                recreateHstUniqueConstraints(uniqueConstraints)
+                        .forEach(createHstTableStatement::addColumnConstraint);
 
-                statement.getUniqueConstraints().clear();
-                for (UniqueConstraint uniqueConstraint : snapshotTable.getUniqueConstraints()) {
-                    liquibase.statement.UniqueConstraint uc = new liquibase.statement.UniqueConstraint(uniqueConstraint.getName());
-                    uniqueConstraint.getColumns().stream().map(Column::getName).forEach(uc::addColumns);
-                    statement.addColumnConstraint(uc);
-                }
-
-                statements.add(statement);
+                statements.add(createHstTableStatement);
+                statements.addAll(createTableAccessStatements(snapshotTable.getName()));
                 statements.add(new RawSqlStatement("CALL p_init_new_hist_table('" + newTableName + "', '" + snapshotTable.getName() + "');"));
                 statements.add(new RawSqlStatement("ALTER TABLE " + newTableName + " SET SCHEMA archive;"));
             }
@@ -188,5 +187,39 @@ public class DdmAddColumnChange extends AddColumnChange {
             return super.getTableName() + (isHistoryTable ? parameters.getHistoryTableSuffix() : "");
         }
         return super.getTableName();
+    }
+
+    private List<Index> getHstTableUniqueConstraints(Table snapshotTable) {
+        return snapshotTable.getIndexes().stream()
+                .filter(Index::isUnique)
+                .collect(Collectors.toList());
+    }
+
+    private List<UniqueConstraint> recreateHstUniqueConstraints(List<Index> uniqueConstraintsIndex) {
+        return uniqueConstraintsIndex.stream()
+                .map(index -> {
+                    String[] columnNames = index.getColumns()
+                            .stream()
+                            .map(Column::getName)
+                            .toArray(String[]::new);
+                    liquibase.statement.UniqueConstraint uc = new liquibase.statement.UniqueConstraint(index.getName());
+                    uc.addColumns(columnNames);
+                    return uc;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<SqlStatement> createTableAccessStatements(String tableName) {
+        List<SqlStatement> accessStatements = new ArrayList<>();
+        accessStatements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + tableName + " FROM PUBLIC;"));
+
+        if (DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_PUB)) {
+            accessStatements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO application_role;"));
+        }
+
+        if (DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_SUB)) {
+            accessStatements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
+        }
+        return accessStatements;
     }
 }

@@ -89,6 +89,7 @@ public class DdmMakeObjectChange extends AbstractChange {
         for (DdmTableConfig table : getTables()) {
             if (!columnExists(database, table.getName(), parameters.getSubjectColumn())) {
                 DdmAddColumnChange change = new DdmAddColumnChange(snapshotGeneratorFactory);
+                change.setChangeSet(getChangeSet());
                 change.setHistoryFlag(true);
                 change.setTableName(table.getName());
 

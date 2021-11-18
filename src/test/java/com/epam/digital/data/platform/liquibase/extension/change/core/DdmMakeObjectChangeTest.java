@@ -3,6 +3,7 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +34,7 @@ import liquibase.statement.core.RawSqlStatement;
 import liquibase.statement.core.RenameTableStatement;
 import liquibase.structure.core.Column;
 import liquibase.structure.core.DataType;
+import liquibase.structure.core.Index;
 import liquibase.structure.core.Table;
 import liquibase.structure.core.UniqueConstraint;
 import org.junit.jupiter.api.Assertions;
@@ -44,44 +46,43 @@ class DdmMakeObjectChangeTest {
     private DdmMakeObjectChange change;
     private DdmMakeObjectChange snapshotChange;
 
-    List<DdmTableConfig> createTables() {
-        List<DdmTableConfig> tables = new ArrayList<>();
-
-        DdmTableConfig table = new DdmTableConfig();
-        table.setName("table");
-
-        tables.add(table);
-
-        return tables;
-    }
-
     @BeforeEach
     void setUp() {
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+
+        ChangeLogParameters changeLogParameters = new ChangeLogParameters();
+        changeLog.setChangeLogParameters(changeLogParameters);
+
+        ChangeSet changeSet = new ChangeSet(changeLog);
+
         change = new DdmMakeObjectChange();
         change.setTables(createTables());
+        change.setChangeSet(changeSet);
 
-        Table table = new Table();
-        table.setName("table_hst");
+        Table historyTable = new Table();
+        historyTable.setName("table_hst");
 
         DataType colType = new DataType("text");
         Column column = new Column("column");
         column.setNullable(false);
         column.setType(colType);
-        table.addColumn(column);
+        historyTable.addColumn(column);
 
-        UniqueConstraint constraint = new UniqueConstraint();
-        constraint.setName("uniqueConstraint");
-        constraint.addColumn(0, column);
+        Index uniqueIndex = new Index();
+        uniqueIndex.setName("uniqueConstraint");
+        uniqueIndex.setUnique(true);
+        uniqueIndex.setColumns(Collections.singletonList(column));
 
-        table.setAttribute("uniqueConstraints", asList(constraint));
+        historyTable.setAttribute("indexes", Collections.singletonList(uniqueIndex));
 
-        snapshotChange = new DdmMakeObjectChange(new DdmMockSnapshotGeneratorFactory(table));
+        snapshotChange = new DdmMakeObjectChange(new DdmMockSnapshotGeneratorFactory(historyTable));
         snapshotChange.setTables(createTables());
+        snapshotChange.setChangeSet(changeSet);
     }
 
     @Test
     @DisplayName("Check load makeObject")
-    public void checkLoad() throws ChangeLogParseException, Exception {
+    void checkLoad() throws Exception {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
         DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
         DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_MAKE_OBJECT_FILE_NAME,
@@ -96,7 +97,7 @@ class DdmMakeObjectChangeTest {
             }
 
             @Override
-            public void visit(ChangeSet changeSet, DatabaseChangeLog databaseChangeLog, Database database, Set<ChangeSetFilterResult> filterResults) throws LiquibaseException {
+            public void visit(ChangeSet changeSet, DatabaseChangeLog databaseChangeLog, Database database, Set<ChangeSetFilterResult> filterResults) {
                 changeSets.add(changeSet);
             }
         }, new RuntimeEnvironment(new MockDatabase(), new Contexts(), new LabelExpression()));
@@ -106,27 +107,39 @@ class DdmMakeObjectChangeTest {
 
     @Test
     @DisplayName("Validate change")
-    public void validateChange() {
+    void validateChange() {
         Assertions.assertEquals(0, snapshotChange.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Check statements")
-    public void checkStatements() {
+    void checkStatements() {
         SqlStatement[] statements = snapshotChange.generateStatements(new MockDatabase());
-        Assertions.assertEquals(6, statements.length);
+        Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
         Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
         Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
         Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
     }
 
     @Test
     @DisplayName("Check messages")
-    public void checkMessages() {
+    void checkMessages() {
         Assertions.assertEquals("Objects have been made", snapshotChange.getConfirmationMessage());
         Assertions.assertEquals("http://www.liquibase.org/xml/ns/dbchangelog", snapshotChange.getSerializedObjectNamespace());
+    }
+
+    private List<DdmTableConfig> createTables() {
+        List<DdmTableConfig> tables = new ArrayList<>();
+
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("table");
+
+        tables.add(table);
+
+        return tables;
     }
 }
