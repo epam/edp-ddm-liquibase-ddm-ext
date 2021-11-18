@@ -1,14 +1,18 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmPair;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
@@ -26,7 +30,28 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
     public ValidationErrors validate(DdmCreateSearchConditionStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("name", statement.getName());
+        
+        String cteErrorMessage = getErrorMessageForCteValidator(statement);
+        if(cteErrorMessage != null) {
+            validationErrors.addError("CTE has incorrect format: " + cteErrorMessage);
+        }
         return validationErrors;
+    }
+
+    private String getErrorMessageForCteValidator(DdmCreateSearchConditionStatement statement) {
+        String result = null;
+        try {
+            for (DdmTableConfig table : statement.getTables()) {
+                for (DdmColumnConfig column : table.getColumns()) {
+                    if (column.getSearchType() != null) {
+                        getTableColumnPairForCteColumn(statement, table.getName(), column.getName());
+                    }
+                }
+            }
+        } catch (RuntimeException e) {
+            result = e.getMessage();
+        }
+        return result;
     }
 
     private String getUnusedTable(List<DdmTableConfig> tables, String leftAlias, String rightAlias) {
@@ -39,39 +64,78 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         return "";
     }
 
-    private StringBuilder generateIndexSql(String name, List<DdmTableConfig> tables) {
+    private DdmPair getPair(Map<String, DdmCteConfig> ctes, String tableName, String columnName) {
+        if (ctes.containsKey(tableName)) {
+            for (DdmTableConfig cteTable : ctes.get(tableName).getTables()) {
+                for (DdmColumnConfig cteColumn : cteTable.getColumns()) {
+                    if (cteColumn.getNameOrAlias().equalsIgnoreCase(columnName)) {
+                        tableName = cteTable.getName();
+                        columnName = cteColumn.getName();
+                        return getPair(ctes, tableName, columnName);
+                    }
+                }
+                for (DdmFunctionConfig cteFunction : cteTable.getFunctions()) {
+                    if (cteFunction.getAlias().equalsIgnoreCase(columnName)) {
+                        tableName = cteTable.getName();
+                        columnName = cteFunction.getColumnName();
+                        return getPair(ctes, tableName, columnName);
+                    }
+                }
+            }
+            throw new RuntimeException(columnName + " column was not found in the table " + tableName);
+        } 
+        return new DdmPair(tableName, columnName);
+    }
+
+    private DdmPair getTableColumnPairForCteColumn(DdmCreateSearchConditionStatement statement, String tableName, String columnName) {
+        
+        Map<String, DdmCteConfig> cteMap = statement.getCtes().stream()
+            .collect(Collectors.toMap(DdmCteConfig::getName, Function.identity()));
+        
+        return getPair(cteMap, tableName, columnName);
+    }
+
+    private StringBuilder generateIndexSql(DdmCreateSearchConditionStatement statement) {
         StringBuilder buffer = new StringBuilder();
 
-        for (DdmTableConfig table : tables) {
+        for (DdmTableConfig table : statement.getTables()) {
             for (DdmColumnConfig column : table.getColumns()) {
                 if (column.getSearchType() != null) {
+                    DdmPair pair = getTableColumnPairForCteColumn(statement, table.getName(), column.getName());
+                    
+                    String tableName = pair.getKey();
+                    String columnName = pair.getValue();
+                    
                     buffer.append("\n\n");
-                    buffer.append("CREATE INDEX ");
+                    buffer.append("CREATE INDEX IF NOT EXISTS ");
                     buffer.append(DdmConstants.PREFIX_INDEX);
-                    buffer.append("$");
-                    buffer.append(name);
-                    buffer.append("$_");
-                    buffer.append(table.getName());
-                    buffer.append("_");
-                    buffer.append(column.getName());
+                    buffer.append(tableName);
+                    buffer.append("__");
+                    buffer.append(columnName);
+                    
                     buffer.append(" ON ");
-                    buffer.append(table.getName());
-                    buffer.append("(");
+                    buffer.append(tableName);
 
-                    String columnFormat = column.getName();
-
-                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS) || column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
-                        columnFormat += " ";
-
-                        if (column.getType().equalsIgnoreCase(DdmConstants.TYPE_CHAR)) {
-                            columnFormat += "bp";
-                        }
-
-                        columnFormat += column.getType().toLowerCase();
-                        columnFormat += "_pattern_ops";
+                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
+                        buffer.append(" USING GIN ");
                     }
 
-                    buffer.append(columnFormat);
+                    buffer.append("(");
+
+                    if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
+                        columnName += " gin_trgm_ops";
+                    } else if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
+                        columnName += " ";
+
+                        if (column.getType().equalsIgnoreCase(DdmConstants.TYPE_CHAR)) {
+                            columnName += "bp";
+                        }
+
+                        columnName += column.getType().toLowerCase();
+                        columnName += "_pattern_ops";
+                    }
+
+                    buffer.append(columnName);
                     buffer.append(");");
                 }
             }
@@ -201,7 +265,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         buffer.append(";");
 
         if (Boolean.TRUE.equals(statement.getIndexing())) {
-            buffer.append(generateIndexSql(statement.getName(), statement.getTables()));
+            buffer.append(generateIndexSql(statement));
         }
 
         return new Sql[]{ new UnparsedSql(buffer.toString()) };

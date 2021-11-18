@@ -1,5 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
@@ -384,13 +386,98 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column12 ON table1(column12);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column12 ON table1(column12);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22);", sqls[0].toSql());
     }
 
+    @Test
+    void shouldCreateIndexForCteWithRealTableNameAndColumnName() {
+        
+        // Table 1
+        DdmColumnConfig column11 = new DdmColumnConfig();
+        column11.setName("c11_name");
+        DdmColumnConfig column12 = new DdmColumnConfig();
+        column11.setName("c12_name");
+        DdmTableConfig table1 = new DdmTableConfig("t1_name");
+        table1.setColumns(Arrays.asList(column11, column12));
+        
+        // Table 1 as part of CTE
+        DdmColumnConfig cte_column = new DdmColumnConfig();
+        cte_column.setName("c11_name");
+        cte_column.setAlias("cte_column_alias");
+        
+        DdmFunctionConfig cte_func = new DdmFunctionConfig();
+        cte_func.setName("max");
+        cte_func.setColumnName("c12_name");
+        cte_func.setAlias("cte_func_alias");
+
+        DdmTableConfig cteTable = new DdmTableConfig();
+        cteTable.setName("t1_name");
+        cteTable.setColumns(Collections.singletonList(cte_column));
+        cteTable.setFunctions(Collections.singletonList(cte_func));
+
+        DdmCteConfig cteConfig = new DdmCteConfig();
+        cteConfig.setName("cteName");
+        cteConfig.addTable(cteTable);
+
+        // Table 2
+        DdmColumnConfig column2 = new DdmColumnConfig();
+        column2.setName("c2_name");
+        column2.setAlias("c2_alias");
+
+        DdmTableConfig table2 = new DdmTableConfig("t2_name");
+        table2.setColumns(Collections.singletonList(column2));
+        table2.setAlias("t2_alias");
+
+        // Table 3 - CTE
+        DdmColumnConfig column3 = new DdmColumnConfig();
+        column3.setName("cte_column_alias");
+        column3.setSearchType("contains");
+
+        DdmColumnConfig column4 = new DdmColumnConfig();
+        column4.setName("cte_func_alias");
+        column4.setSearchType("contains");
+
+        DdmTableConfig table3 = new DdmTableConfig("cteName");
+        table3.setColumns(Arrays.asList(column3, column4));
+        table3.setAlias("t3_alias");
+
+        DdmJoinConfig join = new DdmJoinConfig();
+        join.setType("inner");
+        
+        join.setLeftAlias("t3_alias");
+        join.addLeftColumn("cte_column_alias");
+        
+        join.setRightAlias("t2_alias");
+        join.addRightColumn("c2_alias");
+
+        statement.setName("view_name");
+        statement.addJoin(join);
+        statement.setCtes(Collections.singletonList(cteConfig));
+        statement.setTables(Arrays.asList(table2, table3));
+        statement.setIndexing(true);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+
+        assertEquals(
+            "CREATE OR REPLACE VIEW view_name_v AS " 
+                + "WITH cteName AS (SELECT c11_name AS cte_column_alias, MAX(c12_name) " 
+                + "AS cte_func_alias FROM t1_name GROUP BY c11_name) SELECT t2_alias.c2_name " 
+                + "AS c2_alias, t3_alias.cte_column_alias, t3_alias.cte_func_alias FROM t2_name " 
+                + "AS t2_alias INNER JOIN cteName AS t3_alias " 
+                + "ON (t3_alias.cte_column_alias = t2_alias.c2_alias);\n"
+                + "\n"
+                + "CREATE INDEX IF NOT EXISTS ix_t1_name__c11_name " 
+                + "ON t1_name USING GIN (c11_name gin_trgm_ops);\n"
+                + "\n"
+                + "CREATE INDEX IF NOT EXISTS ix_t1_name__c12_name " 
+                + "ON t1_name USING GIN (c12_name gin_trgm_ops);",
+            sqls[0].toSql());
+    }
+    
     @Test
     @DisplayName("Validate SQL - indexing equal")
     public void validateSQLIndexingEqual() {
@@ -440,9 +527,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22);", sqls[0].toSql());
     }
 
     @Test
@@ -496,9 +583,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 text_pattern_ops);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1 USING GIN (column11 gin_trgm_ops);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -552,9 +639,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 bpchar_pattern_ops);\n" +
-                "\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1 USING GIN (column11 gin_trgm_ops);" +
+                "\n\n" +
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2 USING GIN (column22 gin_trgm_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -608,9 +695,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 text_pattern_ops);" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11 text_pattern_ops);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22 text_pattern_ops);", sqls[0].toSql());
     }
 
     @Test
@@ -664,9 +751,9 @@ class DdmCreateSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12, t2.column21, t2.column22 " +
                 "FROM table1 AS t1 INNER JOIN table2 AS t2 ON (t1.column11 = t2.column21);" +
                 "\n\n" +
-                "CREATE INDEX ix_$name$_table1_column11 ON table1(column11 bpchar_pattern_ops);\n" +
+                "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11 bpchar_pattern_ops);\n" +
                 "\n" +
-                "CREATE INDEX ix_$name$_table2_column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
+                "CREATE INDEX IF NOT EXISTS ix_table2__column22 ON table2(column22 varchar_pattern_ops);", sqls[0].toSql());
     }
 
     @Test
