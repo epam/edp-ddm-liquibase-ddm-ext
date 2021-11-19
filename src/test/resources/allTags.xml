@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext https://nexus-public-mdtu-ddm-edp-cicd.apps.cicd2.mdtu-ddm.projects.epam.com/repository/extensions/ua/gov/mdtu/ddm/dataplatform/liquibase-ext-schema/latest/liquibase-ext-schema-latest.xsd">
+
+    <changeSet id="set initial registry_version" author="registry owner">
+        <sql>
+            call p_version_control('1.0.0'::text, true);
+        </sql>
+    </changeSet>
+
+    <changeSet id="createDomain" author="registry owner">
+        <ext:createDomain name="typeDomain" type="text" nullable="true">
+            <ext:constraint name="domainConstraint" implementation="VALUE ~ '^[АВЕІКМНОРСТХ]{2}\d{6}$'"/>
+        </ext:createDomain>
+    </changeSet>
+
+    <changeSet id="dropDomain" author="registry owner">
+        <ext:createDomain name="domainForDrop" type="text" nullable="true">
+            <ext:constraint name="domainForDropConstraint" implementation="VALUE ~ '^[АВЕІКМНОРСТХ]{2}\d{6}$'"/>
+        </ext:createDomain>
+
+        <ext:dropDomain name="domainForDrop"/>
+    </changeSet>
+
+    <changeSet id="createType asComposite" author="registry owner">
+        <ext:createType name="typeComposite">
+            <ext:asComposite>
+                <ext:column name="column1" type="text"/>
+                <ext:column name="column2" type="integer"/>
+            </ext:asComposite>
+        </ext:createType>
+    </changeSet>
+
+    <changeSet id="createType asEnum" author="registry owner">
+        <ext:createType name="typeEnum">
+            <ext:asEnum>
+                <ext:label translation="translation1">label1</ext:label>
+                <ext:label translation="translation2">label2</ext:label>
+            </ext:asEnum>
+        </ext:createType>
+    </changeSet>
+
+    <changeSet id="dropType" author="registry owner">
+        <ext:createType name="typeForDrop">
+            <ext:asEnum>
+                <ext:label translation="translation1">label1</ext:label>
+                <ext:label translation="translation2">label2</ext:label>
+            </ext:asEnum>
+        </ext:createType>
+    </changeSet>
+
+    <changeSet id="createTable dictionary" author="registry owner">
+        <ext:createTable tableName="dictionary" ext:historyFlag="true">
+            <column name="dictionary_id" type="UUID">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </ext:createTable>
+    </changeSet>
+
+    <changeSet id="createTable dictionaryArray" author="registry owner">
+        <ext:createTable tableName="dictionary_array" ext:historyFlag="true">
+            <column name="dictionary_array_id" type="UUID">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </ext:createTable>
+    </changeSet>
+
+    <changeSet id="createTable" author="registry owner">
+        <ext:createTable tableName="main_table" ext:historyFlag="true">
+            <column name="main_table_id" type="UUID">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="field_composite" type="typeComposite"/>
+            <column name="field_enum" type="typeEnum"/>
+            <column name="field_domain" type="typeDomain"/>
+            <column name="field_dictionary" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="new_fk"
+                    referencedTableName="dictionary"
+                    referencedColumnNames="dictionary_id"/>
+            </column>
+            <ext:column name="field_array" type="UUID[]"/>
+            <ext:column name="field_for_change" type="integer"/>
+        </ext:createTable>
+    </changeSet>
+<!--
+    <changeSet author="registry owner" id="addColumn">
+        <ext:addColumn tableName="main_table" ext:historyFlag="true">
+            <column name="field_added"
+                type="varchar(50)"
+                defaultValue="test">
+                <constraints nullable="false" />
+            </column>
+        </ext:addColumn>
+    </changeSet>
+-->
+    <changeSet author="registry owner" id="createSimpleSearchCondition">
+        <ext:createSimpleSearchCondition name="simple_view" indexing="true" limit="10">
+            <ext:table name="dictionary" alias="d" searchType="contains" type="text" searchColumn="name"/>
+        </ext:createSimpleSearchCondition>
+    </changeSet>
+
+    <changeSet author="registry owner" id="createSearchCondition">
+        <ext:createSearchCondition name="view" limit="20" indexing="true" pagination="true">
+            <ext:cte name="cte_dictionary">
+                <ext:table name="dictionary">
+                    <ext:column name="dictionary_id"/>
+                    <ext:column name="full_name" alias="dictionary_name"/>
+                </ext:table>
+                <ext:where>
+                    <ext:condition columnName="name" operator="eq" value="'name'"/>
+                </ext:where>
+            </ext:cte>
+            <ext:table name="main_table" alias="m">
+                <ext:column name="main_table_id"/>
+                <ext:column name="field_composite" returning="false"/>
+                <ext:column name="field_enum" sorting="desc"/>
+                <ext:column name="field_domain" searchType="startsWith"/>
+            </ext:table>
+            <ext:table name="cte_dictionary" alias="c">
+                <ext:column name="dictionary_name"/>
+            </ext:table>
+            <ext:join type="inner">
+                <ext:left alias="m">
+                    <ext:column name="field_dictionary"/>
+                </ext:left>
+                <ext:right alias="c">
+                    <ext:column name="dictionary_id"/>
+                </ext:right>
+            </ext:join>
+        </ext:createSearchCondition>
+    </changeSet>
+
+<!-- make Subject -->
+<!-- call p_version_control('1.0.1'::text); -->
+    <changeSet author="registry owner" id="enum subject_type">
+        <comment>CREATE TYPE type_subject_type</comment>
+        <ext:createType name="type_subject_type">
+            <ext:asEnum>
+                <ext:label translation="Фізична особа">INDIVIDUAL</ext:label>
+                <ext:label translation="ФОП">ENTREPRENEUR</ext:label>
+                <ext:label translation="Юридична особа">LEGAL</ext:label>
+                <ext:label translation="Чиновник">OFFICER</ext:label>
+            </ext:asEnum>
+        </ext:createType>
+    </changeSet>
+
+    <changeSet author="registry owner" id="enum subject_status">
+        <comment>CREATE TYPE type_subject_status</comment>
+        <ext:createType name="type_subject_status">
+            <ext:asEnum>
+                <ext:label translation="скасовано">CANCELED</ext:label>
+                <ext:label translation="зареєстровано">REGISTERED</ext:label>
+                <ext:label translation="в стані припинення">SUSPENDING</ext:label>
+                <ext:label translation="припинено">SUSPENDED</ext:label>
+                <ext:label translation="порушено справу про банкрутство">BANKRUPTCY</ext:label>
+                <ext:label translation="порушено справу про банкрутство (санація)">SANCTION</ext:label>
+                <ext:label translation="зареєстровано, свідоцтво про державну реєстрацію недійсне">NOTVALID</ext:label>
+            </ext:asEnum>
+        </ext:createType>
+    </changeSet>
+
+    <changeSet author="registry owner" id="table subject">
+        <createTable tableName="subject" ext:historyFlag="true">
+            <column name="subject_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_subject"/>
+            </column>
+            <column name="subject_code" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject_type" type="type_subject_type">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subject_status" type="type_subject_status"/>
+            <column name="subject_name" type="TEXT"/>
+            <column name="absent_edr_flag" type="BOOLEAN"/>
+        </createTable>
+        <addUniqueConstraint  columnNames="subject_code, subject_type"
+            constraintName="un_subject_code_type"
+            tableName="subject"/>
+    </changeSet>
+
+    <changeSet id="makeObject sql" author="registry owner">
+        <sql>
+            call p_version_control('1.0.1'::text, true);
+        </sql>
+    </changeSet>
+<!--
+    <changeSet id="makeObject" author="registry owner">
+        <ext:makeObject>
+            <ext:table name="main_table"/>
+        </ext:makeObject>
+    </changeSet>
+-->
+    <!--    createMany2Many-->
+    <changeSet id="createMany2Many" author="registry owner">
+        <ext:createMany2Many mainTableName="main_table" mainTableKeyField="main_table_id" referenceTableName="dictionary_array" referenceKeysArray="field_array">
+            <ext:mainTableColumns>
+                <ext:column name="field_domain"/>
+            </ext:mainTableColumns>
+            <ext:referenceTableColumns>
+                <ext:column name="full_name" alias="name"/>
+            </ext:referenceTableColumns>
+        </ext:createMany2Many>
+    </changeSet>
+
+    <!--    exposeSearchCondition-->
+    <changeSet id="exposeSearchCondition" author="registry owner">
+        <ext:exposeSearchCondition name="view" consumer="consumer"/>
+    </changeSet>
+
+    <!--    dropSearchCondition-->
+    <changeSet author="registry owner" id="dropSearchCondition">
+        <ext:createSearchCondition name="viewForDrop">
+            <ext:table name="main_table" alias="m">
+                <ext:column name="main_table_id"/>
+                <ext:column name="field_domain"/>
+            </ext:table>
+        </ext:createSearchCondition>
+        
+        <ext:dropSearchCondition name="viewForDrop"/>
+    </changeSet>
+
+    <!--    partialUpdate  -->
+    <changeSet id="partialUpdate" author="registry owner">
+        <ext:partialUpdate name="partialUpdate">
+            <ext:table name="dictionary">
+                <ext:column name="dictionary_id" />
+                <ext:column name="name" />
+            </ext:table>
+        </ext:partialUpdate>
+    </changeSet>
+
+    <!--    rbac  -->
+    <changeSet id="rbac" author="registry owner">
+        <ext:rbac>
+            <ext:role name="application_role">
+                <ext:table name="main_table">
+                    <ext:column name="field_domain" read="true" update="true"/>
+                </ext:table>
+                <ext:table name="dictionary" update="true" read="true" delete="true" insert="true"/>
+            </ext:role>
+        </ext:rbac>
+    </changeSet>
+
+        <!--    modifyDataType  -->
+    <changeSet id="modifyDataType" author="registry owner">
+        <modifyDataType tableName="main_table" columnName="field_for_change" newDataType="float" ext:historyFlag="true"/>
+    </changeSet>
+
+    <!--    distribution  -->
+    <changeSet id="createTableForDistribution" author="registry owner">
+        <ext:createTable tableName="main_table_for_distribution" ext:historyFlag="true">
+            <column name="main_table_id" type="UUID">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="field_composite" type="typecomposite"/>
+            <column name="field_dictionary" type="UUID">
+                <constraints nullable="false"
+                    foreignKeyName="new_fk"
+                    referencedTableName="dictionary"
+                    referencedColumnNames="dictionary_id"/>
+            </column>
+            <ext:column name="field_array" type="UUID[]"/>
+            <ext:column name="field_integer" type="integer"/>
+        </ext:createTable>
+    </changeSet>
+
+    <changeSet id="distribution1" author="registry owner">
+        <ext:distributeTable tableName="main_table_for_distribution" distributionColumn="main_table_id" scope="history"/>
+    </changeSet>
+
+    <changeSet id="distribution2" author="registry owner">
+        <ext:referenceTable tableName="dictionary" scope="all"/>
+    </changeSet>
+<!--
+    <changeSet id="distribution3" author="registry owner">
+
+        <ext:distributeTable tableName="dictionary_array" distributionColumn="name" scope="all"/>
+        <ext:undistributeTable tableName="dictionary_array" scope="all"/>
+
+        <ext:truncateLocalDataAfterDistributingTable tableName="dictionary_array" scope="all"/>
+
+    </changeSet>
+-->
+</databaseChangeLog>
