@@ -1,5 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import liquibase.change.AbstractChange;
 import liquibase.change.ChangeMetaData;
 import liquibase.change.DatabaseChange;
@@ -27,12 +29,17 @@ public class DdmDropTypeChange extends AbstractChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-        return new SqlStatement[]{ new DdmDropTypeStatement(getName()) };
+        return new SqlStatement[]{ 
+            new DdmDropTypeStatement(name),
+            DdmUtils.deleteMetadataByChangeTypeAndChangeNameSql(
+                DdmConstants.TYPE_METADATA_CHANGE_TYPE_VALUE, name), 
+            DdmUtils.deleteMetadataByChangeTypeAndChangeNameSql(
+                DdmConstants.TYPE_METADATA_ATTRIBUTE_NAME_LABEL, name)};
     }
 
     @Override
     public String getConfirmationMessage() {
-        return "Type " + getName() + " dropped";
+        return "Type " + name + " dropped";
     }
 
     @Override

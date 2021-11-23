@@ -7,6 +7,9 @@ import liquibase.exception.ValidationErrors;
 
 public class DdmUtils {
 
+    private DdmUtils() {
+    }
+
     public static RawSqlStatement insertMetadataSql(String changeType, String changeName, String attributeName, String attributeValue) {
         return new RawSqlStatement("insert into " + DdmConstants.METADATA_TABLE + "(" +
             DdmConstants.METADATA_CHANGE_TYPE + ", " +
@@ -18,6 +21,12 @@ public class DdmUtils {
             "'" + changeName + "', " +
             "'" + attributeName + "', " +
             "'" + attributeValue + "');\n\n");
+    }
+
+    public static RawSqlStatement deleteMetadataByChangeTypeAndChangeNameSql(String changeType, String changeName) {
+        return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
+            DdmConstants.METADATA_CHANGE_TYPE + " = '" + changeType + "' and " +
+            DdmConstants.METADATA_CHANGE_NAME + " = '" + changeName + "';\n\n");
     }
 
     public static RawSqlStatement insertRolePermissionSql(String role, String table, String column, String operation) {

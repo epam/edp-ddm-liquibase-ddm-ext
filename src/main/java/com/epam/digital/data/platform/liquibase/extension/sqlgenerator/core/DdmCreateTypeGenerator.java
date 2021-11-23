@@ -8,7 +8,6 @@ import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class DdmCreateTypeGenerator extends AbstractSqlGenerator<DdmCreateTypeStatement> {

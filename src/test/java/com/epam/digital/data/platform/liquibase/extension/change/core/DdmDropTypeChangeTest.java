@@ -1,9 +1,12 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropTypeStatement;
-import org.junit.jupiter.api.Assertions;
+import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,23 +21,25 @@ class DdmDropTypeChangeTest {
 
     @Test
     @DisplayName("Check statements")
-    public void checkStatements() {
+    void checkStatements() {
+        change.setName("someChangeName");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmDropTypeStatement);
+        assertEquals(3, statements.length);
+        assertTrue(statements[0] instanceof DdmDropTypeStatement);
+        assertEquals("delete from ddm_liquibase_metadata where change_type = 'type' and change_name = 'someChangeName';\n\n", ((RawSqlStatement) statements[1]).getSql());
+        assertEquals("delete from ddm_liquibase_metadata where change_type = 'label' and change_name = 'someChangeName';\n\n", ((RawSqlStatement) statements[2]).getSql());
     }
 
     @Test
     @DisplayName("Validate change")
-    public void validateChange() {
+    void validateChange() {
         change.setName("name");
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - name is required")
-    public void validateChangeName() {
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+    void validateChangeName() {
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
-
 }
