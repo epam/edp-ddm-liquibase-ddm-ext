@@ -24,11 +24,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DdmCreateSearchConditionGeneratorTest {
     private DdmCreateSearchConditionGenerator generator;
     private DdmCreateSearchConditionStatement statement;
+    private DdmTableConfig table;
+    private DdmColumnConfig column;
 
     @BeforeEach
     void setUp() {
         generator = new DdmCreateSearchConditionGenerator();
         statement = new DdmCreateSearchConditionStatement("name");
+        table = new DdmTableConfig("table1");
+        table.setAlias("t1");
+        column = new DdmColumnConfig();
+        column.setName("column11");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        statement.addTable(table);
     }
 
     @Test
@@ -40,49 +50,22 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL")
     public void validateSQL() {
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        DdmColumnConfig column = new DdmColumnConfig();
-        column.setName("column1");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - column alias")
     public void validateSQLAlias() {
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        DdmColumnConfig column = new DdmColumnConfig();
-        column.setName("column1");
-        column.setAlias("col1");
-        table.addColumn(column);
-
-        statement.addTable(table);
+        column.setAlias("col11");
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1 AS col1 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 AS col11 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - returning")
     public void validateSQLReturning() {
-        DdmColumnConfig column;
-
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column1");
-        column.setReturning(true);
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column2");
         column.setReturning(false);
@@ -93,122 +76,76 @@ class DdmCreateSearchConditionGeneratorTest {
         column.setReturning(true);
         table.addColumn(column);
 
-        statement.addTable(table);
-
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1, t1.column2, t1.column3 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column3 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - sorting")
     public void validateSQLSorting() {
-        DdmColumnConfig column;
-
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column1");
         column.setSorting("asc");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
-        statement.addTable(table);
-
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1, t1.column2 FROM table1 AS t1 ORDER BY t1.column1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2 FROM table1 AS t1 ORDER BY t1.column11;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - sorting desc")
     public void validateSQLSortingDesc() {
-        DdmColumnConfig column;
-
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column1");
         column.setSorting("desc");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
-        statement.addTable(table);
-
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1, t1.column2 FROM table1 AS t1 ORDER BY t1.column1 DESC;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2 FROM table1 AS t1 ORDER BY t1.column11 DESC;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - limit")
     public void validateSQLLimit() {
-        DdmColumnConfig column;
-
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column1");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
-        statement.addTable(table);
         statement.setLimit("all");
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1, t1.column2 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - limit 1")
     public void validateSQLLimitOne() {
-        DdmColumnConfig column;
-
-        DdmTableConfig table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column1");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
-        statement.addTable(table);
         statement.setLimit("1");
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column1, t1.column2 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - join")
     public void validateSQLJoin() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
         List<DdmTableConfig> tables = new ArrayList<>();
         List<DdmJoinConfig> joins = new ArrayList<>();
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
 
         tables.add(table);
@@ -218,10 +155,12 @@ class DdmCreateSearchConditionGeneratorTest {
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         tables.add(table);
@@ -245,32 +184,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join two columns")
     public void validateSQLJoinTwo() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -293,32 +224,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join left")
     public void validateSQLJoinLeft() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -339,34 +262,27 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing columns")
     public void validateSQLIndexingColumns() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setSearchType("equal");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         column.setSearchType("equal");
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setSearchType("equal");
         table.addColumn(column);
 
@@ -399,14 +315,17 @@ class DdmCreateSearchConditionGeneratorTest {
         // Table 1
         DdmColumnConfig column11 = new DdmColumnConfig();
         column11.setName("c11_name");
+        column11.setReturning(true);
         DdmColumnConfig column12 = new DdmColumnConfig();
-        column11.setName("c12_name");
+        column12.setName("c12_name");
+        column12.setReturning(true);
         DdmTableConfig table1 = new DdmTableConfig("t1_name");
         table1.setColumns(Arrays.asList(column11, column12));
         
         // Table 1 as part of CTE
         DdmColumnConfig cte_column = new DdmColumnConfig();
         cte_column.setName("c11_name");
+        cte_column.setReturning(true);
         cte_column.setAlias("cte_column_alias");
         
         DdmFunctionConfig cte_func = new DdmFunctionConfig();
@@ -426,6 +345,7 @@ class DdmCreateSearchConditionGeneratorTest {
         // Table 2
         DdmColumnConfig column2 = new DdmColumnConfig();
         column2.setName("c2_name");
+        column2.setReturning(true);
         column2.setAlias("c2_alias");
 
         DdmTableConfig table2 = new DdmTableConfig("t2_name");
@@ -435,10 +355,12 @@ class DdmCreateSearchConditionGeneratorTest {
         // Table 3 - CTE
         DdmColumnConfig column3 = new DdmColumnConfig();
         column3.setName("cte_column_alias");
+        column3.setReturning(true);
         column3.setSearchType("contains");
 
         DdmColumnConfig column4 = new DdmColumnConfig();
         column4.setName("cte_func_alias");
+        column4.setReturning(true);
         column4.setSearchType("contains");
 
         DdmTableConfig table3 = new DdmTableConfig("cteName");
@@ -481,33 +403,26 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing equal")
     public void validateSQLIndexingEqual() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setSearchType("equal");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setSearchType("equal");
         table.addColumn(column);
 
@@ -535,34 +450,27 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing contains")
     public void validateSQLIndexingLike() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setType("text");
         column.setSearchType("contains");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setType("text");
         column.setSearchType("contains");
         table.addColumn(column);
@@ -591,34 +499,27 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing contains char and varchar")
     public void validateSQLIndexingLikeChar() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setType("char");
         column.setSearchType("contains");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setType("varchar");
         column.setSearchType("contains");
         table.addColumn(column);
@@ -647,34 +548,27 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing startsWith")
     public void validateSQLIndexingBoth() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setType("text");
         column.setSearchType("startsWith");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setType("text");
         column.setSearchType("startsWith");
         table.addColumn(column);
@@ -703,34 +597,27 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - indexing startsWith char and varchar")
     public void validateSQLIndexingBothChar() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
 
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
         column.setType("char");
         column.setSearchType("startsWith");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         column.setType("varchar");
         column.setSearchType("startsWith");
         table.addColumn(column);
@@ -759,32 +646,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join conditions")
     public void validateSQLJoinConditions() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -825,32 +704,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join conditions include both")
     public void validateSQLJoinConditionsIncludeBoth() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -912,32 +783,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join conditions include first")
     public void validateSQLJoinConditionsIncludeFirst() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -998,32 +861,24 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - join conditions include second")
     public void validateSQLJoinConditionsIncludeSecond() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
         DdmJoinConfig join;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         table = new DdmTableConfig("table2");
         table.setAlias("t2");
 
         column = new DdmColumnConfig();
         column.setName("column21");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column22");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
@@ -1084,21 +939,10 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - where conditions")
     public void validateSQLWhereConditions() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
@@ -1127,21 +971,10 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - where conditions include both")
     public void validateSQLWhereConditionsIncludeBoth() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         List<DdmConditionConfig> conditionsIncluded = new ArrayList<>();
         DdmConditionConfig conditionIncluded = new DdmConditionConfig();
@@ -1192,21 +1025,10 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - where conditions include first")
     public void validateSQLWhereConditionsIncludeFirst() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         List<DdmConditionConfig> conditionsIncluded = new ArrayList<>();
         DdmConditionConfig conditionIncluded = new DdmConditionConfig();
@@ -1256,21 +1078,10 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - where conditions include second")
     public void validateSQLWhereConditionsIncludeSecond() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table1");
-        table.setAlias("t1");
-
-        column = new DdmColumnConfig();
-        column.setName("column11");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column12");
+        column.setReturning(true);
         table.addColumn(column);
-
-        statement.addTable(table);
 
         List<DdmConditionConfig> conditionsIncluded = new ArrayList<>();
         DdmConditionConfig conditionIncluded = new DdmConditionConfig();
@@ -1320,22 +1131,10 @@ class DdmCreateSearchConditionGeneratorTest {
     @Test
     @DisplayName("Validate SQL - where operator eq")
     public void validateSQLWhereOperatorEQ() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("eq");
         condition.setValue("1");
         conditions.add(condition);
@@ -1343,31 +1142,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column = 1);", sqls[0].toSql());
+                "(t1.column11 = 1);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator ne")
     public void validateSQLWhereOperatorNE() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("ne");
         condition.setValue("1");
         conditions.add(condition);
@@ -1375,31 +1162,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column <> 1);", sqls[0].toSql());
+                "(t1.column11 <> 1);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator gt")
     public void validateSQLWhereOperatorGT() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("gt");
         condition.setValue("1");
         conditions.add(condition);
@@ -1407,31 +1182,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column > 1);", sqls[0].toSql());
+                "(t1.column11 > 1);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator ge")
     public void validateSQLWhereOperatorGE() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("ge");
         condition.setValue("1");
         conditions.add(condition);
@@ -1439,31 +1202,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column >= 1);", sqls[0].toSql());
+                "(t1.column11 >= 1);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator lt")
     public void validateSQLWhereOperatorLT() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("lt");
         condition.setValue("1");
         conditions.add(condition);
@@ -1471,30 +1222,18 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column < 1);", sqls[0].toSql());
+                "(t1.column11 < 1);", sqls[0].toSql());
     }
     @Test
     @DisplayName("Validate SQL - where operator le")
     public void validateSQLWhereOperatorLE() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("le");
         condition.setValue("1");
         conditions.add(condition);
@@ -1502,31 +1241,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column <= 1);", sqls[0].toSql());
+                "(t1.column11 <= 1);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator in")
     public void validateSQLWhereOperatorIn() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("in");
         condition.setValue("1, 2, 3");
         conditions.add(condition);
@@ -1534,31 +1261,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column IN (1, 2, 3));", sqls[0].toSql());
+                "(t1.column11 IN (1, 2, 3));", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator notIn")
     public void validateSQLWhereOperatorNotIn() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("notIn");
         condition.setValue("1, 2, 3");
         conditions.add(condition);
@@ -1566,31 +1281,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column NOT IN (1, 2, 3));", sqls[0].toSql());
+                "(t1.column11 NOT IN (1, 2, 3));", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator isNull true")
     public void validateSQLWhereOperatorIsNull() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("isNull");
         condition.setValue("true");
         conditions.add(condition);
@@ -1598,31 +1301,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column IS NULL);", sqls[0].toSql());
+                "(t1.column11 IS NULL);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator isNull false")
     public void validateSQLWhereOperatorIsNotNull() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("isNull");
         condition.setValue("false");
         conditions.add(condition);
@@ -1630,31 +1321,19 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column IS NOT NULL);", sqls[0].toSql());
+                "(t1.column11 IS NOT NULL);", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - where operator similar")
     public void validateSQLWhereOperatorSimilar() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("similar");
         condition.setValue("'{80}'");
         conditions.add(condition);
@@ -1662,30 +1341,18 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column ~ '{80}');", sqls[0].toSql());
+                "(t1.column11 ~ '{80}');", sqls[0].toSql());
     }
     @Test
     @DisplayName("Validate SQL - where operator like")
     public void validateSQLWhereOperatorLike() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
-        statement.addTable(table);
-
         List<DdmConditionConfig> conditions = new ArrayList<>();
         DdmConditionConfig condition = new DdmConditionConfig();
-        condition.setTableAlias("t");
-        condition.setColumnName("column");
+        condition.setTableAlias("t1");
+        condition.setColumnName("column11");
         condition.setOperator("like");
         condition.setValue("'name%'");
         conditions.add(condition);
@@ -1693,99 +1360,72 @@ class DdmCreateSearchConditionGeneratorTest {
         statement.setConditions(conditions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column " +
-                "FROM table AS t " +
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11 " +
+                "FROM table1 AS t1 " +
                 "WHERE " +
-                "(t.column LIKE 'name%');", sqls[0].toSql());
+                "(t1.column11 LIKE 'name%');", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - functions")
     public void validateSQLFunctions() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
         List<DdmFunctionConfig> functions = new ArrayList<>();
         DdmFunctionConfig function = new DdmFunctionConfig();
-        function.setTableAlias("t");
-        function.setColumnName("column");
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
         function.setName("count");
         function.setAlias("cnt");
         functions.add(function);
 
         table.setFunctions(functions);
-        statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column2, COUNT(t.column) AS cnt FROM table AS t GROUP BY t.column2;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, COUNT(t1.column11) AS cnt FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - functions with parameter")
     public void validateSQLFunctionsParameter() {
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
         List<DdmFunctionConfig> functions = new ArrayList<>();
         DdmFunctionConfig function = new DdmFunctionConfig();
-        function.setTableAlias("t");
-        function.setColumnName("column");
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
         function.setName("string_agg");
         function.setAlias("aggregated");
         function.setParameter("','");
         functions.add(function);
 
         table.setFunctions(functions);
-        statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t.column2, STRING_AGG(t.column, ',') AS aggregated FROM table AS t GROUP BY t.column2;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, STRING_AGG(t1.column11, ',') AS aggregated FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
     }
 
     @Test
     @DisplayName("Validate SQL - CTE")
     public void validateSQLCte() {
         DdmCteConfig cte;
-        DdmColumnConfig column;
-        DdmTableConfig table;
-
-        table = new DdmTableConfig("table");
-        table.setAlias("t");
-
-        column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
+        DdmCreateSearchConditionStatement statement = new DdmCreateSearchConditionStatement("name");
 
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
         List<DdmFunctionConfig> functions = new ArrayList<>();
         DdmFunctionConfig function = new DdmFunctionConfig();
-        function.setTableAlias("t");
-        function.setColumnName("column");
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
         function.setName("count");
         function.setAlias("cnt");
         functions.add(function);
@@ -1805,15 +1445,17 @@ class DdmCreateSearchConditionGeneratorTest {
 
         column = new DdmColumnConfig();
         column.setName("cnt");
+        column.setReturning(true);
         table.addColumn(column);
 
         column = new DdmColumnConfig();
         column.setName("column2");
+        column.setReturning(true);
         table.addColumn(column);
 
         statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t.column2, COUNT(t.column) AS cnt FROM table AS t GROUP BY t.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, COUNT(t1.column11) AS cnt FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
     }
 }
