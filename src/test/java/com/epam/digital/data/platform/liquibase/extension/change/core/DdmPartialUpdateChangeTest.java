@@ -2,27 +2,12 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmPartialUpdateStatement;
-import liquibase.Contexts;
-import liquibase.LabelExpression;
-import liquibase.RuntimeEnvironment;
-import liquibase.changelog.ChangeLogIterator;
-import liquibase.changelog.ChangeLogParameters;
-import liquibase.changelog.ChangeSet;
-import liquibase.changelog.DatabaseChangeLog;
-import liquibase.changelog.filter.ChangeSetFilterResult;
-import liquibase.changelog.visitor.ChangeSetVisitor;
-import liquibase.database.Database;
 import liquibase.database.core.MockDatabase;
-import liquibase.exception.ChangeLogParseException;
-import liquibase.exception.LiquibaseException;
-import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,28 +62,9 @@ class DdmPartialUpdateChangeTest {
     }
 
     @Test
-    @DisplayName("Check load partial update")
-    public void checkLoad() throws ChangeLogParseException, Exception {
-        XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
-        DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
-        DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_PARTIAL_UPDATE_FILE_NAME,
-            new ChangeLogParameters(), resourceAccessor);
-
-        final List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
-
-        new ChangeLogIterator(changeLog).run(new ChangeSetVisitor() {
-            @Override
-            public Direction getDirection() {
-                return Direction.FORWARD;
-            }
-
-            @Override
-            public void visit(ChangeSet changeSet, DatabaseChangeLog databaseChangeLog, Database database, Set<ChangeSetFilterResult> filterResults) throws LiquibaseException {
-                changeSets.add(changeSet);
-            }
-        }, new RuntimeEnvironment(new MockDatabase(), new Contexts(), new LabelExpression()));
-
-        Assertions.assertEquals(1, changeSets.size());
+    @DisplayName("Check load")
+    public void checkLoad() throws Exception {
+        Assertions.assertEquals(1, DdmTest.loadChangeSets(DdmTest.TEST_PARTIAL_UPDATE_FILE_NAME).size());
     }
 
     @Test

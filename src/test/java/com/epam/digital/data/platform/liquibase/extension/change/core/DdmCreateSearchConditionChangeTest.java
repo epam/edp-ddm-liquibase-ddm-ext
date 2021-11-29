@@ -1,12 +1,12 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import liquibase.Contexts;
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
 import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
 import liquibase.change.Change;
@@ -23,7 +23,6 @@ import liquibase.exception.LiquibaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSearchConditionStatement;
-import liquibase.statement.core.InsertStatement;
 import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -258,7 +257,7 @@ class DdmCreateSearchConditionChangeTest {
     public void checkLoad() throws ChangeLogParseException, Exception {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
         DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
-        DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_CREATE_SEARCH_CONDITION_FILE_NAME,
+        DatabaseChangeLog changeLog = xmlParser.parse(DdmTest.TEST_CREATE_SEARCH_CONDITION_FILE_NAME,
                 new ChangeLogParameters(), resourceAccessor);
 
         final List<ChangeSet> changeSets = new ArrayList<>();

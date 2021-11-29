@@ -1,24 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import liquibase.Contexts;
-import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
-import liquibase.LabelExpression;
-import liquibase.RuntimeEnvironment;
-import liquibase.changelog.ChangeLogIterator;
-import liquibase.changelog.ChangeLogParameters;
-import liquibase.changelog.ChangeSet;
-import liquibase.changelog.DatabaseChangeLog;
-import liquibase.changelog.filter.ChangeSetFilterResult;
-import liquibase.changelog.visitor.ChangeSetVisitor;
-import liquibase.database.Database;
+import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import liquibase.database.core.MockDatabase;
-import liquibase.exception.ChangeLogParseException;
-import liquibase.exception.LiquibaseException;
-import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateMany2ManyStatement;
 import org.junit.jupiter.api.Assertions;
@@ -90,27 +73,8 @@ class DdmCreateMany2ManyChangeTest {
 
     @Test
     @DisplayName("Check load")
-    public void checkLoad() throws ChangeLogParseException, Exception {
-        XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
-        DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
-        DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_CREATE_M2M_FILE_NAME,
-            new ChangeLogParameters(), resourceAccessor);
-
-        final List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
-
-        new ChangeLogIterator(changeLog).run(new ChangeSetVisitor() {
-            @Override
-            public Direction getDirection() {
-                return Direction.FORWARD;
-            }
-
-            @Override
-            public void visit(ChangeSet changeSet, DatabaseChangeLog databaseChangeLog, Database database, Set<ChangeSetFilterResult> filterResults) throws LiquibaseException {
-                changeSets.add(changeSet);
-            }
-        }, new RuntimeEnvironment(new MockDatabase(), new Contexts(), new LabelExpression()));
-
-        Assertions.assertEquals(1, changeSets.size());
+    public void checkLoad() throws Exception {
+        Assertions.assertEquals(1, DdmTest.loadChangeSets(DdmTest.TEST_CREATE_M2M_FILE_NAME).size());
     }
 
 }

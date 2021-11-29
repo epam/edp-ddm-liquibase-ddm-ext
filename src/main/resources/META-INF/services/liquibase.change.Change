@@ -11,11 +11,15 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropDomainChan
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropSearchConditionChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropTypeChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmExposeSearchConditionChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantAllChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmMakeObjectChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmModifyDataTypeChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmPartialUpdateChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmRbacChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmReferenceTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmRenameColumnChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeAllChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmTruncateLocalDataAfterDistributingTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmUndistributeTableChange

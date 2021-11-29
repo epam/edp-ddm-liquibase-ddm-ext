@@ -56,6 +56,8 @@ public class DdmConstants {
     public static final String ATTRIBUTE_CLASSIFY = "classify";
     public static final String ATTRIBUTE_MAIN_TABLE_COLUMNS = "mainTableColumns";
     public static final String ATTRIBUTE_REFERENCE_TABLE_COLUMNS = "referenceTableColumns";
+    public static final String ATTRIBUTE_REALM = "realm";
+    public static final String ATTRIBUTE_VIEW = "view";
 
     public static final String XML_TAG_HISTORY_FLAG = "ext:historyFlag";
     public static final String XML_TAG_TABLE_SUFFIX = "ext:tableSuffix";

@@ -1,7 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDistributeTableStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmReferenceTableStatement;
@@ -429,7 +429,7 @@ class DdmCreateTableChangeTest {
     public void checkLoad() throws ChangeLogParseException, Exception {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
         DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
-        DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_CREATE_TABLE_FILE_NAME,
+        DatabaseChangeLog changeLog = xmlParser.parse(DdmTest.TEST_CREATE_TABLE_FILE_NAME,
             new ChangeLogParameters(), resourceAccessor);
 
         final List<ChangeSet> changeSets = new ArrayList<>();

@@ -1,6 +1,17 @@
 package com.epam.digital.data.platform.liquibase.extension;
 
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSimpleSearchConditionChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropSearchConditionChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmExposeSearchConditionChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantAllChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeAllChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeChange;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import liquibase.change.AbstractChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.exception.ValidationErrors;
@@ -8,6 +19,24 @@ import liquibase.exception.ValidationErrors;
 public class DdmUtils {
 
     private DdmUtils() {
+    }
+
+    private static final Set<Class<? extends AbstractChange>> masterChanges = new HashSet<>();
+    private static final Set<Class<? extends AbstractChange>> replicaChanges = new HashSet<>();
+    public static final String CONSISTENCY_CHANGESET_ERROR = "Error. ChangeSet %s. Analytics and Search Condition changes "
+        + "cannot be mixed with each other or other change types in a single changeset. "
+        + "Please put them in separate changesets.";
+    
+    static {
+        masterChanges.add(DdmCreateSearchConditionChange.class);
+        masterChanges.add(DdmCreateSimpleSearchConditionChange.class);
+        masterChanges.add(DdmDropSearchConditionChange.class);
+        masterChanges.add(DdmExposeSearchConditionChange.class);
+
+        replicaChanges.add(DdmGrantChange.class);
+        replicaChanges.add(DdmGrantAllChange.class);
+        replicaChanges.add(DdmRevokeChange.class);
+        replicaChanges.add(DdmRevokeAllChange.class);
     }
 
     public static RawSqlStatement insertMetadataSql(String changeType, String changeName, String attributeName, String attributeValue) {
@@ -46,8 +75,34 @@ public class DdmUtils {
         return Boolean.TRUE.equals(changeSet.getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));
     }
 
+    public static boolean hasPubContext(ChangeSet changeSet){
+        return hasContext(changeSet, DdmConstants.CONTEXT_PUB);
+    }
+
+    public static boolean hasSubContext(ChangeSet changeSet){
+        return hasContext(changeSet, DdmConstants.CONTEXT_SUB);
+    }
+    
     public static ValidationErrors validateHistoryFlag(Boolean historyFlag) {
         return !Boolean.TRUE.equals(historyFlag) ?
             new ValidationErrors().addError("historyFlag attribute is required and must be set as 'true'") : new ValidationErrors();
+    }
+    
+    public static boolean isAnalyticsChangeSet(ChangeSet changeSet) {
+        return changeSet.getChanges().stream()
+            .allMatch(change -> replicaChanges.contains(change.getClass()));
+    }
+    
+    public static boolean isSearchConditionChangeSet(ChangeSet changeSet){
+        return changeSet.getChanges().stream()
+            .allMatch(change -> masterChanges.contains(change.getClass()));
+    }
+
+    public static String printConsistencyChangeSetError(String changeSetId){
+        return String.format(CONSISTENCY_CHANGESET_ERROR, changeSetId);
+    }
+
+    public static boolean isBlank(String string) {
+        return string == null || string.trim().isEmpty();
     }
 }

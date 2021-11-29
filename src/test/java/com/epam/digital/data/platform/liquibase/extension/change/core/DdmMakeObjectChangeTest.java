@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmMockSnapshotGeneratorFactory;
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
-import com.epam.digital.data.platform.liquibase.extension.DdmTestConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
@@ -27,7 +27,6 @@ import liquibase.exception.LiquibaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddColumnStatement;
-import liquibase.statement.core.AddUniqueConstraintStatement;
 import liquibase.statement.core.CreateTableStatement;
 import liquibase.statement.core.DropUniqueConstraintStatement;
 import liquibase.statement.core.RawSqlStatement;
@@ -85,7 +84,7 @@ class DdmMakeObjectChangeTest {
     void checkLoad() throws Exception {
         XMLChangeLogSAXParser xmlParser = new XMLChangeLogSAXParser();
         DdmResourceAccessor resourceAccessor = new DdmResourceAccessor();
-        DatabaseChangeLog changeLog = xmlParser.parse(DdmTestConstants.TEST_MAKE_OBJECT_FILE_NAME,
+        DatabaseChangeLog changeLog = xmlParser.parse(DdmTest.TEST_MAKE_OBJECT_FILE_NAME,
             new ChangeLogParameters(), resourceAccessor);
 
         final List<ChangeSet> changeSets = new ArrayList<>();

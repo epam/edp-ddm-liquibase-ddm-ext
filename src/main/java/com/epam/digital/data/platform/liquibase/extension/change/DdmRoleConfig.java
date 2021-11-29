@@ -1,6 +1,7 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import java.util.Objects;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class DdmRoleConfig extends AbstractLiquibaseSerializable {
 
     private String name;
+    private String realm;
     private List<DdmTableConfig> tables = new ArrayList<>();
 
     public DdmRoleConfig() {
@@ -35,12 +37,18 @@ public class DdmRoleConfig extends AbstractLiquibaseSerializable {
         for (ParsedNode child : parsedNode.getChildren()) {
             if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_NAME)) {
                 setName(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_NAME, String.class));
-            } else if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_TABLE)) {
+            } else if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_REALM)) {
+                setRealm(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_REALM, String.class));
+            } else if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_TABLE) || child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_VIEW)) {
                 DdmTableConfig table = new DdmTableConfig();
                 table.load(child, resourceAccessor);
                 addTable(table);
             }
         }
+    }
+
+    public String getRealmAndName() {
+        return (getRealm() != null ? getRealm() + "." : "") + getName();
     }
 
     public List<DdmTableConfig> getTables() {
@@ -61,5 +69,13 @@ public class DdmRoleConfig extends AbstractLiquibaseSerializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRealm() {
+        return realm;
+    }
+
+    public void setRealm(String realm) {
+        this.realm = realm;
     }
 }
