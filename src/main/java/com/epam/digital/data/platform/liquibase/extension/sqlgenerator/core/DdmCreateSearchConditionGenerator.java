@@ -155,7 +155,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
 
         for (DdmTableConfig table : tables) {
             for (DdmColumnConfig column : table.getColumns()) {
-                if (column.getReturning()) {
+                if (column.getReturning() != null && column.getReturning()) {
                     columns.add((table.hasAlias() ? table.getAlias() + "." : "") +
                         column.getName() +
                         (column.hasAlias() ? " AS " + column.getAlias() : ""));
