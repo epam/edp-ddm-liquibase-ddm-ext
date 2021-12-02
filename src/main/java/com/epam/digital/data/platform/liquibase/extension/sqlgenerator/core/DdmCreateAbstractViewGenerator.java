@@ -157,11 +157,9 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
         for (DdmTableConfig table : tables) {
             for (DdmColumnConfig column : table.getColumns()) {
-                if (column.getReturning()) {
                     columns.add((table.hasAlias() ? table.getAlias() + "." : "") +
                         column.getName() +
                         (column.hasAlias() ? " AS " + column.getAlias() : ""));
-                }
 
                 groupColumns.add((table.hasAlias() ? table.getAlias() + "." : "") + column.getName());
 
