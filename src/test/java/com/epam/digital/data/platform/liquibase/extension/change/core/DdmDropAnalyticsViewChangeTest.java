@@ -1,6 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropSearchConditionStatement;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropAnalyticsViewStatement;
 import liquibase.Contexts;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
@@ -12,14 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class DdmDropSearchConditionChangeTest {
-    private DdmDropSearchConditionChange change;
+class DdmDropAnalyticsViewChangeTest {
+    private DdmDropAnalyticsViewChange change;
     private ChangeLogParameters changeLogParameters;
     private ChangeSet changeSet;
 
     @BeforeEach
     void setUp() {
-        change = new DdmDropSearchConditionChange();
+        change = new DdmDropAnalyticsViewChange();
         DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
         changeSet = new ChangeSet(changeLog);
         change.setChangeSet(changeSet);
@@ -30,9 +30,9 @@ class DdmDropSearchConditionChangeTest {
 
     @Test
     @DisplayName("Check ignore")
-    public void checkIgnoreChangeSetForContextSub() {
+    public void checkIgnoreChangeSetForContextPub() {
         Contexts contexts = new Contexts();
-        contexts.add("sub");
+        contexts.add("pub");
         changeLogParameters.setContexts(contexts);
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(0, statements.length);
@@ -44,7 +44,7 @@ class DdmDropSearchConditionChangeTest {
     public void checkStatements() {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmDropSearchConditionStatement);
+        Assertions.assertTrue(statements[0] instanceof DdmDropAnalyticsViewStatement);
     }
 
     @Test
@@ -52,7 +52,7 @@ class DdmDropSearchConditionChangeTest {
     public void validateChange() {
         change.setName("name");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
-        Assertions.assertEquals("Search Condition name dropped", change.getConfirmationMessage());
+        Assertions.assertEquals("Analytics View name dropped", change.getConfirmationMessage());
         Assertions.assertEquals("http://www.liquibase.org/xml/ns/dbchangelog", change.getSerializedObjectNamespace());
     }
 
@@ -63,12 +63,12 @@ class DdmDropSearchConditionChangeTest {
     }
 
     @Test
-    @DisplayName("Validate change - only search condition tags allowed")
+    @DisplayName("Validate change - only analytics tags allowed")
     public void validateAllowedTags() {
         change.setName("name");
-        DdmCreateAnalyticsViewChange analyticsChange = new DdmCreateAnalyticsViewChange();
-        analyticsChange.setName("name");
-        changeSet.addChange(analyticsChange);
+        DdmCreateSearchConditionChange scChange = new DdmCreateSearchConditionChange();
+        scChange.setName("name");
+        changeSet.addChange(scChange);
         changeSet.addChange(change);
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }

@@ -222,11 +222,11 @@ public class DdmCreateTableChange extends CreateTableChange {
     private void generateAccess(List<SqlStatement> statements, String tableName) {
         statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + tableName + " FROM PUBLIC;"));
 
-        if (DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_PUB)) {
+        if (DdmUtils.hasPubContext(this.getChangeSet())) {
             statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO application_role;"));
         }
 
-        if (historyTable.get() && DdmUtils.hasContext(this.getChangeSet(), DdmConstants.CONTEXT_SUB)) {
+        if (historyTable.get() && DdmUtils.hasSubContext(this.getChangeSet())) {
             statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
         }
     }

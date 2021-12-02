@@ -10,9 +10,9 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.database.core.MockDatabase;
 import liquibase.sql.Sql;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSearchConditionStatement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -22,16 +22,16 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DdmCreateSearchConditionGeneratorTest {
-    private DdmCreateSearchConditionGenerator generator;
-    private DdmCreateSearchConditionStatement statement;
+class DdmCreateAbstractViewGeneratorTest {
+    private DdmCreateAbstractViewGenerator generator;
+    private DdmCreateAbstractViewStatement statement;
     private DdmTableConfig table;
     private DdmColumnConfig column;
 
     @BeforeEach
     void setUp() {
-        generator = new DdmCreateSearchConditionGenerator();
-        statement = new DdmCreateSearchConditionStatement("name");
+        generator = new DdmCreateAbstractViewGenerator();
+        statement = new DdmCreateAbstractViewStatement("name");
         table = new DdmTableConfig("table1");
         table.setAlias("t1");
         column = new DdmColumnConfig();
@@ -1417,7 +1417,7 @@ class DdmCreateSearchConditionGeneratorTest {
     @DisplayName("Validate SQL - CTE")
     public void validateSQLCte() {
         DdmCteConfig cte;
-        DdmCreateSearchConditionStatement statement = new DdmCreateSearchConditionStatement("name");
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
 
         column = new DdmColumnConfig();
         column.setName("column2");

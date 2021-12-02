@@ -11,7 +11,7 @@ import liquibase.statement.CompoundStatement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DdmCreateSearchConditionStatement extends AbstractSqlStatement implements CompoundStatement {
+public class DdmCreateAbstractViewStatement extends AbstractSqlStatement implements CompoundStatement {
 
     private List<DdmCteConfig> ctes;
     private List<DdmTableConfig> tables;
@@ -21,7 +21,7 @@ public class DdmCreateSearchConditionStatement extends AbstractSqlStatement impl
     private String limit;
     private List<DdmConditionConfig> conditions;
 
-    public DdmCreateSearchConditionStatement(String name) {
+    public DdmCreateAbstractViewStatement(String name) {
         super();
         this.name = name;
         this.ctes = new ArrayList<>();

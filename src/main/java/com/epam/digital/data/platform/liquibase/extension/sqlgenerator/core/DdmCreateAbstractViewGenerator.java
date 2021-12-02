@@ -16,7 +16,7 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSearchConditionStatement;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.sql.Sql;
@@ -24,10 +24,12 @@ import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
 
-public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmCreateSearchConditionStatement> {
+public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCreateAbstractViewStatement> {
+
+    public static final String EMPTY_STRING = "";
 
     @Override
-    public ValidationErrors validate(DdmCreateSearchConditionStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+    public ValidationErrors validate(DdmCreateAbstractViewStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("name", statement.getName());
         
@@ -38,7 +40,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         return validationErrors;
     }
 
-    private String getErrorMessageForCteValidator(DdmCreateSearchConditionStatement statement) {
+    private String getErrorMessageForCteValidator(DdmCreateAbstractViewStatement statement) {
         String result = null;
         try {
             for (DdmTableConfig table : statement.getTables()) {
@@ -61,7 +63,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
                 return table.getName() + " AS " + table.getAlias();
             }
         }
-        return "";
+        return EMPTY_STRING;
     }
 
     private DdmPair getPair(Map<String, DdmCteConfig> ctes, String tableName, String columnName) {
@@ -87,7 +89,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         return new DdmPair(tableName, columnName);
     }
 
-    private DdmPair getTableColumnPairForCteColumn(DdmCreateSearchConditionStatement statement, String tableName, String columnName) {
+    private DdmPair getTableColumnPairForCteColumn(DdmCreateAbstractViewStatement statement, String tableName, String columnName) {
         
         Map<String, DdmCteConfig> cteMap = statement.getCtes().stream()
             .collect(Collectors.toMap(DdmCteConfig::getName, Function.identity()));
@@ -95,7 +97,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
         return getPair(cteMap, tableName, columnName);
     }
 
-    private StringBuilder generateIndexSql(DdmCreateSearchConditionStatement statement) {
+    private StringBuilder generateIndexSql(DdmCreateAbstractViewStatement statement) {
         StringBuilder buffer = new StringBuilder();
 
         for (DdmTableConfig table : statement.getTables()) {
@@ -244,7 +246,7 @@ public class DdmCreateSearchConditionGenerator extends AbstractSqlGenerator<DdmC
     }
 
     @Override
-    public Sql[] generateSql(DdmCreateSearchConditionStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
+    public Sql[] generateSql(DdmCreateAbstractViewStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         StringBuilder buffer = new StringBuilder();
 
         buffer.append("CREATE OR REPLACE VIEW ");

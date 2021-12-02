@@ -2,6 +2,10 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
+import liquibase.Contexts;
+import liquibase.changelog.ChangeLogParameters;
+import liquibase.changelog.ChangeSet;
+import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
@@ -15,10 +19,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DdmCreateSimpleSearchConditionChangeTest {
     private DdmCreateSimpleSearchConditionChange change;
+    private ChangeLogParameters changeLogParameters;
+    private ChangeSet changeSet;
 
     @BeforeEach
     void setUp() {
         change = new DdmCreateSimpleSearchConditionChange();
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+        changeSet = new ChangeSet(changeLog);
+        change.setChangeSet(changeSet);
+
+        changeLogParameters = new ChangeLogParameters();
+        changeLog.setChangeLogParameters(changeLogParameters);
+    }
+
+    @Test
+    @DisplayName("Check ignore")
+    public void checkIgnoreChangeSetForContextSub() {
+        Contexts contexts = new Contexts();
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(0, statements.length);
+        Assertions.assertTrue(change.getChangeSet().isIgnore());
     }
 
     @Test
@@ -93,7 +116,9 @@ class DdmCreateSimpleSearchConditionChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
+        ChangeSet changeSet = change.getChangeSet();
         change = new DdmCreateSimpleSearchConditionChange("name");
+        change.setChangeSet(changeSet);
 
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
@@ -133,6 +158,17 @@ class DdmCreateSimpleSearchConditionChangeTest {
         change.setSearchColumn(column);
 
         assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Validate change - only search condition tags allowed")
+    public void validateAllowedTags() {
+        change.setName("name");
+        DdmCreateAnalyticsViewChange analyticsChange = new DdmCreateAnalyticsViewChange();
+        analyticsChange.setName("name");
+        changeSet.addChange(analyticsChange);
+        changeSet.addChange(change);
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test

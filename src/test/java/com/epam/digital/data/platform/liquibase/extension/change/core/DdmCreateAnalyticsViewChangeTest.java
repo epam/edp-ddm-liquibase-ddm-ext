@@ -1,6 +1,8 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.Contexts;
+import liquibase.change.Change;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
@@ -12,36 +14,40 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class DdmExposeSearchConditionChangeTest {
-    private DdmExposeSearchConditionChange change;
+
+class DdmCreateAnalyticsViewChangeTest {
+    private DdmCreateAnalyticsViewChange change;
     private ChangeLogParameters changeLogParameters;
     private ChangeSet changeSet;
 
     @BeforeEach
     void setUp() {
-        change = new DdmExposeSearchConditionChange();
+        change = new DdmCreateAnalyticsViewChange();
         DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
         changeSet = new ChangeSet(changeLog);
         change.setChangeSet(changeSet);
 
         changeLogParameters = new ChangeLogParameters();
+        Contexts contexts = new Contexts();
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
         changeLog.setChangeLogParameters(changeLogParameters);
     }
 
     @Test
     @DisplayName("Check statements")
     public void checkStatements() {
-        change.setName("name");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
+        Assertions.assertEquals(2, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
     }
 
     @Test
     @DisplayName("Check ignore")
-    public void checkIgnoreChangeSetForContextSub() {
+    public void checkIgnoreChangeSetForContextPub() {
         Contexts contexts = new Contexts();
-        contexts.add("sub");
+        contexts.add("pub");
         changeLogParameters.setContexts(contexts);
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(0, statements.length);
@@ -49,36 +55,30 @@ class DdmExposeSearchConditionChangeTest {
     }
 
     @Test
-    @DisplayName("Validate change")
-    public void validateChange() {
-        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
-        ChangeSet changeSet = new ChangeSet(changeLog);
-
+    @DisplayName("Validate change - only analytics tags allowed")
+    public void validateAllowedTags() {
         change.setName("name");
-        change.setConsumer("consumer");
-
-        changeSet.addChange(change);
-
         DdmCreateSearchConditionChange scChange = new DdmCreateSearchConditionChange();
         scChange.setName("name");
         changeSet.addChange(scChange);
-        changeLog.setChangeLogParameters(changeLogParameters);
-
-        changeLog.addChangeSet(changeSet);
-
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
-        Assertions.assertEquals("Expose Search Condition name", change.getConfirmationMessage());
-        Assertions.assertEquals("http://www.liquibase.org/xml/ns/dbchangelog", change.getSerializedObjectNamespace());
+        changeSet.addChange(change);
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
-    @DisplayName("Validate change - only search condition tags allowed")
-    public void validateAllowedTags() {
+    @DisplayName("Validate inverse")
+    public void validateInverse() {
         change.setName("name");
-        DdmCreateAnalyticsViewChange analyticsChange = new DdmCreateAnalyticsViewChange();
-        analyticsChange.setName("name");
-        changeSet.addChange(analyticsChange);
-        changeSet.addChange(change);
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Change[] changes = change.createInverses();
+        changes[0].setChangeSet(change.getChangeSet());
+        Assertions.assertEquals(0, changes[0].validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Confirmation Message")
+    public void confirmationMessage() {
+        change.setName("name");
+
+        Assertions.assertEquals("Analytics View name created", change.getConfirmationMessage());
     }
 }

@@ -5,6 +5,7 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.Contexts;
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
 import liquibase.LabelExpression;
@@ -22,7 +23,6 @@ import liquibase.exception.ChangeLogParseException;
 import liquibase.exception.LiquibaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSearchConditionStatement;
 import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +36,7 @@ import java.util.Set;
 class DdmCreateSearchConditionChangeTest {
     private DdmCreateSearchConditionChange change;
     private ChangeLogParameters changeLogParameters;
+    private ChangeSet changeSet;
 
     @BeforeEach
     void setUp() {
@@ -44,7 +45,7 @@ class DdmCreateSearchConditionChangeTest {
         changeLogParameters = new ChangeLogParameters();
         changeLog.setChangeLogParameters(changeLogParameters);
 
-        ChangeSet changeSet = new ChangeSet(changeLog);
+        changeSet = new ChangeSet(changeLog);
 
         change = new DdmCreateSearchConditionChange();
 
@@ -57,8 +58,19 @@ class DdmCreateSearchConditionChangeTest {
     public void checkStatements() {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(2, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+    }
+
+    @Test
+    @DisplayName("Check ignore")
+    public void checkIgnoreChangeSetForContextSub() {
+        Contexts contexts = new Contexts();
+        contexts.add("sub");
+        changeLogParameters.setContexts(contexts);
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(0, statements.length);
+        Assertions.assertTrue(change.getChangeSet().isIgnore());
     }
 
     @Test
@@ -75,7 +87,7 @@ class DdmCreateSearchConditionChangeTest {
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(5, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
@@ -96,7 +108,7 @@ class DdmCreateSearchConditionChangeTest {
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(6, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
@@ -224,32 +236,11 @@ class DdmCreateSearchConditionChangeTest {
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(5, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  pagination
-    }
-
-    @Test
-    @DisplayName("Check statements - parameters SUB")
-    public void checkStatementsSub() {
-        Contexts contexts = new Contexts();
-        contexts.add("sub");
-        changeLogParameters.setContexts(contexts);
-
-        DdmTableConfig table = new DdmTableConfig("table");
-        DdmColumnConfig column = new DdmColumnConfig();
-        column.setName("column");
-        table.addColumn(column);
-        change.addTable(table);
-
-        SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(4, statements.length);
-        Assertions.assertTrue(statements[0] instanceof DdmCreateSearchConditionStatement);
-        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  grant select to view
-        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  column or alias
     }
 
     @Test
@@ -282,6 +273,7 @@ class DdmCreateSearchConditionChangeTest {
     public void validateInverse() {
         change.setName("name");
         Change[] changes = change.createInverses();
+        changes[0].setChangeSet(change.getChangeSet());
         Assertions.assertEquals(0, changes[0].validate(new MockDatabase()).getErrorMessages().size());
     }
 
@@ -347,6 +339,17 @@ class DdmCreateSearchConditionChangeTest {
         table.setFunctions(functions);
         change.addTable(table);
 
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Validate change - only search condition tags allowed")
+    public void validateAllowedTags() {
+        change.setName("name");
+        DdmCreateAnalyticsViewChange analyticsChange = new DdmCreateAnalyticsViewChange();
+        analyticsChange.setName("name");
+        changeSet.addChange(analyticsChange);
+        changeSet.addChange(change);
         Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 }

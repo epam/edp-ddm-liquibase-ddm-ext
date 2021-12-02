@@ -2,6 +2,8 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmAddColumnChang
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateDomainChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateMany2ManyChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsViewChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsIndexChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSimpleSearchConditionChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTypeChange
@@ -9,6 +11,7 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmDistributeTabl
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropColumnChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropDomainChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropSearchConditionChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropAnalyticsViewChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropTypeChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmExposeSearchConditionChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantAllChange

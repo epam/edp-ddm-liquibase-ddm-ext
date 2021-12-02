@@ -51,13 +51,19 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
         if (Boolean.TRUE.equals(indexing) && getSearchColumn() != null && getSearchColumn().getSearchType() == null) {
             validationErrors.addError("searchType is not defined!");
         }
+        if (!DdmUtils.isSearchConditionChangeSet(this.getChangeSet())){
+            validationErrors.addError(DdmUtils.printConsistencyChangeSetError(getChangeSet().getId()));
+        }
         return validationErrors;
     }
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
+        if (DdmUtils.hasSubContext(this.getChangeSet())){
+            this.getChangeSet().setIgnore(true);
+            return new SqlStatement[0];
+        }
         List<SqlStatement> statements = new ArrayList<>();
-
         DdmCreateSimpleSearchConditionStatement statement = generateCreateSimpleSearchConditionStatement();
         statement.setTable(getTable());
         statement.setSearchColumn(getSearchColumn());

@@ -1,5 +1,8 @@
 package com.epam.digital.data.platform.liquibase.extension;
 
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSimpleSearchConditionChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropSearchConditionChange;
@@ -8,9 +11,10 @@ import com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantAl
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmGrantChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeAllChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeChange;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsIndexChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsViewChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropAnalyticsViewChange;
+
 import liquibase.change.AbstractChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.statement.core.RawSqlStatement;
@@ -26,13 +30,16 @@ public class DdmUtils {
     public static final String CONSISTENCY_CHANGESET_ERROR = "Error. ChangeSet %s. Analytics and Search Condition changes "
         + "cannot be mixed with each other or other change types in a single changeset. "
         + "Please put them in separate changesets.";
-    
+
     static {
         masterChanges.add(DdmCreateSearchConditionChange.class);
         masterChanges.add(DdmCreateSimpleSearchConditionChange.class);
         masterChanges.add(DdmDropSearchConditionChange.class);
         masterChanges.add(DdmExposeSearchConditionChange.class);
 
+        replicaChanges.add(DdmCreateAnalyticsViewChange.class);
+        replicaChanges.add(DdmCreateAnalyticsIndexChange.class);
+        replicaChanges.add(DdmDropAnalyticsViewChange.class);
         replicaChanges.add(DdmGrantChange.class);
         replicaChanges.add(DdmGrantAllChange.class);
         replicaChanges.add(DdmRevokeChange.class);
@@ -82,17 +89,17 @@ public class DdmUtils {
     public static boolean hasSubContext(ChangeSet changeSet){
         return hasContext(changeSet, DdmConstants.CONTEXT_SUB);
     }
-    
+
     public static ValidationErrors validateHistoryFlag(Boolean historyFlag) {
         return !Boolean.TRUE.equals(historyFlag) ?
             new ValidationErrors().addError("historyFlag attribute is required and must be set as 'true'") : new ValidationErrors();
     }
-    
+
     public static boolean isAnalyticsChangeSet(ChangeSet changeSet) {
         return changeSet.getChanges().stream()
             .allMatch(change -> replicaChanges.contains(change.getClass()));
     }
-    
+
     public static boolean isSearchConditionChangeSet(ChangeSet changeSet){
         return changeSet.getChanges().stream()
             .allMatch(change -> masterChanges.contains(change.getClass()));

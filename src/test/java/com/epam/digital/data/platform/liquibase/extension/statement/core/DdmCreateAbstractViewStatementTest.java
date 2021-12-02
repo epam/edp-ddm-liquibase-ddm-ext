@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class DdmCreateSearchConditionStatementTest {
+class DdmCreateAbstractViewStatementTest {
 
     @Test
     @DisplayName("Check statement")
     public void check() {
-        DdmCreateSearchConditionStatement statement = new DdmCreateSearchConditionStatement("name");
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
         statement.setName("newName");
-        Assertions.assertTrue(statement instanceof DdmCreateSearchConditionStatement);
+        Assertions.assertTrue(statement instanceof DdmCreateAbstractViewStatement);
     }
 }

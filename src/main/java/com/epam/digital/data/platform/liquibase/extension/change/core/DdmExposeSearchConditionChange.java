@@ -67,11 +67,18 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
         validationErrors.addAll(validateViewExists(database));
+        if (!DdmUtils.isSearchConditionChangeSet(this.getChangeSet())){
+            validationErrors.addError(DdmUtils.printConsistencyChangeSetError(getChangeSet().getId()));
+        }
         return validationErrors;
     }
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
+        if (DdmUtils.hasSubContext(this.getChangeSet())){
+            this.getChangeSet().setIgnore(true);
+            return new SqlStatement[0];
+        }
         return new SqlStatement[]{
             DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, getConsumer(), DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName())
         };

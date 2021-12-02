@@ -1,20 +1,20 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
+import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropAnalyticsViewStatement;
 import liquibase.change.AbstractChange;
-import liquibase.change.DatabaseChange;
 import liquibase.change.ChangeMetaData;
+import liquibase.change.DatabaseChange;
 import liquibase.change.DatabaseChangeProperty;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.statement.SqlStatement;
-import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmDropSearchConditionStatement;
 
 /**
- * Drop search condition.
+ * Drop analytics view.
  */
-@DatabaseChange(name="dropSearchCondition", description = "Drop Search Condition", priority = ChangeMetaData.PRIORITY_DEFAULT)
-public class DdmDropSearchConditionChange extends AbstractChange {
+@DatabaseChange(name="dropAnalyticsView", description = "Drop Analytics View", priority = ChangeMetaData.PRIORITY_DEFAULT)
+public class DdmDropAnalyticsViewChange extends AbstractChange {
 
     private String name;
 
@@ -22,7 +22,7 @@ public class DdmDropSearchConditionChange extends AbstractChange {
     public ValidationErrors validate(Database database) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.addAll(super.validate(database));
-        if (!DdmUtils.isSearchConditionChangeSet(this.getChangeSet())){
+        if (!DdmUtils.isAnalyticsChangeSet(this.getChangeSet())){
             validationErrors.addError(DdmUtils.printConsistencyChangeSetError(getChangeSet().getId()));
         }
         return validationErrors;
@@ -30,16 +30,16 @@ public class DdmDropSearchConditionChange extends AbstractChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
-        if (DdmUtils.hasSubContext(this.getChangeSet())){
+        if (DdmUtils.hasPubContext(this.getChangeSet())){
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
-        return new SqlStatement[]{ new DdmDropSearchConditionStatement(getName()) };
+        return new SqlStatement[]{ new DdmDropAnalyticsViewStatement(getName()) };
     }
 
     @Override
     public String getConfirmationMessage() {
-        return "Search Condition " + getName() + " dropped";
+        return "Analytics View " + getName() + " dropped";
     }
 
     @Override
@@ -47,7 +47,7 @@ public class DdmDropSearchConditionChange extends AbstractChange {
         return STANDARD_CHANGELOG_NAMESPACE;
     }
 
-    @DatabaseChangeProperty(description = "Name of the Search Condition to drop")
+    @DatabaseChangeProperty(description = "Name of the Analytics View to drop")
     public String getName() {
         return name;
     }
