@@ -14,7 +14,6 @@ import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCrea
 import liquibase.database.core.MockDatabase;
 import liquibase.sql.Sql;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +64,6 @@ class DdmCreateAbstractViewGeneratorTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("Validate SQL - returning")
     public void validateSQLReturning() {
         column = new DdmColumnConfig();
