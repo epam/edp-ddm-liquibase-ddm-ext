@@ -1,5 +1,6 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import static com.epam.digital.data.platform.liquibase.extension.DdmConstants.SUFFIX_VIEW;
 import static com.epam.digital.data.platform.liquibase.extension.DdmUtils.hasSubContext;
 import static com.epam.digital.data.platform.liquibase.extension.DdmUtils.isBlank;
 
@@ -65,7 +66,7 @@ public class DdmRevokeChange extends AbstractChange {
 
         for (DdmRoleConfig role : getRoles()) {
             role.getTables().stream()
-                .map(table -> new RawSqlStatement(String.format("CALL p_revoke_analytics_user ('%s','%s');", role.getName(), table.getName())))
+                .map(table -> new RawSqlStatement(String.format("CALL p_revoke_analytics_user ('%s','%s');", role.getName(), table.getName() + SUFFIX_VIEW)))
                 .forEach(statements::add);
         }
 

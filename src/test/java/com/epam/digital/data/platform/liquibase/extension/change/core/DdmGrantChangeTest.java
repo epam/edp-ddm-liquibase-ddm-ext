@@ -81,7 +81,7 @@ class DdmGrantChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(1, statements.length);
         Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
-        Assertions.assertEquals("CALL p_grant_analytics_user ('role','view');", ((RawSqlStatement) statements[0]).getSql());
+        Assertions.assertEquals("CALL p_grant_analytics_user ('role','view_v');", ((RawSqlStatement) statements[0]).getSql());
     }
 
     @Test
