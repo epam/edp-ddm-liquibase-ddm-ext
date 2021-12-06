@@ -28,3 +28,6 @@ liquibase --contexts=pub,sub --driver=org.postgresql.Driver --changeLogFile=main
     * Java console app approach:
         * add custom arguments to `liquibase.properties` file or to java run args
         * run java app with the entry point in `liquibase.integration.commandline.Main.main(..)`
+        
+### License
+liquibase-ddm-ext is Open Source software released under the Apache 2.0 license.
