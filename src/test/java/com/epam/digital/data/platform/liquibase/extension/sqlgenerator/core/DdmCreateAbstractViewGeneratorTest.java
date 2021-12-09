@@ -30,7 +30,6 @@ import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCrea
 import liquibase.database.core.MockDatabase;
 import liquibase.sql.Sql;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +80,6 @@ class DdmCreateAbstractViewGeneratorTest {
     }
 
     @Test
-    @Disabled
     @DisplayName("Validate SQL - returning")
     public void validateSQLReturning() {
         column = new DdmColumnConfig();
@@ -95,7 +93,7 @@ class DdmCreateAbstractViewGeneratorTest {
         table.addColumn(column);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column3 FROM table1 AS t1;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2, t1.column3 FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
