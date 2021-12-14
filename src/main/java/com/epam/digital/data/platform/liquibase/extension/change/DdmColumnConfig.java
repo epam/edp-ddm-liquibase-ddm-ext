@@ -51,7 +51,7 @@ public class DdmColumnConfig extends ColumnConfig {
         setClassify(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_CLASSIFY, String.class));
     }
 
-    public String getNameOrAlias() {
+    public String getAliasOrName() {
         return hasAlias() ? getAlias() : getName();
     }
 

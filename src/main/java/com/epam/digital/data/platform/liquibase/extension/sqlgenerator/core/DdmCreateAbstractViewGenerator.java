@@ -86,7 +86,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
         if (ctes.containsKey(tableName)) {
             for (DdmTableConfig cteTable : ctes.get(tableName).getTables()) {
                 for (DdmColumnConfig cteColumn : cteTable.getColumns()) {
-                    if (cteColumn.getNameOrAlias().equalsIgnoreCase(columnName)) {
+                    if (cteColumn.getAliasOrName().equalsIgnoreCase(columnName)) {
                         tableName = cteTable.getName();
                         columnName = cteColumn.getName();
                         return getPair(ctes, tableName, columnName);

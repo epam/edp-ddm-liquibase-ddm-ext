@@ -76,11 +76,13 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
 
         //  create insert statements for metadata table
         for (DdmTableConfig table : getTables()) {
+            table.getFunctions().stream().map(function ->
+                DdmUtils.insertMetadataSql(getName(), table.getName(), function.getName(), function.getAlias())).forEach(statements::add);
             for (DdmColumnConfig column : table.getColumns()) {
-                statements.add(insertSearchConditionMetadata(DdmConstants.ATTRIBUTE_COLUMN, column.getNameOrAlias()));
+                statements.add(insertSearchConditionMetadata(DdmConstants.ATTRIBUTE_COLUMN, column.getAliasOrName()));
 
                 if (Boolean.TRUE.equals(column.getReturning())) {
-                    statements.add(DdmUtils.insertMetadataSql(getName(), table.getName(), column.getName(), column.getNameOrAlias()));
+                    statements.add(DdmUtils.insertMetadataSql(getName(), table.getName(), column.getName(), column.getAliasOrName()));
                 }
 
                 if (column.getSearchType() != null) {
@@ -93,7 +95,7 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
                         val = DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
                     }
 
-                    statements.add(insertSearchConditionMetadata(val, column.getNameOrAlias()));
+                    statements.add(insertSearchConditionMetadata(val, column.getAliasOrName()));
                 }
             }
         }

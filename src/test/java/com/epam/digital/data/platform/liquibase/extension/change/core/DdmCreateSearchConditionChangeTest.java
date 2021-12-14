@@ -111,6 +111,33 @@ class DdmCreateSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - function")
+    public void checkStatementsFunction() {
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setReturning(true);
+        column.setSearchType("equal");
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setName("count");
+        function.setAlias("cnt");
+        function.setColumnName("column");
+        table.addColumn(column);
+        table.addFunction(function);
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(6, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  function
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);  //  searchType
+    }
+
+    @Test
     @DisplayName("Check statements - limit")
     public void checkStatementsLimit() {
         DdmTableConfig table = new DdmTableConfig("table");
