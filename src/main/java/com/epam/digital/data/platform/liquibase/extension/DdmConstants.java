@@ -16,6 +16,7 @@
 
 package com.epam.digital.data.platform.liquibase.extension;
 
+
 public class DdmConstants {
 
     public static final String PARAMETERS_FILE_NAME = "parameters.xml";
