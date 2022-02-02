@@ -4,6 +4,7 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateMany2Man
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsViewChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsIndexChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateCompositeEntityChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSimpleSearchConditionChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTypeChange

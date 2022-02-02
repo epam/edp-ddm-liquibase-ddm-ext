@@ -46,6 +46,7 @@ public class DdmTest {
     public static final String TEST_GRANT_FILE_NAME = "grantChangelog.xml";
     public static final String TEST_REVOKE_ALL_FILE_NAME = "revokeAllChangelog.xml";
     public static final String TEST_REVOKE_FILE_NAME = "revokeChangelog.xml";
+    public static final String TEST_COMPOSITE_NESTED_ENTITY_FILE_NAME = "createCompositeEntityChangelog.xml";
 
     private DdmTest() {}
 

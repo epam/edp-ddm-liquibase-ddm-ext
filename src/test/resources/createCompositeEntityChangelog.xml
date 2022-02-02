@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+
+    <changeSet author="registry owner" id="composite_nested_entities">
+        <comment>CREATE Composite nested entities</comment>
+        <ext:createCompositeEntity name="composite">
+            <ext:nestedEntity table="transaction">
+                <ext:link column="order_id" entity="order"/>
+            </ext:nestedEntity>
+            <ext:nestedEntity name="order" table="order">
+                <ext:link column="application_id" entity="app"/>
+            </ext:nestedEntity>
+            <ext:nestedEntity table="application" name="app"/>
+        </ext:createCompositeEntity>
+    </changeSet>
+
+</databaseChangeLog>

@@ -35,6 +35,8 @@ public class DdmConstants {
     public static final String ATTRIBUTE_TRANSLATION = "translation";
     public static final String ATTRIBUTE_COLLATION = "collation";
     public static final String ATTRIBUTE_LIMIT = "limit";
+    public static final String ATTRIBUTE_LINK = "link";
+    public static final String ATTRIBUTE_ENTITY = "entity";
     public static final String ATTRIBUTE_TABLE = "table";
     public static final String ATTRIBUTE_CTE = "cte";
     public static final String ATTRIBUTE_ALIAS = "alias";
@@ -75,6 +77,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_REFERENCE_TABLE_COLUMNS = "referenceTableColumns";
     public static final String ATTRIBUTE_REALM = "realm";
     public static final String ATTRIBUTE_VIEW = "view";
+    public static final String ATTRIBUTE_NESTED = "nested";
 
     public static final String XML_TAG_HISTORY_FLAG = "ext:historyFlag";
     public static final String XML_TAG_TABLE_SUFFIX = "ext:tableSuffix";
@@ -112,6 +115,10 @@ public class DdmConstants {
     public static final String METADATA_CHANGE_NAME = "change_name";
     public static final String METADATA_ATTRIBUTE_NAME = "attribute_name";
     public static final String METADATA_ATTRIBUTE_VALUE = "attribute_value";
+
+    public static final String TABLE_NAME_COLUMN = "table_name";
+    public static final String COLUMN_NAME_COLUMN = "column_name";
+    public static final String ENTITY_TABLE_COLUMN = "entity_table";
 
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";

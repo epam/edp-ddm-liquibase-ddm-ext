@@ -300,4 +300,18 @@
 
     </changeSet>
 -->
+
+    <changeSet author="registry owner" id="composite_nested_entities">
+        <comment>CREATE Composite nested entities</comment>
+        <ext:createCompositeEntity name="composite">
+            <ext:nestedEntity table="transaction">
+                <ext:link column="order_id" entity="order"/>
+            </ext:nestedEntity>
+            <ext:nestedEntity name="order" table="order">
+                <ext:link column="application_id" entity="app"/>
+            </ext:nestedEntity>
+            <ext:nestedEntity table="application" name="app"/>
+        </ext:createCompositeEntity>
+    </changeSet>
+
 </databaseChangeLog>
