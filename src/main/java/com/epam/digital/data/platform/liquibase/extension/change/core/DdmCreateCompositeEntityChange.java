@@ -144,8 +144,14 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
   private DdmNestedEntityConfig convertChangeToConfig(DdmCreateTableChange change) {
     DdmNestedEntityConfig nestedEntity = new DdmNestedEntityConfig();
     DdmLinkConfig link = new DdmLinkConfig();
+
+    String linkColumn = nestedEntities.stream()
+        .filter(entity -> entity.getTable().equals(change.getTableName()))
+        .findAny().get().getLinkConfig().getColumn();
+
     for (ColumnConfig column : change.getColumns()) {
-      if (column.getConstraints().getForeignKeyName() != null) {
+      if (column.getConstraints().getForeignKeyName() != null &&
+          column.getName().equals(linkColumn)) {
         link.setColumn(column.getName());
         link.setEntityTable(column.getConstraints().getReferencedTableName());
       }

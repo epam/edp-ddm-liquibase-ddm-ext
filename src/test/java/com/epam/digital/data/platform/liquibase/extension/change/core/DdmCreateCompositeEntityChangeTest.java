@@ -113,7 +113,18 @@ public class DdmCreateCompositeEntityChangeTest {
     constraint1.setReferencedColumnNames("application_id");
     constraint1.setReferencedTableName("application");
     column2.setConstraints(constraint1);
+
+    DdmColumnConfig column3 = new DdmColumnConfig();
+    column3.setName("random_id");
+    column3.setType("UUID");
+    ConstraintsConfig constraint2 = new ConstraintsConfig();
+    constraint2.setForeignKeyName("forgn_name_rand");
+    constraint2.setReferencedColumnNames("random_id");
+    constraint2.setReferencedTableName("random");
+    column3.setConstraints(constraint2);
+
     tableChange1.addColumn(column2);
+    tableChange1.addColumn(column3);
 
     changeSet.addChange(tableChange1);
 
