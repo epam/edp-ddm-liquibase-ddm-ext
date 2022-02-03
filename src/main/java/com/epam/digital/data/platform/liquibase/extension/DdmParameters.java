@@ -67,6 +67,7 @@ public class DdmParameters {
         InputStream inputFile = this.getClass().getClassLoader().getResourceAsStream(DdmConstants.PARAMETERS_FILE_NAME);
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        dbFactory.setFeature(DdmConstants.DISALLOW_DOCTYPE_DECLARATION, true);
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.parse(inputFile);
 

@@ -22,6 +22,7 @@ public class DdmConstants {
     public static final String PARAMETERS_FILE_NAME = "parameters.xml";
 
     public static final String FIELD_CLASSIFICATION = "dcm_classification";
+    public static final String DISALLOW_DOCTYPE_DECLARATION = "http://apache.org/xml/features/disallow-doctype-decl";
 
     public static final String ATTRIBUTE_NAME = "name";
     public static final String ATTRIBUTE_TYPE = "type";
