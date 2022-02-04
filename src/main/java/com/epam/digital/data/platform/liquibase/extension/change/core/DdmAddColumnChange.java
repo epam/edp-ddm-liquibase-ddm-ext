@@ -16,14 +16,18 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
-import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmParameters;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
+import com.epam.digital.data.platform.liquibase.extension.DdmRanChangeSetsKeeper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import liquibase.Scope;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.ChangeMetaData;
@@ -36,7 +40,9 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.datatype.DataTypeFactory;
 import liquibase.datatype.LiquibaseDataType;
 import liquibase.exception.DatabaseException;
+import liquibase.exception.LiquibaseException;
 import liquibase.exception.ValidationErrors;
+import liquibase.snapshot.InvalidExampleException;
 import liquibase.snapshot.SnapshotGeneratorFactory;
 import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
@@ -50,17 +56,40 @@ import liquibase.structure.core.Index;
 import liquibase.structure.core.Table;
 import liquibase.util.JdbcUtils;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.stream.Collectors;
-
 /**
  * Adds a column to an existing table with history.
+ * 
+ * 
+ * 
+ *     The version of the regulation is stored in the database.
+ *     It is stored only after the successful deployment of the regulations.
+ *     
+ *     During the deployment of the regulations: 
+ *
+ *     If version == null it means the ChangeLog is running for the first time. 
+ *     This means that the _hst table is empty and when run DdmAddColumnChange _hst table does not 
+ *     need to be copied into the archive schema, instead of this we need to make an alter _hst 
+ *     table simultaneously with alter origin table. The only difference is that the columns in the 
+ *     historical table should not contain any constraints other than NOT NULL
+ *
+ *  
+ *     If version != null it means some ChangeLog has already run before. 
+ *     This means that when run DdmAddColumnChange, we must move the _hst table into the archive 
+ *     schema and recreate the _hst table with the new column.
+ *
+ *     If the ChangeLog contains multiple DdmAddColumnChange (in different ChangeSets or in the same
+ *     ChangeSet), then the first change moves the _hst table into the archive 
+ *     schema and recreate the _hst table with the new column, and all other changes perform an
+ *     alter _hst table simultaneously with alter origin table
+ *
+ *     If the ChangeLog contains more than one DdmAddColumnChange (in different ChangeSets) and the
+ *     first ChangeSet has already run before, then the first DdmAddColumnChange is skipped and the 
+ *     second one is executed as if it were the first one (the _hst table is recreated)
  */
 @DatabaseChange(name="addColumn", description = "Adds a new column to an existing table with history", priority = ChangeMetaData.PRIORITY_DEFAULT + 50, appliesTo = "table")
-public class DdmAddColumnChange extends AddColumnChange {
+public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAffectableChange {
 
+    private static final String ARCHIVE_SCHEMA = "archive";
     private Boolean historyFlag;
     private final DdmParameters parameters = new DdmParameters();
     private boolean isHistoryTable;
@@ -88,8 +117,15 @@ public class DdmAddColumnChange extends AddColumnChange {
             }
         }
 
-        if (getVersion(database) == null) {
-            validationErrors.addError("Cannot select version!");
+        String version = getVersion(database);
+        if (version != null) {
+            Boolean tableAlreadyPresentInArchiveSchema = isTablePresentInArchiveSchema(database, version);
+            if (tableAlreadyPresentInArchiveSchema == null) {
+                validationErrors.addError("Cannot select table!");
+            } 
+            if (Boolean.TRUE.equals(tableAlreadyPresentInArchiveSchema)) {
+                validationErrors.addError("ChangeLog with current version was already ran!");
+            }
         }
         return validationErrors;
     }
@@ -125,13 +161,38 @@ public class DdmAddColumnChange extends AddColumnChange {
         return version;
     }
 
+    private Boolean isTablePresentInArchiveSchema(Database database, String version) {
+        Boolean present = null;
+        try {
+            isHistoryTable = true;
+            present = snapshotGeneratorFactory.createSnapshot(new Table(getCatalogName(), ARCHIVE_SCHEMA, getTableName() + version), database) != null;
+        } catch (LiquibaseException e) {
+            e.printStackTrace();
+        } finally {
+            isHistoryTable = false;
+        }
+        return present;
+    }
     @Override
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>(Arrays.asList(super.generateStatements(database)));
 
+        String version = getVersion(database);
         if (Boolean.TRUE.equals(historyFlag)) {
+            boolean firstChange = DdmRanChangeSetsKeeper.isChangeFirst(database, this);
+            
             isHistoryTable = true;
-            String newTableName = getTableName() + getVersion(database);
+            
+            boolean firstRun = version == null;
+
+            if (firstRun || !firstChange) {
+                AddColumnChange addHstColumn = recreateAddColumnChangeWithNotNullConstraint(this);
+                statements.addAll(Arrays.asList(addHstColumn.generateStatements(database)));
+                isHistoryTable = false;
+                return statements.toArray(new SqlStatement[0]);
+            }
+            
+            String newTableName = getTableName() + version;
 
             Table snapshotTable = null;
             try {
@@ -180,7 +241,7 @@ public class DdmAddColumnChange extends AddColumnChange {
                 statements.add(createHstTableStatement);
                 statements.addAll(createTableAccessStatements(snapshotTable.getName()));
                 statements.add(new RawSqlStatement("CALL p_init_new_hist_table('" + newTableName + "', '" + snapshotTable.getName() + "');"));
-                statements.add(new RawSqlStatement("ALTER TABLE " + newTableName + " SET SCHEMA archive;"));
+                statements.add(new RawSqlStatement("ALTER TABLE " + newTableName + " SET SCHEMA " + ARCHIVE_SCHEMA + ";"));
             }
 
             isHistoryTable = false;
@@ -203,6 +264,36 @@ public class DdmAddColumnChange extends AddColumnChange {
             return super.getTableName() + (isHistoryTable ? parameters.getHistoryTableSuffix() : "");
         }
         return super.getTableName();
+    }
+    
+    private AddColumnChange recreateAddColumnChangeWithNotNullConstraint(AddColumnChange origin) {
+        AddColumnChange result = new AddColumnChange();
+        result.setTableName(origin.getTableName());
+        result.setSchemaName(origin.getSchemaName());
+        result.setCatalogName(origin.getCatalogName());
+        result.setChangeSet(origin.getChangeSet());
+        
+        result.setColumns(
+            origin.getColumns().stream()
+                .map(this::retainNotNullConstraint)
+                .collect(Collectors.toList()));
+        return result;
+    }
+
+    AddColumnConfig retainNotNullConstraint(AddColumnConfig column) {
+        AddColumnConfig clone = new AddColumnConfig(new Column(column));
+        
+        ConstraintsConfig originConstraints = column.getConstraints();
+        if (originConstraints != null && Boolean.FALSE.equals(originConstraints.isNullable())) {
+            ConstraintsConfig resultConstraints = 
+                new ConstraintsConfig()
+                    .setNullable(false)
+                    .setNotNullConstraintName(originConstraints.getNotNullConstraintName())
+                    .setValidateNullable(originConstraints.getValidateNullable() == null || originConstraints.getValidateNullable());
+            clone.setConstraints(resultConstraints);
+        }
+        
+        return clone;
     }
 
     private List<Index> getHstTableUniqueConstraints(Table snapshotTable) {
@@ -237,5 +328,26 @@ public class DdmAddColumnChange extends AddColumnChange {
             accessStatements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
         }
         return accessStatements;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DdmAddColumnChange that = (DdmAddColumnChange) o;
+        return isHistoryTable == that.isHistoryTable && Objects.equals(historyFlag,
+            that.historyFlag) && Objects.equals(parameters, that.parameters);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), historyFlag, parameters, isHistoryTable);
     }
 }

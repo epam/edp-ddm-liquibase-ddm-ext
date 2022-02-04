@@ -16,17 +16,35 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmMockSnapshotGeneratorFactory;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import liquibase.Contexts;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.ConstraintsConfig;
+import liquibase.change.core.AddColumnChange;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.DatabaseException;
+import liquibase.statement.ColumnConstraint;
+import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddColumnStatement;
-import liquibase.statement.core.AddUniqueConstraintStatement;
 import liquibase.statement.core.CreateTableStatement;
 import liquibase.statement.core.DropUniqueConstraintStatement;
 import liquibase.statement.core.RawSqlStatement;
@@ -35,35 +53,34 @@ import liquibase.structure.core.Column;
 import liquibase.structure.core.DataType;
 import liquibase.structure.core.Index;
 import liquibase.structure.core.Table;
-import liquibase.structure.core.UniqueConstraint;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-
-import static java.util.Arrays.asList;
 
 class DdmAddColumnChangeTest {
     private DdmAddColumnChange change;
     private DdmAddColumnChange snapshotChange;
-
+    private DatabaseChangeLog changeLog;
+    private ChangeSet changeSet1;
+    private ChangeSet changeSet2;
+        
     @BeforeEach
     void setUp() {
-        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+        changeLog = new DatabaseChangeLog("path");
 
         ChangeLogParameters changeLogParameters = new ChangeLogParameters();
         changeLog.setChangeLogParameters(changeLogParameters);
 
-        ChangeSet changeSet = new ChangeSet(changeLog);
-
-        change = new DdmAddColumnChange();
-        change.setTableName("table");
-        change.setChangeSet(changeSet);
+        changeSet1 = new ChangeSet("id1", "author1", false, false, "filePath1", "contextList1", "dbmsList1", changeLog);
+        changeSet2 = new ChangeSet("id2", "author2", false, false, "filePath2", "contextList2", "dbmsList2", changeLog);
 
         Table historyTable = new Table();
         historyTable.setName("table_hst");
+        
+        change = new DdmAddColumnChange(new DdmMockSnapshotGeneratorFactory(historyTable));
+        change.setTableName("table");
+        change.setHistoryFlag(true);
 
         DataType colType = new DataType("text");
         Column column = new Column("column");
@@ -80,151 +97,334 @@ class DdmAddColumnChangeTest {
 
         snapshotChange = new DdmAddColumnChange(new DdmMockSnapshotGeneratorFactory(historyTable));
         snapshotChange.setTableName("table");
-        snapshotChange.setChangeSet(changeSet);
-    }
-
-    @Test
-    @DisplayName("Validate change")
-    void validateChange() {
-        change.setHistoryFlag(true);
-        AddColumnConfig column1 = new AddColumnConfig();
-        column1.setName("column1");
-        column1.setType("type1");
-        column1.setDefaultValue("defaultValue");
-        ConstraintsConfig constraint = new ConstraintsConfig();
-        constraint.setNullable("true");
-        column1.setConstraints(constraint);
-        change.addColumn(column1);
-
-        AddColumnConfig column2 = new AddColumnConfig();
-        column2.setName("column2");
-        column2.setType("type2");
-        change.addColumn(column2);
-
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
-    }
-
-    @Test
-    @DisplayName("Validate change - default value")
-    void validateChangeDefaultValue() {
-        AddColumnConfig column1 = new AddColumnConfig();
-        column1.setName("column1");
-        column1.setType("type1");
-        ConstraintsConfig constraint = new ConstraintsConfig();
-        constraint.setNullable("false");
-        column1.setConstraints(constraint);
-        change.addColumn(column1);
-
-        AddColumnConfig column2 = new AddColumnConfig();
-        column2.setName("column2");
-        column2.setType("type2");
-        change.addColumn(column2);
-
-        Assertions.assertEquals(3, change.validate(new MockDatabase()).getErrorMessages().size());
-    }
-
-    @Test
-    @DisplayName("Check statements")
-    void checkStatements() {
+        snapshotChange.setChangeSet(changeSet1);
         snapshotChange.setHistoryFlag(true);
-
-        AddColumnConfig column1 = new AddColumnConfig();
-        column1.setName("column1");
-        column1.setType("type1");
-        column1.setDefaultValue("defaultValue");
-        ConstraintsConfig constraint = new ConstraintsConfig();
-        constraint.setNullable("true");
-        column1.setConstraints(constraint);
-        snapshotChange.addColumn(column1);
-
-        AddColumnConfig column2 = new AddColumnConfig();
-        column2.setName("column2");
-        column2.setType("type2");
-        snapshotChange.addColumn(column2);
-
-        SqlStatement[] statements = snapshotChange.generateStatements(new MockDatabase());
-        Assertions.assertEquals(7, statements.length);
-        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
-        Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
-        Assertions.assertEquals("uniqueConstraint",
-                ((DropUniqueConstraintStatement) statements[1]).getConstraintName());
-        Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
-        Assertions.assertEquals("table_hst",
-                ((RenameTableStatement) statements[2]).getOldTableName());
-        Assertions.assertEquals("table_hstnull",
-                ((RenameTableStatement) statements[2]).getNewTableName());
-        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
-        Assertions.assertEquals("table_hst",
-                ((CreateTableStatement) statements[3]).getTableName());
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertEquals("REVOKE ALL PRIVILEGES ON TABLE table_hst FROM PUBLIC;",
-                ((RawSqlStatement) statements[4]).getSql());
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertEquals("CALL p_init_new_hist_table('table_hstnull', 'table_hst');",
-                ((RawSqlStatement) statements[5]).getSql());
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertEquals("ALTER TABLE table_hstnull SET SCHEMA archive;",
-                ((RawSqlStatement) statements[6]).getSql());
     }
 
     @Test
-    @DisplayName("Check snapshot")
-    void checkSnapshot() {
-        snapshotChange.setHistoryFlag(true);
+    void validateChange() throws SQLException, DatabaseException {
+        change.setChangeSet(changeSet2);
+        
+        ConstraintsConfig constraintsConfig = new ConstraintsConfig();
+        constraintsConfig.setNullable(true);
 
-        MockDatabase database = new MockDatabase();
+        change.addColumn(mockColumn(constraintsConfig));
+        change.addColumn(mockColumn());
 
-        SqlStatement[] statements = snapshotChange.generateStatements(database);
-        Assertions.assertEquals(7, statements.length);
-        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
-        Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
-        Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
-        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        assertEquals(0, change.validate(mockDatabaseWithVersion(null)).getErrorMessages().size());
     }
 
+    @Test
+    void validateChangeDefaultValue() throws SQLException, DatabaseException {
+        change.setHistoryFlag(false);
+        ConstraintsConfig constraintsConfig = new ConstraintsConfig();
+        constraintsConfig.setNullable(false);
+        AddColumnConfig column = mockColumn(constraintsConfig);
+        column.setDefaultValue(null);
+        
+        change.addColumn(column);
+
+        assertEquals(2, change.validate(mockDatabaseWithVersion(null)).getErrorMessages().size());
+    }
+    
+    @Nested
+    class RunningChangeLogForTheFirstTimeWhenVersionIsNull {
+        
+        @Test
+        void shouldAlterHstTableAndOriginTable() throws SQLException, DatabaseException {
+            // given
+            snapshotChange.addColumn(mockColumn());
+
+            // when
+            SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion(null));
+
+            // then
+            assertEquals(2, statements.length);
+            assertTrue(statements[0] instanceof AddColumnStatement);
+            assertTrue(statements[1] instanceof AddColumnStatement);
+            assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
+            assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
+        }
+
+        @Test
+        void onlyNotNullConstraintShouldHaveColumnInHstTable() throws SQLException, DatabaseException {
+            // given
+            ConstraintsConfig constraintsConfig = new ConstraintsConfig();
+            constraintsConfig.setNullable(false);
+            constraintsConfig.setPrimaryKey(true);
+            snapshotChange.addColumn(mockColumn(constraintsConfig));
+
+            // when
+            SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion(null));
+
+            // then
+            assertEquals(2, statements.length);
+            assertTrue(statements[0] instanceof AddColumnStatement);
+            assertTrue(statements[1] instanceof AddColumnStatement);
+
+            assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
+            assertEquals(2, ((AddColumnStatement) statements[0]).getConstraints().size());
+
+            assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
+            Set<ColumnConstraint> constraints = ((AddColumnStatement) statements[1]).getConstraints();
+            assertEquals(1, constraints.size());
+            assertTrue(constraints.iterator().next() instanceof NotNullConstraint);
+        }
+    }
+    
+    @Nested
+    class RunningChangeLogNotForTheFirstTimeWhenVersionIsNotNull {
+    
+        @Test
+        void shouldMoveHstTableToArchiveAndCreateNewHstTable() throws SQLException, DatabaseException {
+            // given
+            snapshotChange.addColumn(mockColumn());
+
+            // when
+            SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+            // then
+            checkRecreatingAndMovingToArchiveHstTable(statements);
+        }
+
+        @Test
+        void failValidationWhenHistoryTableWithTheSameVersionIsAlreadyInArchive() throws SQLException, DatabaseException {
+            // given
+            snapshotChange = new DdmAddColumnChange(new DdmMockSnapshotGeneratorFactory(new Table(null, "archive", "table_hst_1_0_0")));
+            snapshotChange.setHistoryFlag(true);
+            snapshotChange.setTableName("table");
+            snapshotChange.setChangeSet(changeSet1);
+            snapshotChange.addColumn(mockColumn());
+
+            // when
+            List<String> errorMessages = snapshotChange.validate(mockDatabaseWithVersion("1.0.0")).getErrorMessages();
+
+            // then
+            assertEquals(1, errorMessages.size());
+            assertEquals("ChangeLog with current version was already ran!", errorMessages.get(0));
+        }
+
+        @Test
+        void moveHstTableToArchiveForTheFirstChangeAndAlterHstTablesForOtherChangesInTheSameChangeSet() throws SQLException, DatabaseException {
+            // given
+            changeLog.addChangeSet(changeSet1);
+            change.setChangeSet(changeSet1);
+                        
+            changeSet1.addChange(snapshotChange);
+            changeSet1.addChange(change);
+
+            snapshotChange.addColumn(mockColumn());
+            change.addColumn(mockColumn());
+
+            // when
+            SqlStatement[] statements1 = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
+            SqlStatement[] statements2 = change.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+            // then
+            checkRecreatingAndMovingToArchiveHstTable(statements1);
+
+            assertEquals(2, statements2.length);
+            assertTrue(statements2[0] instanceof AddColumnStatement);
+            assertTrue(statements2[1] instanceof AddColumnStatement);
+            assertEquals("table", ((AddColumnStatement) statements2[0]).getTableName());
+            assertEquals("table_hst", ((AddColumnStatement) statements2[1]).getTableName());
+        }
+
+        @Test
+        void moveHstTableToArchiveForTheFirstChangeAndAlterHstTablesForOtherChangesInDifferentChangeSets() throws SQLException, DatabaseException {
+            // given
+            changeLog.addChangeSet(changeSet1);
+            changeLog.addChangeSet(changeSet2);
+            
+            change.setChangeSet(changeSet2);
+
+            changeSet1.addChange(snapshotChange);
+            changeSet2.addChange(change);
+
+            snapshotChange.addColumn(mockColumn());
+            change.addColumn(mockColumn(new ConstraintsConfig()));
+
+            // when
+            SqlStatement[] statements1 = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
+            SqlStatement[] statements2 = change.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+            // then
+            checkRecreatingAndMovingToArchiveHstTable(statements1);
+            assertEquals("column", ((AddColumnStatement) statements1[0]).getColumnName());
+
+            assertEquals(2, statements2.length);
+            assertTrue(statements2[0] instanceof AddColumnStatement);
+            assertTrue(statements2[1] instanceof AddColumnStatement);
+            assertEquals("table", ((AddColumnStatement) statements2[0]).getTableName());
+            assertEquals("column1", ((AddColumnStatement) statements2[0]).getColumnName());
+            assertEquals("table_hst", ((AddColumnStatement) statements2[1]).getTableName());
+        }
+
+        @Test
+        @DisplayName("Should generate statements for second ChangeSet, if first one already ran")
+        void generateStatementsForSecondChangeSetIfFirstAlreadyRan() throws SQLException, DatabaseException {
+
+            // given
+            ChangeSet changeSet3 = new ChangeSet("3", "mock-author", false, false, "test/changelog.xml", "contextList3", "dbmsList3", changeLog);
+
+            changeLog.addChangeSet(changeSet3);
+            changeLog.addChangeSet(changeSet2);
+
+            changeSet3.addChange(snapshotChange);
+            changeSet2.addChange(change);
+
+            snapshotChange.addColumn(mockColumn());
+            change.addColumn(mockColumn());
+
+            // when
+            SqlStatement[] statements = change.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+            // then
+            checkRecreatingAndMovingToArchiveHstTable(statements);
+        }
+    }
+    
     @Test
     @DisplayName("Check pub access")
-    void checkPubAccess() {
-        snapshotChange.setHistoryFlag(true);
+    void checkPubAccess() throws SQLException, DatabaseException {
+        // given
         snapshotChange.getChangeSet().getChangeLog().getChangeLogParameters().setContexts(new Contexts("pub"));
-        MockDatabase database = new MockDatabase();
 
-        SqlStatement[] statements = snapshotChange.generateStatements(database);
-        Assertions.assertEquals(8, statements.length);
-        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
-        Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
-        Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
-        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertEquals("GRANT SELECT ON table_hst TO application_role;",
-                ((RawSqlStatement) statements[5]).getSql());
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        // when
+        SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+        // then
+        assertEquals(8, statements.length);
+        assertTrue(statements[0] instanceof AddColumnStatement);
+        assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
+        assertTrue(statements[2] instanceof RenameTableStatement);
+        assertTrue(statements[3] instanceof CreateTableStatement);
+        assertTrue(statements[4] instanceof RawSqlStatement);
+        assertTrue(statements[5] instanceof RawSqlStatement);
+        assertEquals("GRANT SELECT ON table_hst TO application_role;",
+            ((RawSqlStatement) statements[5]).getSql());
+        assertTrue(statements[6] instanceof RawSqlStatement);
+        assertTrue(statements[7] instanceof RawSqlStatement);
     }
 
     @Test
     @DisplayName("Check sub access")
-    void checkSubAccess() {
-        snapshotChange.setHistoryFlag(true);
-        snapshotChange.getChangeSet().getChangeLog().getChangeLogParameters().setContexts(new Contexts("sub"));
-        MockDatabase database = new MockDatabase();
+    void shouldReturnNullConstraintConfig() {
+        // given
+        ConstraintsConfig constraintsConfig =
+            new ConstraintsConfig()
+                .setNullable(true) // .setNullable(false) will fail test
+                .setNotNullConstraintName("NotNull")
+                .setPrimaryKey(true)
+                .setPrimaryKeyName("primaryKey")
+                .setPrimaryKeyTablespace("primaryKeyTableSpace")
+                .setReferences("references")
+                .setUniqueConstraintName("uniqueConstraintName")
+                .setUnique(true)
+                .setCheckConstraint("checkConstraint")
+                .setDeleteCascade(true)
+                .setForeignKeyName("foreignKeyName")
+                .setInitiallyDeferred(true)
+                .setDeferrable(true)
+                .setValidateNullable(true)
+                .setValidateUnique(true)
+                .setValidatePrimaryKey(true)
+                .setValidateForeignKey(true);
+        constraintsConfig.setReferencedColumnNames("referencedColumnNames");
+        constraintsConfig.setReferencedTableCatalogName("referencesCatalogName");
+        constraintsConfig.setReferencedTableName("referencesTableName");
+        constraintsConfig.setReferencedTableSchemaName("referencesTableSchemaName");
 
-        SqlStatement[] statements = snapshotChange.generateStatements(database);
-        Assertions.assertEquals(8, statements.length);
-        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
-        Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
-        Assertions.assertTrue(statements[2] instanceof RenameTableStatement);
-        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
-        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
-        Assertions.assertEquals("GRANT SELECT ON table_hst TO historical_data_role;",
-                ((RawSqlStatement) statements[5]).getSql());
-        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
-        Assertions.assertTrue(statements[7] instanceof RawSqlStatement);
+        // when
+        AddColumnConfig clone = snapshotChange.retainNotNullConstraint(mockColumn(constraintsConfig));
+
+        // then
+        assertNull(clone.getConstraints());
+    }
+    
+    @Test
+    @DisplayName("Check sub access")
+    void checkSubAccess() throws SQLException, DatabaseException {
+        // given
+        snapshotChange.getChangeSet().getChangeLog().getChangeLogParameters().setContexts(new Contexts("sub"));
+
+        // when
+        SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
+
+        // then
+        assertEquals(8, statements.length);
+        assertTrue(statements[0] instanceof AddColumnStatement);
+        assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
+        assertTrue(statements[2] instanceof RenameTableStatement);
+        assertTrue(statements[3] instanceof CreateTableStatement);
+        assertTrue(statements[4] instanceof RawSqlStatement);
+        assertTrue(statements[5] instanceof RawSqlStatement);
+        assertEquals("GRANT SELECT ON table_hst TO historical_data_role;",
+            ((RawSqlStatement) statements[5]).getSql());
+        assertTrue(statements[6] instanceof RawSqlStatement);
+        assertTrue(statements[7] instanceof RawSqlStatement);
     }
 
+    private void checkRecreatingAndMovingToArchiveHstTable(SqlStatement[] statements) {
+        assertEquals(7, statements.length);
+        assertTrue(statements[0] instanceof AddColumnStatement);
+        assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
+        assertEquals("uniqueConstraint",
+            ((DropUniqueConstraintStatement) statements[1]).getConstraintName());
+        assertTrue(statements[2] instanceof RenameTableStatement);
+        assertEquals("table_hst",
+            ((RenameTableStatement) statements[2]).getOldTableName());
+        assertEquals("table_hst_1_0_0",
+            ((RenameTableStatement) statements[2]).getNewTableName());
+        assertTrue(statements[3] instanceof CreateTableStatement);
+        assertEquals("table_hst",
+            ((CreateTableStatement) statements[3]).getTableName());
+        assertTrue(statements[4] instanceof RawSqlStatement);
+        assertEquals("REVOKE ALL PRIVILEGES ON TABLE table_hst FROM PUBLIC;",
+            ((RawSqlStatement) statements[4]).getSql());
+        assertTrue(statements[5] instanceof RawSqlStatement);
+        assertEquals("CALL p_init_new_hist_table('table_hst_1_0_0', 'table_hst');",
+            ((RawSqlStatement) statements[5]).getSql());
+        assertTrue(statements[6] instanceof RawSqlStatement);
+        assertEquals("ALTER TABLE table_hst_1_0_0 SET SCHEMA archive;",
+            ((RawSqlStatement) statements[6]).getSql());
+    }
+    
+    private AddColumnConfig mockColumn() {
+        AddColumnConfig column = new AddColumnConfig();
+        column.setName("column");
+        column.setType("type");
+        return column;
+    }
+
+    private AddColumnConfig mockColumn(ConstraintsConfig constraintsConfig) {
+        AddColumnConfig column = new AddColumnConfig();
+        column.setName("column1");
+        column.setType("type1");
+        column.setDefaultValue("defaultValue");
+        column.setConstraints(constraintsConfig);
+        return column;
+    }
+
+    private MockDatabase mockDatabaseWithVersion(String version)
+        throws SQLException, DatabaseException {
+        MockDatabase database = new MockDatabase();
+        database.setConnection(mockJdbcConnection(version));
+        return database;
+    }
+
+    private JdbcConnection mockJdbcConnection(String version) throws SQLException, DatabaseException {
+        JdbcConnection connection = mock(JdbcConnection.class);
+        Statement statement = mock(Statement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.next()).thenReturn(true);
+        if(version == null) {
+            when(resultSet.next()).thenReturn(false);
+        }
+        when(resultSet.getString(DdmConstants.METADATA_ATTRIBUTE_VALUE)).thenReturn(version);
+        when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+            ResultSet.CONCUR_READ_ONLY)).thenReturn(statement);
+        when(statement.executeQuery(any())).thenReturn(resultSet);
+        return connection;
+    }
 }

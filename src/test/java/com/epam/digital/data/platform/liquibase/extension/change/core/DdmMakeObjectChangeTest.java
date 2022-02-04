@@ -16,8 +16,14 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
-import static java.util.Arrays.asList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +44,8 @@ import liquibase.changelog.filter.ChangeSetFilterResult;
 import liquibase.changelog.visitor.ChangeSetVisitor;
 import liquibase.database.Database;
 import liquibase.database.core.MockDatabase;
-import liquibase.exception.ChangeLogParseException;
-import liquibase.exception.LiquibaseException;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.DatabaseException;
 import liquibase.parser.core.xml.XMLChangeLogSAXParser;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddColumnStatement;
@@ -51,7 +57,6 @@ import liquibase.structure.core.Column;
 import liquibase.structure.core.DataType;
 import liquibase.structure.core.Index;
 import liquibase.structure.core.Table;
-import liquibase.structure.core.UniqueConstraint;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -128,8 +133,12 @@ class DdmMakeObjectChangeTest {
 
     @Test
     @DisplayName("Check statements")
-    void checkStatements() {
-        SqlStatement[] statements = snapshotChange.generateStatements(new MockDatabase());
+    void checkStatements() throws SQLException, DatabaseException {
+        MockDatabase database = new MockDatabase();
+        database.setConnection(mockJdbcConnection("1.0.0"));
+        
+        SqlStatement[] statements = snapshotChange.generateStatements(database);
+        
         Assertions.assertEquals(7, statements.length);
         Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
         Assertions.assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
@@ -138,6 +147,21 @@ class DdmMakeObjectChangeTest {
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+    }
+    
+    @Test
+    @DisplayName("Check statements with null version")
+    void checkStatementsWithNullVersion() throws SQLException, DatabaseException {
+        MockDatabase database = new MockDatabase();
+        database.setConnection(mockJdbcConnection(null));
+        
+        SqlStatement[] statements = snapshotChange.generateStatements(database);
+        
+        Assertions.assertEquals(2, statements.length);
+        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
+        Assertions.assertTrue(statements[1] instanceof AddColumnStatement);
+        Assertions.assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
+        Assertions.assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
     }
 
     @Test
@@ -156,5 +180,20 @@ class DdmMakeObjectChangeTest {
         tables.add(table);
 
         return tables;
+    }
+
+    private JdbcConnection mockJdbcConnection(String version) throws SQLException, DatabaseException {
+        JdbcConnection connection = mock(JdbcConnection.class);
+        Statement statement = mock(Statement.class);
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.next()).thenReturn(true);
+        if(version == null) {
+            when(resultSet.next()).thenReturn(false);
+        }
+        when(resultSet.getString(DdmConstants.METADATA_ATTRIBUTE_VALUE)).thenReturn(version);
+        when(connection.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+            ResultSet.CONCUR_READ_ONLY)).thenReturn(statement);
+        when(statement.executeQuery(any())).thenReturn(resultSet);
+        return connection;
     }
 }
