@@ -57,7 +57,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
 
   public DdmAbstractViewChange(String name) {
     this();
-    this.name = name;
+    this.name = name.toLowerCase();
   }
 
   @Override
@@ -163,7 +163,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
   }
 
   public void setName(String name) {
-    this.name = name;
+    this.name = name.toLowerCase();
   }
 
   public Boolean getIndexing() {

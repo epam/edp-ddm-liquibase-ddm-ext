@@ -52,7 +52,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
     public DdmCreateSimpleSearchConditionChange(String name) {
         super();
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 
     @Override
@@ -151,7 +151,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 
     public Boolean getIndexing() {
