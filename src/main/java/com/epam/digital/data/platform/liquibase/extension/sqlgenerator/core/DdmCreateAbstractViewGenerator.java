@@ -48,7 +48,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
     public ValidationErrors validate(DdmCreateAbstractViewStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
         ValidationErrors validationErrors = new ValidationErrors();
         validationErrors.checkRequiredField("name", statement.getName());
-        
+
         String cteErrorMessage = getErrorMessageForCteValidator(statement);
         if(cteErrorMessage != null) {
             validationErrors.addError("CTE has incorrect format: " + cteErrorMessage);
@@ -101,15 +101,15 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
                 }
             }
             throw new RuntimeException(columnName + " column was not found in the table " + tableName);
-        } 
+        }
         return new DdmPair(tableName, columnName);
     }
 
     private DdmPair getTableColumnPairForCteColumn(DdmCreateAbstractViewStatement statement, String tableName, String columnName) {
-        
+
         Map<String, DdmCteConfig> cteMap = statement.getCtes().stream()
             .collect(Collectors.toMap(DdmCteConfig::getName, Function.identity()));
-        
+
         return getPair(cteMap, tableName, columnName);
     }
 
@@ -120,17 +120,17 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
             for (DdmColumnConfig column : table.getColumns()) {
                 if (column.getSearchType() != null) {
                     DdmPair pair = getTableColumnPairForCteColumn(statement, table.getName(), column.getName());
-                    
+
                     String tableName = pair.getKey();
                     String columnName = pair.getValue();
-                    
+
                     buffer.append("\n\n");
                     buffer.append("CREATE INDEX IF NOT EXISTS ");
                     buffer.append(DdmConstants.PREFIX_INDEX);
                     buffer.append(tableName);
                     buffer.append("__");
                     buffer.append(columnName);
-                    
+
                     buffer.append(" ON ");
                     buffer.append(tableName);
 
@@ -188,11 +188,23 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
             for (DdmFunctionConfig function : table.getFunctions()) {
                 hasFunctions = true;
-                columns.add(function.getName().toUpperCase() + "(" +
-                        (function.hasTableAlias() ? function.getTableAlias() + "." : "") +
-                        function.getColumnName() +
-                        (function.hasParameter() ? ", " + function.getParameter() : "") +
-                        ") AS " + function.getAlias());
+                StringBuilder functionContent = new StringBuilder();
+                functionContent.append(function.getName().toUpperCase()).append("(");
+                if (!function.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_FUNCTION_ROW_NUMBER)) {
+                    functionContent
+                        .append(function.hasTableAlias() ? function.getTableAlias() + "." : "")
+                        .append(function.getColumnName())
+                        .append(function.hasParameter() ? ", " + function.getParameter() : "");
+                }
+                functionContent.append(") ");
+                if (function.getWindow() != null) {
+                    functionContent.append("OVER (");
+                    if (!function.getWindow().isEmpty()) {
+                        functionContent.append(function.getWindow());
+                    }
+                    functionContent.append(") ");
+                }
+                columns.add(functionContent + "AS " + function.getAlias());
 
                 groupColumns.remove((function.hasTableAlias() ? function.getTableAlias() + "." : "") +
                         function.getColumnName());

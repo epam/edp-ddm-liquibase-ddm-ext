@@ -29,12 +29,14 @@ public class DdmFunctionConfig extends AbstractLiquibaseSerializable {
     private String columnName;
     private String alias;
     private String parameter;
+    private String window;
 
     public void load(ParsedNode parsedNode, ResourceAccessor resourceAccessor) throws ParsedNodeException {
         setName(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_NAME, String.class));
         setAlias(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_ALIAS, String.class));
         setColumnName(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_COLUMN_NAME, String.class));
         setParameter(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_PARAMETER, String.class));
+        setWindow(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_WINDOW, String.class));
     }
 
     public boolean hasTableAlias() {
@@ -93,5 +95,13 @@ public class DdmFunctionConfig extends AbstractLiquibaseSerializable {
 
     public void setParameter(String parameter) {
         this.parameter = parameter;
+    }
+
+    public String getWindow() {
+        return window;
+    }
+
+    public void setWindow(String window) {
+        this.window = window;
     }
 }

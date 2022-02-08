@@ -123,6 +123,7 @@ class DdmCreateSearchConditionChangeTest {
         function.setName("count");
         function.setAlias("cnt");
         function.setColumnName("column");
+        function.setWindow("window");
         table.addColumn(column);
         table.addFunction(function);
         change.addTable(table);

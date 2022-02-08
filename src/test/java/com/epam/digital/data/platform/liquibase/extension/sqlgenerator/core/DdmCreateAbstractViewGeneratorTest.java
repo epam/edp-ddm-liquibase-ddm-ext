@@ -1405,6 +1405,97 @@ class DdmCreateAbstractViewGeneratorTest {
     }
 
     @Test
+    @DisplayName("Validate SQL - functions with window")
+    public void validateSQLFunctionsWithWindow() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("count");
+        function.setAlias("cnt");
+        function.setWindow("");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate row_number - without window")
+    public void validateRowNumberFunction() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() AS rn FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate row_number - with empty window")
+    public void validateRowNumberFunctionWindow() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        function.setWindow("");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate row_number - with full window")
+    public void validateRowNumberFunctionFullWindow() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        function.setWindow("window");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+    }
+
+    @Test
     @DisplayName("Validate SQL - functions with parameter")
     public void validateSQLFunctionsParameter() {
         column = new DdmColumnConfig();
@@ -1473,5 +1564,200 @@ class DdmCreateAbstractViewGeneratorTest {
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
         assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, COUNT(t1.column11) AS cnt FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - CTE function with window")
+    public void validateSQLCteFunctionWithWindow() {
+        DdmCteConfig cte;
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("count");
+        function.setAlias("cnt");
+        function.setWindow("");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        List<DdmCteConfig> ctes = new ArrayList<>();
+        cte = new DdmCteConfig();
+        cte.setName("cte_table");
+        cte.addTable(table);
+        ctes.add(cte);
+
+        statement.setCtes(ctes);
+
+        table = new DdmTableConfig("cte_table");
+        table.setAlias("ct");
+
+        column = new DdmColumnConfig();
+        column.setName("cnt");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - CTE with row_number and without window")
+    public void validateSQLCteWithRowNumber() {
+        DdmCteConfig cte;
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        List<DdmCteConfig> ctes = new ArrayList<>();
+        cte = new DdmCteConfig();
+        cte.setName("cte_table");
+        cte.addTable(table);
+        ctes.add(cte);
+
+        statement.setCtes(ctes);
+
+        table = new DdmTableConfig("cte_table");
+        table.setAlias("ct");
+
+        column = new DdmColumnConfig();
+        column.setName("cnt");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() AS rn FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - CTE with row_number and empty window")
+    public void validateSQLCteWithRowNumberAndWindow() {
+        DdmCteConfig cte;
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        function.setWindow("");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        List<DdmCteConfig> ctes = new ArrayList<>();
+        cte = new DdmCteConfig();
+        cte.setName("cte_table");
+        cte.addTable(table);
+        ctes.add(cte);
+
+        statement.setCtes(ctes);
+
+        table = new DdmTableConfig("cte_table");
+        table.setAlias("ct");
+
+        column = new DdmColumnConfig();
+        column.setName("cnt");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - CTE with row_number and full window")
+    public void validateSQLCteWithRowNumberAndFullWindow() {
+        DdmCteConfig cte;
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig function = new DdmFunctionConfig();
+        function.setTableAlias("t1");
+        function.setColumnName("column11");
+        function.setName("row_number");
+        function.setAlias("rn");
+        function.setWindow("window");
+        functions.add(function);
+
+        table.setFunctions(functions);
+
+        List<DdmCteConfig> ctes = new ArrayList<>();
+        cte = new DdmCteConfig();
+        cte.setName("cte_table");
+        cte.addTable(table);
+        ctes.add(cte);
+
+        statement.setCtes(ctes);
+
+        table = new DdmTableConfig("cte_table");
+        table.setAlias("ct");
+
+        column = new DdmColumnConfig();
+        column.setName("cnt");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        statement.addTable(table);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
     }
 }

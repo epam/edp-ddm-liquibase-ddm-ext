@@ -65,8 +65,10 @@ public class DdmConstants {
     public static final String ATTRIBUTE_CONDITION = "condition";
     public static final String ATTRIBUTE_LOGIC_OPERATOR = "logicOperator";
     public static final String ATTRIBUTE_PARAMETER = "parameter";
+    public static final String ATTRIBUTE_WINDOW = "window";
     public static final String ATTRIBUTE_FUNCTION = "function";
     public static final String ATTRIBUTE_FUNCTION_STRING_AGG = "string_agg";
+    public static final String ATTRIBUTE_FUNCTION_ROW_NUMBER = "row_number";
     public static final String ATTRIBUTE_ROLE = "role";
     public static final String ATTRIBUTE_INSERT = "insert";
     public static final String ATTRIBUTE_UPDATE = "update";
