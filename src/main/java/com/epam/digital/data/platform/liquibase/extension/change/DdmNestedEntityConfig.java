@@ -17,6 +17,8 @@
 package com.epam.digital.data.platform.liquibase.extension.change;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
@@ -27,10 +29,11 @@ public class DdmNestedEntityConfig extends AbstractLiquibaseSerializable {
 
   private String table;
   private String name;
-  private DdmLinkConfig linkConfig;
+  private List<DdmLinkConfig> linkConfigs;
 
   public void load(ParsedNode parsedNode, ResourceAccessor resourceAccessor)
       throws ParsedNodeException {
+    List<DdmLinkConfig> loadedLinks = new ArrayList<>();
     for (ParsedNode child : parsedNode.getChildren()) {
       if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_TABLE)) {
         setTable(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_TABLE, String.class));
@@ -41,9 +44,10 @@ public class DdmNestedEntityConfig extends AbstractLiquibaseSerializable {
       if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_LINK)) {
         DdmLinkConfig linkConfig = new DdmLinkConfig();
         linkConfig.load(child, resourceAccessor);
-        setLinkConfig(linkConfig);
+        loadedLinks.add(linkConfig);
       }
     }
+    setLinkConfig(loadedLinks);
   }
 
   @Override
@@ -72,12 +76,12 @@ public class DdmNestedEntityConfig extends AbstractLiquibaseSerializable {
     this.name = name;
   }
 
-  public DdmLinkConfig getLinkConfig() {
-    return linkConfig;
+  public List<DdmLinkConfig> getLinkConfig() {
+    return linkConfigs;
   }
 
-  public void setLinkConfig(DdmLinkConfig linkConfig) {
-    this.linkConfig = linkConfig;
+  public void setLinkConfig(List<DdmLinkConfig> linkConfigs) {
+    this.linkConfigs = linkConfigs;
   }
 
   @Override
@@ -89,11 +93,15 @@ public class DdmNestedEntityConfig extends AbstractLiquibaseSerializable {
       return false;
     }
     DdmNestedEntityConfig that = (DdmNestedEntityConfig) o;
-    return table.equals(that.table) && Objects.equals(linkConfig, that.linkConfig);
+    boolean linksEqual = false;
+    for (DdmLinkConfig linkConfig : linkConfigs) {
+      linksEqual = that.linkConfigs.stream().anyMatch(linkConfig::equals);
+    }
+    return table.equals(that.table) && linksEqual;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(table, linkConfig);
+    return Objects.hash(table, linkConfigs);
   }
 }

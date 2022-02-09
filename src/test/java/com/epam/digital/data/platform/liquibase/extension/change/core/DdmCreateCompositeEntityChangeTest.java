@@ -21,6 +21,8 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig
 import com.epam.digital.data.platform.liquibase.extension.change.DdmLinkConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmNestedEntityConfig;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import liquibase.change.Change;
 import liquibase.change.ConstraintsConfig;
@@ -58,7 +60,16 @@ public class DdmCreateCompositeEntityChangeTest {
     constraint.setReferencedColumnNames("order_id");
     constraint.setReferencedTableName("order");
     column1.setConstraints(constraint);
+    DdmColumnConfig column2 = new DdmColumnConfig();
+    column2.setName("consent_id");
+    column2.setType("UUID");
+    ConstraintsConfig constraint1 = new ConstraintsConfig();
+    constraint1.setForeignKeyName("forg_name");
+    constraint1.setReferencedColumnNames("consent_id");
+    constraint1.setReferencedTableName("consent_table");
+    column2.setConstraints(constraint1);
     tableChange.addColumn(column1);
+    tableChange.addColumn(column2);
 
     changeSet.addChange(tableChange);
     changeLog.addChangeSet(changeSet);
@@ -69,13 +80,19 @@ public class DdmCreateCompositeEntityChangeTest {
     change.setName("name");
     change.setNestedEntities(createEntities());
     SqlStatement[] statements = change.generateStatements(new MockDatabase());
-    Assertions.assertEquals(2, statements.length);
+    Assertions.assertEquals(3, statements.length);
     Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
     Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
-    Assertions.assertEquals("insert into ddm_liquibase_metadata(change_type, change_name, attribute_name, attribute_value) values ('nested', 'name', 'transaction', 'order_id');\n"
-        + "\n", ((RawSqlStatement) statements[0]).getSql());
-    Assertions.assertEquals("insert into ddm_liquibase_metadata(change_type, change_name, attribute_name, attribute_value) values ('nested', 'name', 'order', 'application_id');\n"
-        + "\n", ((RawSqlStatement) statements[1]).getSql());
+    Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
+    Assertions.assertEquals(
+        "insert into ddm_liquibase_metadata(change_type, change_name, attribute_name, attribute_value) values ('nested', 'name', 'transaction', 'order_id');\n"
+            + "\n", ((RawSqlStatement) statements[0]).getSql());
+    Assertions.assertEquals(
+        "insert into ddm_liquibase_metadata(change_type, change_name, attribute_name, attribute_value) values ('nested', 'name', 'transaction', 'consent_id');\n"
+            + "\n", ((RawSqlStatement) statements[1]).getSql());
+    Assertions.assertEquals(
+        "insert into ddm_liquibase_metadata(change_type, change_name, attribute_name, attribute_value) values ('nested', 'name', 'order', 'application_id');\n"
+            + "\n", ((RawSqlStatement) statements[2]).getSql());
   }
 
   @Test
@@ -91,10 +108,15 @@ public class DdmCreateCompositeEntityChangeTest {
     List<DdmNestedEntityConfig> nestedEntities = ((DdmCreateCompositeEntityChange) change).getNestedEntities();
 
     Assertions.assertEquals("composite", ((DdmCreateCompositeEntityChange) change).getName());
-    Assertions.assertEquals(3, nestedEntities.size());
+    Assertions.assertEquals(4, nestedEntities.size());
     Assertions.assertEquals("transaction", nestedEntities.get(0).getTable());
+    Assertions.assertEquals(2, nestedEntities.get(0).getLinkConfig().size());
     Assertions.assertEquals("order", nestedEntities.get(1).getTable());
+    Assertions.assertEquals(1, nestedEntities.get(1).getLinkConfig().size());
     Assertions.assertEquals("application", nestedEntities.get(2).getTable());
+    Assertions.assertEquals(0, nestedEntities.get(2).getLinkConfig().size());
+    Assertions.assertEquals("consent_table", nestedEntities.get(3).getTable());
+    Assertions.assertEquals(0, nestedEntities.get(3).getLinkConfig().size());
   }
 
   @Test
@@ -109,7 +131,7 @@ public class DdmCreateCompositeEntityChangeTest {
     column2.setName("application_id");
     column2.setType("UUID");
     ConstraintsConfig constraint1 = new ConstraintsConfig();
-    constraint1.setForeignKeyName("forgn_name");
+    constraint1.setForeignKeyName("frgn_name");
     constraint1.setReferencedColumnNames("application_id");
     constraint1.setReferencedTableName("application");
     column2.setConstraints(constraint1);
@@ -130,8 +152,11 @@ public class DdmCreateCompositeEntityChangeTest {
 
     DdmCreateTableChange tableChange2 = new DdmCreateTableChange();
     tableChange2.setTableName("application");
+    DdmCreateTableChange tableChange3 = new DdmCreateTableChange();
+    tableChange3.setTableName("consent_table");
 
     changeSet.addChange(tableChange2);
+    changeSet.addChange(tableChange3);
 
     Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
   }
@@ -156,7 +181,7 @@ public class DdmCreateCompositeEntityChangeTest {
 
     changeSet.addChange(tableChange1);
 
-    Assertions.assertEquals("Missing required tables: [application]",
+    Assertions.assertEquals("Missing required tables: [application, consent_table]",
         change.validate(new MockDatabase()).getErrorMessages().get(0));
   }
 
@@ -172,8 +197,11 @@ public class DdmCreateCompositeEntityChangeTest {
 
     DdmCreateTableChange tableChange2 = new DdmCreateTableChange();
     tableChange2.setTableName("application");
+    DdmCreateTableChange tableChange3 = new DdmCreateTableChange();
+    tableChange3.setTableName("consent_table");
 
     changeSet.addChange(tableChange2);
+    changeSet.addChange(tableChange3);
 
     Assertions.assertEquals("Not enough required relations",
         change.validate(new MockDatabase()).getErrorMessages().get(0));
@@ -187,20 +215,29 @@ public class DdmCreateCompositeEntityChangeTest {
     DdmLinkConfig link = new DdmLinkConfig();
     link.setColumn("order_id");
     link.setEntity("order");
-    entity.setLinkConfig(link);
+    DdmLinkConfig link1 = new DdmLinkConfig();
+    link1.setColumn("consent_id");
+    link1.setEntity("consent");
+    entity.setLinkConfig(Arrays.asList(link, link1));
     entities.add(entity);
     DdmNestedEntityConfig entity1 = new DdmNestedEntityConfig();
     entity1.setTable("order");
     entity1.setName("order");
-    DdmLinkConfig link1 = new DdmLinkConfig();
-    link1.setColumn("application_id");
-    link1.setEntity("app");
-    entity1.setLinkConfig(link1);
+    DdmLinkConfig link2 = new DdmLinkConfig();
+    link2.setColumn("application_id");
+    link2.setEntity("app");
+    entity1.setLinkConfig(Collections.singletonList(link2));
     entities.add(entity1);
     DdmNestedEntityConfig entity2 = new DdmNestedEntityConfig();
     entity2.setTable("application");
     entity2.setName("app");
+    entity2.setLinkConfig(Collections.emptyList());
     entities.add(entity2);
+    DdmNestedEntityConfig entity3 = new DdmNestedEntityConfig();
+    entity3.setTable("consent_table");
+    entity3.setName("consent");
+    entity3.setLinkConfig(Collections.emptyList());
+    entities.add(entity3);
 
     return entities;
   }

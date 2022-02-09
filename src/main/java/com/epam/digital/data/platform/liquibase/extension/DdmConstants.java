@@ -119,10 +119,6 @@ public class DdmConstants {
     public static final String METADATA_ATTRIBUTE_NAME = "attribute_name";
     public static final String METADATA_ATTRIBUTE_VALUE = "attribute_value";
 
-    public static final String TABLE_NAME_COLUMN = "table_name";
-    public static final String COLUMN_NAME_COLUMN = "column_name";
-    public static final String ENTITY_TABLE_COLUMN = "entity_table";
-
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION = "pagination";

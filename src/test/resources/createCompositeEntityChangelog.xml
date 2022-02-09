@@ -12,11 +12,13 @@
         <ext:createCompositeEntity name="composite">
             <ext:nestedEntity table="transaction">
                 <ext:link column="order_id" entity="order"/>
+                <ext:link column="consent_id" entity="consent"/>
             </ext:nestedEntity>
             <ext:nestedEntity name="order" table="order">
                 <ext:link column="application_id" entity="app"/>
             </ext:nestedEntity>
-            <ext:nestedEntity table="application" name="app"/>
+            <ext:nestedEntity name="app" table="application"/>
+            <ext:nestedEntity name="consent" table="consent_table"/>
         </ext:createCompositeEntity>
     </changeSet>
 

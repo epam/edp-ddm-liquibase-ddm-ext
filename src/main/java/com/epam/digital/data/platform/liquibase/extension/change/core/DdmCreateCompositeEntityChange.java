@@ -85,7 +85,7 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
 
   private boolean isValidEntities() {
     List<DdmNestedEntityConfig> requiredEntities = nestedEntities.stream()
-        .filter(entity -> entity.getLinkConfig() != null)
+        .filter(entity -> !entity.getLinkConfig().isEmpty())
         .collect(Collectors.toList());
     populateEntityTable(requiredEntities);
     List<DdmCreateTableChange> tableChangesWithLinks = getTableChangesFromChangeLog(
@@ -107,13 +107,14 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
   }
 
   private void populateEntityTable(List<DdmNestedEntityConfig> requiredEntities) {
-    for (DdmNestedEntityConfig requiredEntity : requiredEntities) {
-      for (DdmNestedEntityConfig nestedEntity : nestedEntities) {
-        if (requiredEntity.getLinkConfig().getEntity().equals(nestedEntity.getName())) {
-          requiredEntity.getLinkConfig().setEntityTable(nestedEntity.getTable());
-        }
-      }
-    }
+    requiredEntities.stream().flatMap(requiredEntity -> requiredEntity.getLinkConfig().stream())
+        .forEach(linkConfig -> {
+          for (DdmNestedEntityConfig nestedEntity : nestedEntities) {
+            if (linkConfig.getEntity().equals(nestedEntity.getName())) {
+              linkConfig.setEntityTable(nestedEntity.getTable());
+            }
+          }
+        });
   }
 
   private List<DdmCreateTableChange> getTableChangesFromChangeLog(List<String> tableNames) {
@@ -128,14 +129,19 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
   private boolean isValidForeignKey(List<DdmNestedEntityConfig> requiredEntities,
       DdmCreateTableChange tableChange) {
     for (DdmNestedEntityConfig entity : requiredEntities) {
-      for (ColumnConfig column : tableChange.getColumns()) {
-        if (column.getConstraints().getForeignKeyName() != null &&
-            entity.getTable().equals(tableChange.getTableName()) &&
-            entity.getLinkConfig().getColumn().equals(column.getName()) &&
-            entity.getLinkConfig().getEntityTable()
-                .equals(column.getConstraints().getReferencedTableName())) {
-          return true;
+      if (entity.getTable().equals(tableChange.getTableName())) {
+        int keyCount = 0;
+        for (DdmLinkConfig linkConfig : entity.getLinkConfig()) {
+          for (ColumnConfig column : tableChange.getColumns()) {
+            if (column.getConstraints().getForeignKeyName() != null &&
+                linkConfig.getColumn().equals(column.getName()) &&
+                linkConfig.getEntityTable()
+                    .equals(column.getConstraints().getReferencedTableName())) {
+              keyCount++;
+            }
+          }
         }
+        return entity.getLinkConfig().size() == keyCount;
       }
     }
     return false;
@@ -143,21 +149,27 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
 
   private DdmNestedEntityConfig convertChangeToConfig(DdmCreateTableChange change) {
     DdmNestedEntityConfig nestedEntity = new DdmNestedEntityConfig();
-    DdmLinkConfig link = new DdmLinkConfig();
 
-    String linkColumn = nestedEntities.stream()
+    List<String> linkColumns = nestedEntities.stream()
         .filter(entity -> entity.getTable().equals(change.getTableName()))
-        .findAny().get().getLinkConfig().getColumn();
+        .flatMap(entity -> entity.getLinkConfig().stream())
+        .map(DdmLinkConfig::getColumn)
+        .collect(Collectors.toList());
 
+    List<DdmLinkConfig> links = new ArrayList<>();
     for (ColumnConfig column : change.getColumns()) {
-      if (column.getConstraints().getForeignKeyName() != null &&
-          column.getName().equals(linkColumn)) {
-        link.setColumn(column.getName());
-        link.setEntityTable(column.getConstraints().getReferencedTableName());
+      for (String linkColumn : linkColumns) {
+        DdmLinkConfig link = new DdmLinkConfig();
+        if (column.getConstraints().getForeignKeyName() != null &&
+            column.getName().equals(linkColumn)) {
+          link.setColumn(column.getName());
+          link.setEntityTable(column.getConstraints().getReferencedTableName());
+          links.add(link);
+        }
       }
     }
     nestedEntity.setTable(change.getTableName());
-    nestedEntity.setLinkConfig(link);
+    nestedEntity.setLinkConfig(links);
     return nestedEntity;
   }
 
@@ -178,8 +190,10 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         .filter(entity -> entity.getLinkConfig() != null)
         .collect(Collectors.toList());
     for (DdmNestedEntityConfig entity : requiredEntities) {
-      statements.add(DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_NESTED,
-          getName(), entity.getTable(), entity.getLinkConfig().getColumn()));
+      for (DdmLinkConfig linkConfig : entity.getLinkConfig()) {
+        statements.add(DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_NESTED,
+            getName(), entity.getTable(), linkConfig.getColumn()));
+      }
     }
     return statements.toArray(new SqlStatement[0]);
   }
