@@ -88,7 +88,8 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         .filter(entity -> !entity.getLinkConfig().isEmpty())
         .collect(Collectors.toList());
     populateEntityTable(requiredEntities);
-    List<DdmCreateTableChange> tableChangesWithLinks = getTableChangesFromChangeLog(
+    List<DdmCreateTableChange> tableChangesWithLinks =
+        DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
         requiredEntities.stream().map(DdmNestedEntityConfig::getTable)
             .collect(Collectors.toList()));
     List<DdmNestedEntityConfig> requiredEntitiesFromChangelog = tableChangesWithLinks.stream()
@@ -115,15 +116,6 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
             }
           }
         });
-  }
-
-  private List<DdmCreateTableChange> getTableChangesFromChangeLog(List<String> tableNames) {
-    return this.getChangeSet().getChangeLog().getChangeSets().stream()
-        .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
-            .filter(tableName -> change instanceof DdmCreateTableChange &&
-                ((DdmCreateTableChange) change).getTableName().equals(tableName))
-            .map(tableName -> (DdmCreateTableChange) change).collect(Collectors.toList()).stream())
-        .collect(Collectors.toList());
   }
 
   private boolean isValidForeignKey(List<DdmNestedEntityConfig> requiredEntities,

@@ -22,10 +22,12 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConf
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
+import java.util.Collections;
 import liquibase.Contexts;
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
 import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
+import liquibase.change.AddColumnConfig;
 import liquibase.change.Change;
 import liquibase.changelog.ChangeLogIterator;
 import liquibase.changelog.ChangeLogParameters;
@@ -87,6 +89,62 @@ class DdmCreateSearchConditionChangeTest {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(0, statements.length);
         Assertions.assertTrue(change.getChangeSet().isIgnore());
+    }
+
+    @Test
+    public void checkUpdateColumnTypeFromCreateTableChange() {
+        change.setName("sc_change");
+        DdmTableConfig scTable = new DdmTableConfig();
+        scTable.setName("table");
+
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column_id");
+        column.setType("text");
+
+        scTable.addColumn(column);
+        change.setTables(Collections.singletonList(scTable));
+
+        DdmCreateTableChange tableChange = new DdmCreateTableChange();
+        tableChange.setTableName("table");
+
+        DdmColumnConfig column1 = new DdmColumnConfig();
+        column1.setName("column_id");
+        column1.setType("UUID");
+
+        tableChange.addColumn(column1);
+        changeSet.addChange(tableChange);
+
+        change.updateColumnTypes();
+
+        Assertions.assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
+    }
+
+    @Test
+    public void checkUpdateColumnTypeFromAddColumnChange() {
+        change.setName("sc_change");
+        DdmTableConfig scTable = new DdmTableConfig();
+        scTable.setName("table");
+
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column_id");
+        column.setType("text");
+
+        scTable.addColumn(column);
+        change.setTables(Collections.singletonList(scTable));
+
+        DdmAddColumnChange columnChange = new DdmAddColumnChange();
+        columnChange.setTableName("table");
+
+        AddColumnConfig column1 = new AddColumnConfig();
+        column1.setName("column_id");
+        column1.setType("UUID");
+
+        columnChange.addColumn(column1);
+        changeSet.addChange(columnChange);
+
+        change.updateColumnTypes();
+
+        Assertions.assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
     }
 
     @Test

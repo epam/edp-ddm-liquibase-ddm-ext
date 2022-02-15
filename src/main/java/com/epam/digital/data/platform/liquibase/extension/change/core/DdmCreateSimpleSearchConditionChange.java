@@ -21,9 +21,11 @@ import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
+import java.util.Collections;
 import liquibase.change.AbstractChange;
 import liquibase.change.ChangeMetaData;
 import liquibase.change.DatabaseChange;
+import liquibase.change.core.AddColumnChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.parser.core.ParsedNode;
@@ -79,6 +81,9 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
+
+        updateColumnTypes();
+
         List<SqlStatement> statements = new ArrayList<>();
         DdmCreateSimpleSearchConditionStatement statement = generateCreateSimpleSearchConditionStatement();
         statement.setTable(getTable());
@@ -137,6 +142,35 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
             }
         }
     }
+
+    protected void updateColumnTypes() {
+        List<DdmCreateTableChange> tableChanges =
+            DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
+                Collections.singletonList(getTable().getName()));
+        List<AddColumnChange> columnChanges =
+            DdmUtils.getColumnChangesFromChangeLog(this.getChangeSet(),
+                Collections.singletonList(getTable().getName()));
+
+        updateColumnTypeFromCreateTableChanges(tableChanges);
+        updateColumnTypeFromAddColumnChanges(columnChanges);
+    }
+
+    private void updateColumnTypeFromCreateTableChanges(List<DdmCreateTableChange> tableChanges) {
+        tableChanges.stream()
+            .filter(tableChange -> tableChange.getTableName().equals(getTable().getName()))
+            .flatMap(tableChange -> tableChange.getColumns().stream())
+            .filter(changeColumn -> getSearchColumn().getName().equals(changeColumn.getName()))
+            .forEach(changeColumn -> getSearchColumn().setType(changeColumn.getType().toLowerCase()));
+    }
+
+    private void updateColumnTypeFromAddColumnChanges(List<AddColumnChange> columnChanges) {
+        columnChanges.stream()
+            .filter(columnChange -> columnChange.getTableName().equals(getTable().getName()))
+            .flatMap(columnChange -> columnChange.getColumns().stream())
+            .filter(changeColumn -> getSearchColumn().getName().equals(changeColumn.getName()))
+            .forEach(changeColumn -> getSearchColumn().setType(changeColumn.getType().toLowerCase()));
+    }
+
 
     public DdmTableConfig getTable() {
         return this.table;

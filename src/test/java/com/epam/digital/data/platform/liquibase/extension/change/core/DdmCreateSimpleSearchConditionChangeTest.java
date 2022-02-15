@@ -19,6 +19,7 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import liquibase.Contexts;
+import liquibase.change.AddColumnConfig;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
@@ -43,7 +44,11 @@ class DdmCreateSimpleSearchConditionChangeTest {
         change = new DdmCreateSimpleSearchConditionChange();
         DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
         changeSet = new ChangeSet(changeLog);
-        change.setChangeSet(changeSet);
+        changeSet.addChange(change);
+        changeLog.addChangeSet(changeSet);
+
+        DdmTableConfig table = new DdmTableConfig("table");
+        change.setTable(table);
 
         changeLogParameters = new ChangeLogParameters();
         changeLog.setChangeLogParameters(changeLogParameters);
@@ -61,11 +66,64 @@ class DdmCreateSimpleSearchConditionChangeTest {
     }
 
     @Test
+    public void checkUpdateColumnTypeFromCreateTableChange() {
+        change.setName("sc_change");
+        DdmTableConfig scTable = new DdmTableConfig();
+        scTable.setName("table");
+
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column_id");
+        column.setType("text");
+
+        change.setSearchColumn(column);
+        change.setTable(scTable);
+
+        DdmCreateTableChange tableChange = new DdmCreateTableChange();
+        tableChange.setTableName("table");
+
+        DdmColumnConfig column1 = new DdmColumnConfig();
+        column1.setName("column_id");
+        column1.setType("UUID");
+
+        tableChange.addColumn(column1);
+        changeSet.addChange(tableChange);
+
+        change.updateColumnTypes();
+
+        Assertions.assertEquals("uuid", change.getSearchColumn().getType());
+    }
+
+    @Test
+    public void checkUpdateColumnTypeFromAddColumnChange() {
+        change.setName("sc_change");
+        DdmTableConfig scTable = new DdmTableConfig();
+        scTable.setName("table");
+
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column_id");
+        column.setType("uuid");
+
+        change.setSearchColumn(column);
+        change.setTable(scTable);
+
+        DdmAddColumnChange columnChange = new DdmAddColumnChange();
+        columnChange.setTableName("table");
+
+        AddColumnConfig column1 = new AddColumnConfig();
+        column1.setName("column_id");
+        column1.setType("DN_EDRPOU");
+
+        columnChange.addColumn(column1);
+        changeSet.addChange(columnChange);
+
+        change.updateColumnTypes();
+
+        Assertions.assertEquals("dn_edrpou", change.getSearchColumn().getType());
+    }
+
+    @Test
     @DisplayName("Check statements - insert")
     public void checkStatementsInsert() {
-        DdmTableConfig table = new DdmTableConfig("table");
-        change.setTable(table);
-
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
         column.setSearchType("equal");
@@ -80,9 +138,6 @@ class DdmCreateSimpleSearchConditionChangeTest {
     @Test
     @DisplayName("Check statements - insert contains")
     public void checkStatementsInsertContains() {
-        DdmTableConfig table = new DdmTableConfig("table");
-        change.setTable(table);
-
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
         column.setSearchType("contains");
@@ -97,9 +152,6 @@ class DdmCreateSimpleSearchConditionChangeTest {
     @Test
     @DisplayName("Check statements - insert startsWith")
     public void checkStatementsInsertStartsWith() {
-        DdmTableConfig table = new DdmTableConfig("table");
-        change.setTable(table);
-
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
         column.setSearchType("startsWith");
@@ -114,9 +166,6 @@ class DdmCreateSimpleSearchConditionChangeTest {
     @Test
     @DisplayName("Check statements - limit")
     public void checkStatementsLimit() {
-        DdmTableConfig table = new DdmTableConfig("table");
-        change.setTable(table);
-
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
         change.setSearchColumn(column);
@@ -132,9 +181,7 @@ class DdmCreateSimpleSearchConditionChangeTest {
     @Test
     @DisplayName("Validate change")
     public void validateChange() {
-        ChangeSet changeSet = change.getChangeSet();
-        change = new DdmCreateSimpleSearchConditionChange("name");
-        change.setChangeSet(changeSet);
+        change.setName("name");
 
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");

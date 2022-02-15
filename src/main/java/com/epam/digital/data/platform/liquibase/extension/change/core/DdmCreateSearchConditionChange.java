@@ -62,6 +62,9 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
+
+        updateColumnTypes();
+
         List<SqlStatement> statements = new ArrayList<>();
         DdmCreateAbstractViewStatement statement = generateCreateAbstractViewStatement();
         statement.setCtes(getCtes());

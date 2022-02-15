@@ -464,6 +464,28 @@ class DdmCreateAbstractViewGeneratorTest {
     }
 
     @Test
+    public void validateSQLIndexingEqualsWithDifferentColumnTypes() {
+        column.setSearchType("equal");
+        column.setType("uuid");
+
+        column = new DdmColumnConfig();
+        column.setName("column12");
+        column.setSearchType("equal");
+        column.setReturning(true);
+        column.setType("text");
+        table.addColumn(column);
+
+        statement.setIndexing(true);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column12 FROM table1 AS t1;" +
+            "\n\n" +
+            "CREATE INDEX IF NOT EXISTS ix_table1__column11 ON table1(column11);" +
+            "\n\n" +
+            "CREATE INDEX IF NOT EXISTS ix_table1__column12 ON table1(lower(cast(column12 as varchar)));", sqls[0].toSql());
+    }
+
+    @Test
     @DisplayName("Validate SQL - indexing contains")
     public void validateSQLIndexingLike() {
         DdmJoinConfig join;

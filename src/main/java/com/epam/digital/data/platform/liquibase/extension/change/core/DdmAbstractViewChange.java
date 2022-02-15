@@ -17,13 +17,19 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
+import java.util.stream.Collectors;
 import liquibase.change.AbstractChange;
+import liquibase.change.AddColumnConfig;
+import liquibase.change.ColumnConfig;
+import liquibase.change.core.AddColumnChange;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.parser.core.ParsedNode;
@@ -118,6 +124,50 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
         addJoin(join);
       } else if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_WHERE)) {
         setConditions(DdmConditionConfig.loadConditions(child, resourceAccessor));
+      }
+    }
+  }
+
+  public void updateColumnTypes() {
+    List<String> tableNames = getTables().stream().map(DdmTableConfig::getName)
+        .collect(Collectors.toList());
+    List<DdmCreateTableChange> tableChanges =
+        DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(), tableNames);
+    List<AddColumnChange> columnChanges =
+        DdmUtils.getColumnChangesFromChangeLog(this.getChangeSet(), tableNames);
+
+    updateColumnTypeFromCreateTableChanges(tableChanges);
+    updateColumnTypeFromAddColumnChanges(columnChanges);
+  }
+
+  private void updateColumnTypeFromCreateTableChanges(List<DdmCreateTableChange> tableChanges) {
+    for (DdmTableConfig table : getTables()) {
+      for (DdmCreateTableChange tableChange : tableChanges) {
+        if (tableChange.getTableName().equals(table.getName())) {
+          for (DdmColumnConfig tableColumn : table.getColumns()) {
+            for (ColumnConfig changeColumn : tableChange.getColumns()) {
+              if (tableColumn.getName().equals(changeColumn.getName())) {
+                tableColumn.setType(changeColumn.getType().toLowerCase());
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void updateColumnTypeFromAddColumnChanges(List<AddColumnChange> columnChanges) {
+    for (DdmTableConfig table : getTables()) {
+      for (AddColumnChange columnChange : columnChanges) {
+        if (columnChange.getTableName().equals(table.getName())) {
+          for (DdmColumnConfig tableColumn : table.getColumns()) {
+            for (AddColumnConfig changeColumn : columnChange.getColumns()) {
+              if (tableColumn.getName().equals(changeColumn.getName())) {
+                tableColumn.setType(changeColumn.getType().toLowerCase());
+              }
+            }
+          }
+        }
       }
     }
   }

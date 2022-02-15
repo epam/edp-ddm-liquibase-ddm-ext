@@ -17,7 +17,10 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmTypesForIndexCast;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateSimpleSearchConditionStatement;
+import java.util.Arrays;
 import liquibase.database.Database;
 import liquibase.exception.ValidationErrors;
 import liquibase.sql.Sql;
@@ -53,7 +56,13 @@ public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerato
         buffer.append(" ON ");
         buffer.append(statement.getTable().getName());
         buffer.append("(");
+        if (isCastTypeCase(statement.getSearchColumn())) {
+            buffer.append("lower(cast(");
+        }
         buffer.append(statement.getSearchColumn().getName());
+        if (isCastTypeCase(statement.getSearchColumn())) {
+            buffer.append(" as varchar))");
+        }
 
         if (searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS) || searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
             buffer.append(" ");
@@ -69,6 +78,12 @@ public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerato
         buffer.append(");");
 
         return buffer;
+    }
+
+    private boolean isCastTypeCase(DdmColumnConfig column) {
+        return column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_EQUAL) &&
+            Arrays.stream(DdmTypesForIndexCast.values())
+                .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }
 
     @Override

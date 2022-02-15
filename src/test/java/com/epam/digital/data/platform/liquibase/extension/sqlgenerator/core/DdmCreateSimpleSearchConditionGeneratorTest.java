@@ -104,6 +104,7 @@ class DdmCreateSimpleSearchConditionGeneratorTest {
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
         column.setSearchType("equal");
+        column.setType("type");
         statement.setSearchColumn(column);
 
         statement.setIndexing(true);
@@ -112,6 +113,26 @@ class DdmCreateSimpleSearchConditionGeneratorTest {
         assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT alias.* FROM table AS alias;" +
                 "\n\n" +
                 "CREATE INDEX ix_name_table_column ON table(column);", sqls[0].toSql());
+    }
+
+    @Test
+    public void validateSQLIndexingWithCastType() {
+        DdmTableConfig table = new DdmTableConfig("table");
+        table.setAlias("alias");
+        statement.setTable(table);
+
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setSearchType("equal");
+        column.setType("dn_edrpou");
+        statement.setSearchColumn(column);
+
+        statement.setIndexing(true);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT alias.* FROM table AS alias;" +
+            "\n\n" +
+            "CREATE INDEX ix_name_table_column ON table(lower(cast(column as varchar)));", sqls[0].toSql());
     }
 
     @Test

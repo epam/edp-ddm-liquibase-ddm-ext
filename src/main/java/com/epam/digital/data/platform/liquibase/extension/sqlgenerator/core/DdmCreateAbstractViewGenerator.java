@@ -17,6 +17,7 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmPair;
+import com.epam.digital.data.platform.liquibase.extension.DdmTypesForIndexCast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -151,15 +152,26 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
                         columnName += column.getType().toLowerCase();
                         columnName += "_pattern_ops";
+                    } else if (isCastTypeCase(column)) {
+                        buffer.append("lower(cast(");
                     }
 
                     buffer.append(columnName);
+                    if (isCastTypeCase(column)) {
+                        buffer.append(" as varchar))");
+                    }
                     buffer.append(");");
                 }
             }
         }
 
         return buffer;
+    }
+
+    private boolean isCastTypeCase(DdmColumnConfig column) {
+        return column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_EQUAL) &&
+            Arrays.stream(DdmTypesForIndexCast.values())
+                .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }
 
     private StringBuilder generateSelectSql(List<DdmTableConfig> tables, List<DdmJoinConfig> joins, List<DdmConditionConfig> conditions) {

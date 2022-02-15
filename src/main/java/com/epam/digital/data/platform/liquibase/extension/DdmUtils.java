@@ -16,7 +16,9 @@
 
 package com.epam.digital.data.platform.liquibase.extension;
 
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange;
@@ -31,7 +33,9 @@ import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateA
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAnalyticsViewChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropAnalyticsViewChange;
 
+import java.util.stream.Collectors;
 import liquibase.change.AbstractChange;
+import liquibase.change.core.AddColumnChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.exception.ValidationErrors;
@@ -127,5 +131,23 @@ public class DdmUtils {
 
     public static boolean isBlank(String string) {
         return string == null || string.trim().isEmpty();
+    }
+
+    public static List<DdmCreateTableChange> getTableChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
+        return changeSet.getChangeLog().getChangeSets().stream()
+            .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
+                .filter(tableName -> change instanceof DdmCreateTableChange &&
+                    ((DdmCreateTableChange) change).getTableName().equals(tableName))
+                .map(tableName -> (DdmCreateTableChange) change).collect(Collectors.toList()).stream())
+            .collect(Collectors.toList());
+    }
+
+    public static List<AddColumnChange> getColumnChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
+        return changeSet.getChangeLog().getChangeSets().stream()
+            .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
+                .filter(tableName -> change instanceof AddColumnChange &&
+                    ((AddColumnChange) change).getTableName().equals(tableName))
+                .map(tableName -> (AddColumnChange) change).collect(Collectors.toList()).stream())
+            .collect(Collectors.toList());
     }
 }
