@@ -1446,7 +1446,7 @@ class DdmCreateAbstractViewGeneratorTest {
         table.setFunctions(functions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
@@ -1491,7 +1491,7 @@ class DdmCreateAbstractViewGeneratorTest {
         table.setFunctions(functions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1;", sqls[0].toSql());
     }
 
     @Test
@@ -1514,7 +1514,63 @@ class DdmCreateAbstractViewGeneratorTest {
         table.setFunctions(functions);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate functions - will generate GROUP BY statement")
+    public void validateFunctionsWithAndWithoutWindows() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig windowFunc = new DdmFunctionConfig();
+        windowFunc.setTableAlias("t1");
+        windowFunc.setColumnName("");
+        windowFunc.setName("row_number");
+        windowFunc.setAlias("rn");
+        windowFunc.setWindow("window");
+        DdmFunctionConfig nonWindowFunc = new DdmFunctionConfig();
+        nonWindowFunc.setTableAlias("t1");
+        nonWindowFunc.setColumnName("column11");
+        nonWindowFunc.setName("count");
+        nonWindowFunc.setAlias("cnt");
+        functions.add(windowFunc);
+        functions.add(nonWindowFunc);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn, COUNT(t1.column11) AS cnt FROM table1 AS t1 GROUP BY t1.column2;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate functions - GROUP BY and ORDER BY statements")
+    public void validateFunctionsWithoutWindowsAndSorting() {
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+        column = new DdmColumnConfig();
+        column.setName("column3");
+        column.setReturning(true);
+        column.setSorting("desc");
+        table.addColumn(column);
+
+        List<DdmFunctionConfig> functions = new ArrayList<>();
+        DdmFunctionConfig nonWindowFunc = new DdmFunctionConfig();
+        nonWindowFunc.setTableAlias("t1");
+        nonWindowFunc.setColumnName("column11");
+        nonWindowFunc.setName("count");
+        nonWindowFunc.setAlias("cnt");
+        functions.add(nonWindowFunc);
+
+        table.setFunctions(functions);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column2, t1.column3, COUNT(t1.column11) AS cnt FROM table1 AS t1 GROUP BY t1.column2, t1.column3 ORDER BY t1.column3 DESC;", sqls[0].toSql());
     }
 
     @Test
@@ -1634,7 +1690,7 @@ class DdmCreateAbstractViewGeneratorTest {
         statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, COUNT(t1.column11) OVER () AS cnt FROM table1 AS t1) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
     }
 
     @Test
@@ -1731,7 +1787,7 @@ class DdmCreateAbstractViewGeneratorTest {
         statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER () AS rn FROM table1 AS t1) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
     }
 
     @Test
@@ -1780,6 +1836,6 @@ class DdmCreateAbstractViewGeneratorTest {
         statement.addTable(table);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1 GROUP BY t1.column2) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+        assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
     }
 }

@@ -179,7 +179,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
         List<String> columns = new ArrayList<>();
         List<String> orderColumns = new ArrayList<>();
         List<String> groupColumns = new ArrayList<>();
-        boolean hasFunctions = false;
+        boolean hasNonWindowFunctions = false;
 
         buffer.append("SELECT ");
 
@@ -199,7 +199,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
             }
 
             for (DdmFunctionConfig function : table.getFunctions()) {
-                hasFunctions = true;
+                hasNonWindowFunctions = function.getWindow() == null;
                 StringBuilder functionContent = new StringBuilder();
                 functionContent.append(function.getName().toUpperCase()).append("(");
                 if (!function.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_FUNCTION_ROW_NUMBER)) {
@@ -272,14 +272,14 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
             buffer.append(generateConditionSql(conditions, false));
         }
 
+        if (!groupColumns.isEmpty() && hasNonWindowFunctions) {
+            buffer.append(" GROUP BY ");
+            buffer.append(String.join(", ", groupColumns));
+        }
+
         if (!orderColumns.isEmpty()) {
             buffer.append(" ORDER BY ");
             buffer.append(String.join(", ", orderColumns));
-        }
-
-        if (!groupColumns.isEmpty() && hasFunctions) {
-            buffer.append(" GROUP BY ");
-            buffer.append(String.join(", ", groupColumns));
         }
 
         return buffer;
