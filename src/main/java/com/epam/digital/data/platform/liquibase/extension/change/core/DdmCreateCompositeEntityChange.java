@@ -133,7 +133,8 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         int keyCount = 0;
         for (DdmLinkConfig linkConfig : entity.getLinkConfig()) {
           for (ColumnConfig column : tableChange.getColumns()) {
-            if (column.getConstraints().getForeignKeyName() != null &&
+            if (column.getConstraints() != null &&
+                column.getConstraints().getForeignKeyName() != null &&
                 linkConfig.getColumn().equals(column.getName()) &&
                 linkConfig.getEntityTable()
                     .equals(column.getConstraints().getReferencedTableName())) {
@@ -160,7 +161,8 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
     for (ColumnConfig column : change.getColumns()) {
       for (String linkColumn : linkColumns) {
         DdmLinkConfig link = new DdmLinkConfig();
-        if (column.getConstraints().getForeignKeyName() != null &&
+        if (column.getConstraints() != null &&
+            column.getConstraints().getForeignKeyName() != null &&
             column.getName().equals(linkColumn)) {
           link.setColumn(column.getName());
           link.setEntityTable(column.getConstraints().getReferencedTableName());
