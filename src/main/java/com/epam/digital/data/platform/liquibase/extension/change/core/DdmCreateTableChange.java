@@ -60,6 +60,7 @@ import liquibase.statement.core.DropPrimaryKeyStatement;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.statement.core.SetColumnRemarksStatement;
 import liquibase.statement.core.SetTableRemarksStatement;
+import liquibase.structure.core.Table;
 import liquibase.util.StringUtil;
 
 import java.util.ArrayList;
@@ -235,15 +236,15 @@ public class DdmCreateTableChange extends CreateTableChange {
         }
     }
 
-    private void generateAccess(List<SqlStatement> statements, String tableName) {
-        statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + tableName + " FROM PUBLIC;"));
+    private void generateAccess(List<SqlStatement> statements, String tableName, Database database) {
+        statements.add(new RawSqlStatement("REVOKE ALL PRIVILEGES ON TABLE " + database.escapeObjectName(tableName, Table.class) + " FROM PUBLIC;"));
 
         if (DdmUtils.hasPubContext(this.getChangeSet())) {
-            statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO application_role;"));
+            statements.add(new RawSqlStatement("GRANT SELECT ON " + database.escapeObjectName(tableName, Table.class) + " TO application_role;"));
         }
 
         if (historyTable.get() && DdmUtils.hasSubContext(this.getChangeSet())) {
-            statements.add(new RawSqlStatement("GRANT SELECT ON " + tableName + " TO historical_data_role;"));
+            statements.add(new RawSqlStatement("GRANT SELECT ON " + database.escapeObjectName(tableName, Table.class) + " TO historical_data_role;"));
         }
     }
 
@@ -280,7 +281,7 @@ public class DdmCreateTableChange extends CreateTableChange {
             }
 
             generateRemarks(statements, database);
-            generateAccess(statements, getTableName());
+            generateAccess(statements, getTableName(), database);
 
             historyTable.set(false);
 
@@ -313,7 +314,7 @@ public class DdmCreateTableChange extends CreateTableChange {
             }
 
             generateRemarks(statements, database);
-            generateAccess(statements, getTableName());
+            generateAccess(statements, getTableName(), database);
 
             return statements.toArray(new SqlStatement[0]);
         } else {

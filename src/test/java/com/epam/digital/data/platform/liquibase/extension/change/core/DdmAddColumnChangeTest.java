@@ -34,7 +34,6 @@ import java.util.Set;
 import liquibase.Contexts;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.ConstraintsConfig;
-import liquibase.change.core.AddColumnChange;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;

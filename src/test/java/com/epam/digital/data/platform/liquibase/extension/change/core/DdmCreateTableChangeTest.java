@@ -52,10 +52,14 @@ import liquibase.statement.core.DropPrimaryKeyStatement;
 import liquibase.statement.core.RawSqlStatement;
 import liquibase.statement.core.SetColumnRemarksStatement;
 import liquibase.statement.core.SetTableRemarksStatement;
+import liquibase.structure.core.Table;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DdmCreateTableChangeTest {
     private DdmCreateTableChange change;
@@ -173,6 +177,39 @@ class DdmCreateTableChangeTest {
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
+    }
+
+    @Test
+    public void checkStatementsWithReservedWords() {
+        Contexts contexts = new Contexts();
+        contexts.add("pub");
+        changeLogParameters.setContexts(contexts);
+
+        change.setTableName("order");
+        change.setHistoryFlag(true);
+
+        DdmColumnConfig column3 = new DdmColumnConfig();
+        column3.setName("user");
+        column3.setType("type3");
+        change.addColumn(column3);
+
+        MockDatabase db = mock(MockDatabase.class);
+        when(db.escapeObjectName("order", Table.class)).thenReturn("\"order\"");
+        when(db.escapeObjectName("order_hst", Table.class)).thenReturn("order_hst");
+        when(db.escapeObjectName("user", Table.class)).thenReturn("\"user\"");
+        SqlStatement[] statements = change.generateStatements(db);
+        Assertions.assertEquals(7, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
+        Assertions.assertEquals("REVOKE ALL PRIVILEGES ON TABLE order_hst FROM PUBLIC;", ((RawSqlStatement) statements[2]).getSql());
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);
+        Assertions.assertEquals("GRANT SELECT ON order_hst TO application_role;", ((RawSqlStatement) statements[3]).getSql());
+        Assertions.assertTrue(statements[4] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
+        Assertions.assertEquals("REVOKE ALL PRIVILEGES ON TABLE \"order\" FROM PUBLIC;", ((RawSqlStatement) statements[5]).getSql());
+        Assertions.assertTrue(statements[6] instanceof RawSqlStatement);
+        Assertions.assertEquals("GRANT SELECT ON \"order\" TO application_role;", ((RawSqlStatement) statements[6]).getSql());
     }
 
     @Test
