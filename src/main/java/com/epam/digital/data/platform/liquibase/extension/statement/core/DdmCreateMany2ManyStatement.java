@@ -29,6 +29,7 @@ public class DdmCreateMany2ManyStatement extends AbstractSqlStatement implements
     private String mainTableName;
     private String mainTableKeyField;
     private String referenceTableName;
+    private String referenceColumnName;
     private String referenceKeysArray;
     private List<DdmColumnConfig> mainTableColumns = new ArrayList<>();
     private List<DdmColumnConfig> referenceTableColumns = new ArrayList<>();
@@ -97,5 +98,13 @@ public class DdmCreateMany2ManyStatement extends AbstractSqlStatement implements
     public void setReferenceTableColumns(
         List<DdmColumnConfig> referenceTableColumns) {
         this.referenceTableColumns = referenceTableColumns;
+    }
+
+    public String getReferenceColumnName() {
+        return referenceColumnName;
+    }
+
+    public void setReferenceColumnName(String referenceColumnName) {
+        this.referenceColumnName = referenceColumnName;
     }
 }

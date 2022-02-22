@@ -47,6 +47,7 @@ class DdmCreateMany2ManyGeneratorTest {
         statement.setMainTableName("mainTable");
         statement.setMainTableKeyField("keyField");
         statement.setReferenceTableName("referenceTable");
+        statement.setReferenceColumnName("ref_id");
         statement.setReferenceKeysArray("keysArray");
         Assertions.assertEquals(0, generator.validate(statement, new MockDatabase(), null).getErrorMessages().size());
     }
@@ -93,14 +94,15 @@ class DdmCreateMany2ManyGeneratorTest {
         statement.setMainTableName("mainTable");
         statement.setMainTableKeyField("keyField");
         statement.setReferenceTableName("referenceTable");
+        statement.setReferenceColumnName("ref_id");
         statement.setReferenceKeysArray("keysArray");
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS referenceTable_id FROM mainTable;" +
+        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS ref_id FROM mainTable;" +
                 "\n\n" +
                 "CREATE INDEX ix_mainTable_referenceTable_m2m ON mainTable USING gin(keysArray);" +
                 "\n\n" +
-                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('referenceTable_id', 'mainTable', 'keysArray');"
+                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('ref_id', 'mainTable', 'keysArray');"
             , sqls[0].toSql());
     }
 
@@ -120,15 +122,16 @@ class DdmCreateMany2ManyGeneratorTest {
         statement.setMainTableName("mainTable");
         statement.setMainTableKeyField("keyField");
         statement.setReferenceTableName("referenceTable");
+        statement.setReferenceColumnName("ref_id");
         statement.setReferenceKeysArray("keysArray");
         statement.setMainTableColumns(columns);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS referenceTable_id, mainTable.Column1, mainTable.Column2 AS col2 FROM mainTable;" +
+        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS ref_id, mainTable.Column1, mainTable.Column2 AS col2 FROM mainTable;" +
                 "\n\n" +
                 "CREATE INDEX ix_mainTable_referenceTable_m2m ON mainTable USING gin(keysArray);" +
                 "\n\n" +
-                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('referenceTable_id', 'mainTable', 'keysArray');"
+                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('ref_id', 'mainTable', 'keysArray');"
             , sqls[0].toSql());
     }
 
@@ -148,15 +151,16 @@ class DdmCreateMany2ManyGeneratorTest {
         statement.setMainTableName("mainTable");
         statement.setMainTableKeyField("keyField");
         statement.setReferenceTableName("referenceTable");
+        statement.setReferenceColumnName("ref_id");
         statement.setReferenceKeysArray("keysArray");
         statement.setReferenceTableColumns(columns);
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
-        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS WITH main_cte as (SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS referenceTable_id FROM mainTable) SELECT main_cte.keyField, main_cte.referenceTable_id, referenceTable.Column1, referenceTable.Column2 AS col2 FROM main_cte JOIN referenceTable USING (referenceTable_id);" +
+        assertEquals("CREATE OR REPLACE VIEW mainTable_referenceTable_rel_v AS WITH main_cte as (SELECT mainTable.keyField, UNNEST(mainTable.keysArray) AS ref_id FROM mainTable) SELECT main_cte.keyField, main_cte.ref_id, referenceTable.Column1, referenceTable.Column2 AS col2 FROM main_cte JOIN referenceTable USING (ref_id);" +
                 "\n\n" +
                 "CREATE INDEX ix_mainTable_referenceTable_m2m ON mainTable USING gin(keysArray);" +
                 "\n\n" +
-                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('referenceTable_id', 'mainTable', 'keysArray');"
+                "CREATE TRIGGER trg_referenceTable_integrity_mainTable_keysArray BEFORE UPDATE OR DELETE ON referenceTable FOR EACH ROW EXECUTE FUNCTION f_trg_check_m2m_integrity('ref_id', 'mainTable', 'keysArray');"
             , sqls[0].toSql());
     }
 }

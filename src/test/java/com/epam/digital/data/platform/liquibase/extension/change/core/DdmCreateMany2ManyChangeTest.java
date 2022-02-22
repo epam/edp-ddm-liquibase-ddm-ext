@@ -17,6 +17,10 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmTest;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
+import liquibase.change.ConstraintsConfig;
+import liquibase.changelog.ChangeSet;
+import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateMany2ManyStatement;
@@ -30,7 +34,24 @@ class DdmCreateMany2ManyChangeTest {
 
     @BeforeEach
     void setUp() {
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+        ChangeSet changeSet = new ChangeSet(changeLog);
+
+        DdmCreateTableChange tableChange = new DdmCreateTableChange();
+        tableChange.setTableName("referenceTable");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("ref_id");
+        column.setType("UUID");
+        ConstraintsConfig constraint = new ConstraintsConfig();
+        constraint.setPrimaryKeyName("pk_ref");
+        column.setConstraints(constraint);
+        tableChange.addColumn(column);
+
+        changeSet.addChange(tableChange);
         change = new DdmCreateMany2ManyChange();
+
+        changeSet.addChange(change);
+        changeLog.addChangeSet(changeSet);
     }
 
     @Test
@@ -49,6 +70,29 @@ class DdmCreateMany2ManyChangeTest {
         change.setReferenceTableName("referenceTable");
         change.setReferenceKeysArray("keysArray");
         Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Validate change - reference table is required")
+    public void validateChangeNoReferenceTable() {
+        DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
+        ChangeSet changeSet = new ChangeSet(changeLog);
+
+        change.setMainTableName("mainTable");
+        change.setMainTableKeyField("keyField");
+        change.setReferenceTableName("referenceTable");
+        change.setReferenceKeysArray("keysArray");
+
+        DdmCreateTableChange tableChange = new DdmCreateTableChange();
+        tableChange.setTableName("another");
+
+        changeSet.addChange(change);
+        changeSet.addChange(tableChange);
+        changeLog.addChangeSet(changeSet);
+
+        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals("Table referencetable or corresponding primary key column doesn't exist",
+            change.validate(new MockDatabase()).getErrorMessages().get(0));
     }
 
     @Test
@@ -75,7 +119,7 @@ class DdmCreateMany2ManyChangeTest {
         change.setMainTableName("mainTable");
         change.setMainTableKeyField("keyField");
         change.setReferenceKeysArray("keysArray");
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        Assertions.assertEquals(2, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test

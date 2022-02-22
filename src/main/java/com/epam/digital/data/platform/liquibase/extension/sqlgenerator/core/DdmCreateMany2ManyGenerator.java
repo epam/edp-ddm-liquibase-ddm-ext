@@ -65,7 +65,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
             .append(statement.getReferenceKeysArray())
             .append(")");
         buffer.append(" AS ");
-        buffer.append(getColumnId(statement.getReferenceTableName()));
+        buffer.append(statement.getReferenceColumnName());
 
         if (!statement.getMainTableColumns().isEmpty()) {
             buffer.append(", ");
@@ -77,11 +77,6 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
 
         return buffer;
     }
-
-    private String getColumnId(String tableName) {
-        return tableName + DdmConstants.SUFFIX_ID;
-    }
-
 
     private StringBuilder getTriggerSql(DdmCreateMany2ManyStatement statement) {
         StringBuilder buffer = new StringBuilder();
@@ -97,7 +92,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
             .append(statement.getReferenceTableName());
         buffer.append(" FOR EACH ROW");
         buffer.append(" EXECUTE FUNCTION f_trg_check_m2m_integrity('")
-            .append(getColumnId(statement.getReferenceTableName()))
+            .append(statement.getReferenceColumnName())
             .append("', '")
             .append(statement.getMainTableName())
             .append("', '")
@@ -140,7 +135,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
                 .append(statement.getMainTableKeyField())
                 .append(", ");
             buffer.append("main_cte.")
-                .append(getColumnId(statement.getReferenceTableName()));
+                .append(statement.getReferenceColumnName());
 
             if (!statement.getMainTableColumns().isEmpty()) {
                 buffer.append(", ");
@@ -152,7 +147,7 @@ public class DdmCreateMany2ManyGenerator extends AbstractSqlGenerator<DdmCreateM
             buffer.append(" FROM main_cte");
             buffer.append(" JOIN ").append(statement.getReferenceTableName());
             buffer.append(" USING (");
-            buffer.append(getColumnId(statement.getReferenceTableName()));
+            buffer.append(statement.getReferenceColumnName());
             buffer.append(")");
         } else {
             buffer.append(getMainSql(statement));

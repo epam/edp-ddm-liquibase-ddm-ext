@@ -17,12 +17,16 @@
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
+import java.util.Collections;
 import liquibase.change.AbstractChange;
 import liquibase.change.ChangeMetaData;
+import liquibase.change.ColumnConfig;
 import liquibase.change.DatabaseChange;
 import liquibase.database.Database;
+import liquibase.exception.ValidationErrors;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
@@ -46,6 +50,29 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
     private List<DdmColumnConfig> referenceTableColumns = new ArrayList<>();
 
     @Override
+    public ValidationErrors validate(Database database) {
+        ValidationErrors validationErrors = new ValidationErrors();
+        validationErrors.addAll(super.validate(database));
+        if (findPKColumnName(referenceTableName) == null) {
+            validationErrors.addError("Table " + referenceTableName +
+                " or corresponding primary key column doesn't exist");
+        }
+        return validationErrors;
+    }
+
+    private String findPKColumnName(String referenceTableName) {
+        List<DdmCreateTableChange> tableChanges =
+            DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
+                Collections.singletonList(referenceTableName));
+
+        return tableChanges.stream()
+            .flatMap(tableChange -> tableChange.getColumns().stream())
+            .filter(column -> column.getConstraints() != null &&
+                column.getConstraints().getPrimaryKeyName() != null).findFirst()
+            .map(ColumnConfig::getName).orElse(null);
+    }
+
+    @Override
     public SqlStatement[] generateStatements(Database database) {
         List<SqlStatement> statements = new ArrayList<>();
 
@@ -53,6 +80,7 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
         statement.setMainTableName(getMainTableName());
         statement.setMainTableKeyField(getMainTableKeyField());
         statement.setReferenceTableName(getReferenceTableName());
+        statement.setReferenceColumnName(findPKColumnName(referenceTableName));
         statement.setReferenceKeysArray(getReferenceKeysArray());
         statement.setMainTableColumns(getMainTableColumns());
         statement.setReferenceTableColumns(getReferenceTableColumns());
@@ -91,7 +119,7 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
     }
 
     public void setMainTableName(String mainTableName) {
-        this.mainTableName = mainTableName;
+        this.mainTableName = mainTableName.toLowerCase();
     }
 
     public String getMainTableKeyField() {
@@ -107,7 +135,7 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
     }
 
     public void setReferenceTableName(String referenceTableName) {
-        this.referenceTableName = referenceTableName;
+        this.referenceTableName = referenceTableName.toLowerCase();
     }
 
     public String getReferenceKeysArray() {
