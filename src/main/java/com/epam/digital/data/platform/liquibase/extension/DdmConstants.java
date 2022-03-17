@@ -80,6 +80,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_REALM = "realm";
     public static final String ATTRIBUTE_VIEW = "view";
     public static final String ATTRIBUTE_NESTED = "nested";
+    public static final String ATTRIBUTE_ASYNC = "async";
 
     public static final String XML_TAG_HISTORY_FLAG = "ext:historyFlag";
     public static final String XML_TAG_TABLE_SUFFIX = "ext:tableSuffix";
@@ -118,6 +119,7 @@ public class DdmConstants {
     public static final String METADATA_ATTRIBUTE_NAME = "attribute_name";
     public static final String METADATA_ATTRIBUTE_VALUE = "attribute_value";
 
+    public static final String READ_MODE_CHANGE_TYPE = "readMode";
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION = "pagination";

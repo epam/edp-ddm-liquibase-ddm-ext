@@ -38,6 +38,8 @@ import java.util.List;
 @DatabaseChange(name="createSearchCondition", description = "Create Search Condition", priority = ChangeMetaData.PRIORITY_DEFAULT)
 public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
 
+    private String readMode;
+
     public DdmCreateSearchConditionChange() {
         super();
     }
@@ -111,6 +113,10 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
             statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, Boolean.toString(true)));
         }
 
+        if (DdmConstants.ATTRIBUTE_ASYNC.equals(getReadMode())){
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.READ_MODE_CHANGE_TYPE, createChangeMetaData().getName(), getName(), DdmConstants.ATTRIBUTE_ASYNC));
+        }
+
         return statements.toArray(new SqlStatement[0]);
     }
 
@@ -128,5 +134,13 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
     @Override
     public String getConfirmationMessage() {
         return "Search Condition " + getName() + " created";
+    }
+
+    public String getReadMode() {
+        return readMode;
+    }
+
+    public void setReadMode(String readMode) {
+        this.readMode = readMode;
     }
 }

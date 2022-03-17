@@ -290,6 +290,22 @@ class DdmCreateTableChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - read mode")
+    public void checkStatementsAsyncReadMode() {
+        change.setHistoryFlag(true);
+        change.setReadMode("async");
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(6, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement); //  readMode metadata
+    }
+
+    @Test
     @DisplayName("Check statements - local")
     public void checkStatementsLocal() {
         change.setHistoryFlag(true);

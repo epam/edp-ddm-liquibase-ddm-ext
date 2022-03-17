@@ -75,6 +75,7 @@ import java.util.stream.Collectors;
 public class DdmCreateTableChange extends CreateTableChange {
 
     private Boolean historyFlag;
+    private String readMode;
     private Boolean isObject;
     private final ThreadLocal<Boolean> historyTable = new ThreadLocal<>();
     private final DdmParameters parameters = new DdmParameters();
@@ -92,6 +93,14 @@ public class DdmCreateTableChange extends CreateTableChange {
 
     public void setHistoryFlag(Boolean historyFlag) {
         this.historyFlag = historyFlag;
+    }
+
+    public String getReadMode() {
+        return readMode;
+    }
+
+    public void setReadMode(String readMode) {
+        this.readMode = readMode;
     }
 
     public String getDistribution() {
@@ -315,6 +324,10 @@ public class DdmCreateTableChange extends CreateTableChange {
 
             generateRemarks(statements, database);
             generateAccess(statements, getTableName(), database);
+
+            if (DdmConstants.ATTRIBUTE_ASYNC.equals(getReadMode())){
+                statements.add(DdmUtils.insertMetadataSql(DdmConstants.READ_MODE_CHANGE_TYPE, createChangeMetaData().getName(), getTableName(), DdmConstants.ATTRIBUTE_ASYNC));
+            }
 
             return statements.toArray(new SqlStatement[0]);
         } else {

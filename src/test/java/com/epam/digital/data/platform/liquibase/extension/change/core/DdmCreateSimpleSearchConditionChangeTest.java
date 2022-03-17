@@ -179,6 +179,22 @@ class DdmCreateSimpleSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - read mode")
+    public void checkStatementsAsyncReadMode() {
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setSearchType("equal");
+        change.setSearchColumn(column);
+        change.setReadMode("async");
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(3, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement); //  readMode metadata
+    }
+
+    @Test
     @DisplayName("Validate change")
     public void validateChange() {
         change.setName("name");

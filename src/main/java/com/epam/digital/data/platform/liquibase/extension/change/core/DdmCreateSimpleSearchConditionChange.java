@@ -47,6 +47,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
     private DdmColumnConfig searchColumn;
     private Boolean indexing;
     private String limit;
+    private String readMode;
 
     public DdmCreateSimpleSearchConditionChange() {
         super();
@@ -109,6 +110,10 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
         if (getLimit() != null && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
             statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
+        }
+
+        if (DdmConstants.ATTRIBUTE_ASYNC.equals(getReadMode())){
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.READ_MODE_CHANGE_TYPE, createChangeMetaData().getName(), getName(), DdmConstants.ATTRIBUTE_ASYNC));
         }
 
         return statements.toArray(new SqlStatement[0]);
@@ -210,5 +215,13 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
     public void setLimit(String limit) {
         this.limit = limit;
+    }
+
+    public String getReadMode() {
+        return readMode;
+    }
+
+    public void setReadMode(String readMode) {
+        this.readMode = readMode;
     }
 }

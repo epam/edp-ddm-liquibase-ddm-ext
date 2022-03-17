@@ -81,6 +81,18 @@ class DdmCreateSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - read mode")
+    public void checkStatementsAsyncReadMode() {
+        change.setReadMode("async");
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(3, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  readMode metadata
+    }
+
+    @Test
     @DisplayName("Check ignore")
     public void checkIgnoreChangeSetForContextSub() {
         Contexts contexts = new Contexts();
