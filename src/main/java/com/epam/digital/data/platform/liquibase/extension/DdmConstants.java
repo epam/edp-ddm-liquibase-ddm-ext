@@ -81,6 +81,9 @@ public class DdmConstants {
     public static final String ATTRIBUTE_VIEW = "view";
     public static final String ATTRIBUTE_NESTED = "nested";
     public static final String ATTRIBUTE_ASYNC = "async";
+    public static final String ATTRIBUTE_EXPOSE_TREMBITA = "trembita";
+    public static final String ATTRIBUTE_EXPOSE_PLATFORM = "platform";
+    public static final String ATTRIBUTE_EXPOSE_EXTERNAL_SYSTEM = "externalSystem";
 
     public static final String XML_TAG_HISTORY_FLAG = "ext:historyFlag";
     public static final String XML_TAG_TABLE_SUFFIX = "ext:tableSuffix";

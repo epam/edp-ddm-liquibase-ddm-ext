@@ -19,6 +19,8 @@ package com.epam.digital.data.platform.liquibase.extension.change.core;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
@@ -40,7 +42,9 @@ import liquibase.util.JdbcUtils;
 public class DdmExposeSearchConditionChange extends AbstractChange {
 
     private String name;
-    private String consumer;
+    private Boolean trembita;
+    private Boolean platform;
+    private Boolean externalSystem;
 
     private boolean existsInChangeLog() {
         boolean scExists = false;
@@ -95,9 +99,22 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
-        return new SqlStatement[]{
-            DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, getConsumer(), DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName())
-        };
+        List<SqlStatement> statements = new ArrayList<>();
+        if (Boolean.TRUE.equals(getTrembita())) {
+            statements.add(insertMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_TREMBITA));
+        }
+        if (Boolean.TRUE.equals(getPlatform())) {
+            statements.add(insertMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_PLATFORM));
+        }
+        if (Boolean.TRUE.equals(getExternalSystem())) {
+            statements.add(insertMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_EXTERNAL_SYSTEM));
+        }
+        return statements.toArray(new SqlStatement[0]);
+    }
+
+    private SqlStatement insertMetadataForExposedSc(String consumer) {
+        return DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, consumer,
+                DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName());
     }
 
     @Override
@@ -118,11 +135,27 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
         this.name = name;
     }
 
-    public String getConsumer() {
-        return consumer;
+    public Boolean getTrembita() {
+        return trembita;
     }
 
-    public void setConsumer(String consumer) {
-        this.consumer = consumer;
+    public void setTrembita(Boolean trembita) {
+        this.trembita = trembita;
+    }
+
+    public Boolean getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(Boolean platform) {
+        this.platform = platform;
+    }
+
+    public Boolean getExternalSystem() {
+        return externalSystem;
+    }
+
+    public void setExternalSystem(Boolean externalSystem) {
+        this.externalSystem = externalSystem;
     }
 }

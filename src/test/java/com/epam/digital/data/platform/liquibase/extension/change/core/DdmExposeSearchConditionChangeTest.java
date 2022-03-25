@@ -48,9 +48,37 @@ class DdmExposeSearchConditionChangeTest {
     @DisplayName("Check statements")
     public void checkStatements() {
         change.setName("name");
+        change.setTrembita(true);
+        change.setPlatform(false);
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         Assertions.assertEquals(1, statements.length);
-        Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('expose', 'trembita', 'searchCondition', 'name');\n\n",
+                ((RawSqlStatement) statements[0]).getSql());
+    }
+
+    @Test
+    @DisplayName("Check expose all statements")
+    public void checkExposeAllStatements() {
+        change.setName("name");
+        change.setTrembita(true);
+        change.setPlatform(true);
+        change.setExternalSystem(true);
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(3, statements.length);
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('expose', 'trembita', 'searchCondition', 'name');\n\n",
+                ((RawSqlStatement) statements[0]).getSql());
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('expose', 'platform', 'searchCondition', 'name');\n\n",
+                ((RawSqlStatement) statements[1]).getSql());
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('expose', 'externalSystem', 'searchCondition', 'name');\n\n",
+                ((RawSqlStatement) statements[2]).getSql());
     }
 
     @Test
@@ -71,7 +99,9 @@ class DdmExposeSearchConditionChangeTest {
         ChangeSet changeSet = new ChangeSet(changeLog);
 
         change.setName("name");
-        change.setConsumer("consumer");
+        change.setTrembita(false);
+        change.setPlatform(false);
+        change.setExternalSystem(false);
 
         changeSet.addChange(change);
 
