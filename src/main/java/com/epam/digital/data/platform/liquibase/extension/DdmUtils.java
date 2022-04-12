@@ -134,7 +134,7 @@ public class DdmUtils {
     }
 
     public static List<DdmCreateTableChange> getTableChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
-        return changeSet.getChangeLog().getChangeSets().stream()
+        return changeSet.getChangeLog().getRootChangeLog().getChangeSets().stream()
             .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
                 .filter(tableName -> change instanceof DdmCreateTableChange &&
                     ((DdmCreateTableChange) change).getTableName().equals(tableName))
@@ -143,7 +143,7 @@ public class DdmUtils {
     }
 
     public static List<AddColumnChange> getColumnChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
-        return changeSet.getChangeLog().getChangeSets().stream()
+        return changeSet.getChangeLog().getRootChangeLog().getChangeSets().stream()
             .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
                 .filter(tableName -> change instanceof AddColumnChange &&
                     ((AddColumnChange) change).getTableName().equals(tableName))
