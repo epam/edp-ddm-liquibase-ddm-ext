@@ -90,11 +90,12 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
 
     for (DdmTableConfig table : getTables()) {
       for (DdmFunctionConfig function : table.getFunctions()) {
-        if (function.getName().equals(DdmConstants.ATTRIBUTE_FUNCTION_STRING_AGG) &&
-            StringUtil.isEmpty(function.getParameter())) {
-          validationErrors.addError("function " + function.getName().toUpperCase() + " required additional parameter!");
-        } else if (function.hasParameter()) {
+        boolean isStringAgg = function.getName().equals(DdmConstants.ATTRIBUTE_FUNCTION_STRING_AGG);
+        if (function.hasParameter() && !isStringAgg) {
           validationErrors.addError("function " + function.getName().toUpperCase() + " doesn't required additional parameter!");
+        } 
+        if (!function.hasParameter() && isStringAgg) {
+          validationErrors.addError("function " + function.getName().toUpperCase() + " required additional parameter!");
         }
       }
     }
