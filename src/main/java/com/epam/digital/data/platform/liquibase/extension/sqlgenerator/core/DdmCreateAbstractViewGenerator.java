@@ -17,7 +17,6 @@
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmPair;
-import com.epam.digital.data.platform.liquibase.extension.DdmTypesForIndexCast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
@@ -141,6 +141,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
                     buffer.append("(");
 
+                    boolean isColumnCastable = DdmUtils.isColumnAvailableForCasting(column);
                     if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
                         columnName += " gin_trgm_ops";
                     } else if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
@@ -152,12 +153,12 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
                         columnName += column.getType().toLowerCase();
                         columnName += "_pattern_ops";
-                    } else if (isCastTypeCase(column)) {
+                    } else if (isColumnCastable) {
                         buffer.append("lower(cast(");
                     }
 
                     buffer.append(columnName);
-                    if (isCastTypeCase(column)) {
+                    if (isColumnCastable) {
                         buffer.append(" as varchar))");
                     }
                     buffer.append(");");
@@ -166,12 +167,6 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
         }
 
         return buffer;
-    }
-
-    private boolean isCastTypeCase(DdmColumnConfig column) {
-        return column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_EQUAL) &&
-            Arrays.stream(DdmTypesForIndexCast.values())
-                .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }
 
     private StringBuilder generateSelectSql(List<DdmTableConfig> tables, List<DdmJoinConfig> joins, List<DdmConditionConfig> conditions) {

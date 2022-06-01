@@ -91,16 +91,8 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
                 }
 
                 if (column.getSearchType() != null) {
-                    String val;
-                    if (DdmConstants.ATTRIBUTE_EQUAL.equals(column.getSearchType())) {
-                        val = DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
-                    } else if (DdmConstants.ATTRIBUTE_CONTAINS.equals(column.getSearchType())) {
-                        val = DdmConstants.ATTRIBUTE_CONTAINS_COLUMN;
-                    } else {
-                        val = DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
-                    }
-
-                    statements.add(insertSearchConditionMetadata(val, column.getAliasOrName()));
+                    String metadataAttribute = DdmUtils.mapLiquibaseSearchTypeToMetadataType(column);
+                    statements.add(insertSearchConditionMetadata(metadataAttribute, column.getAliasOrName()));
                 }
             }
         }

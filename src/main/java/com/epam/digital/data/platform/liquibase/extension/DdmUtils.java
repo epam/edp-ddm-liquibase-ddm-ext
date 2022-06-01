@@ -16,7 +16,10 @@
 
 package com.epam.digital.data.platform.liquibase.extension;
 
+import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange;
+
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -149,5 +152,25 @@ public class DdmUtils {
                     ((AddColumnChange) change).getTableName().equals(tableName))
                 .map(tableName -> (AddColumnChange) change).collect(Collectors.toList()).stream())
             .collect(Collectors.toList());
+    }
+
+    public static String mapLiquibaseSearchTypeToMetadataType(DdmColumnConfig column) {
+        if (DdmConstants.ATTRIBUTE_EQUAL.equals(column.getSearchType())) {
+            return DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
+        } else if (DdmConstants.ATTRIBUTE_CONTAINS.equals(column.getSearchType())) {
+            return DdmConstants.ATTRIBUTE_CONTAINS_COLUMN;
+        } else if (DdmConstants.ATTRIBUTE_STARTS_WITH.equals(column.getSearchType())) {
+            return DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
+        } else {
+            return DdmConstants.ATTRIBUTE_IN_COLUMN;
+        }
+    }
+
+    public static boolean isColumnAvailableForCasting(DdmColumnConfig column) {
+        boolean isSearchTypeCastable = column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_EQUAL)
+                || column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_IN);
+        return isSearchTypeCastable &&
+                Arrays.stream(DdmTypesForIndexCast.values())
+                        .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }
 }

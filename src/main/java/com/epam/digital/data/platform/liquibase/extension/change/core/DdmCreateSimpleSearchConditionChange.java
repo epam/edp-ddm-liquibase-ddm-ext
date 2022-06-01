@@ -96,16 +96,9 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
         //  create insert statement for metadata table
         if (statement.getSearchColumn() != null && statement.getSearchColumn().getSearchType() != null) {
-            String val;
-            if (getSearchColumn().getSearchType().equals(DdmConstants.ATTRIBUTE_EQUAL)) {
-                val = DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
-            } else if (getSearchColumn().getSearchType().equals(DdmConstants.ATTRIBUTE_CONTAINS)) {
-                val = DdmConstants.ATTRIBUTE_CONTAINS_COLUMN;
-            } else {
-                val = DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
-            }
-
-            statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), val, getSearchColumn().getName()));
+            String metadataAttribute = DdmUtils.mapLiquibaseSearchTypeToMetadataType(statement.getSearchColumn());
+            statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE,
+                    getName(), metadataAttribute, getSearchColumn().getName()));
         }
 
         if (getLimit() != null && !getLimit().equalsIgnoreCase(DdmConstants.ATTRIBUTE_ALL)) {
@@ -175,7 +168,6 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
             .filter(changeColumn -> getSearchColumn().getName().equals(changeColumn.getName()))
             .forEach(changeColumn -> getSearchColumn().setType(changeColumn.getType().toLowerCase()));
     }
-
 
     public DdmTableConfig getTable() {
         return this.table;

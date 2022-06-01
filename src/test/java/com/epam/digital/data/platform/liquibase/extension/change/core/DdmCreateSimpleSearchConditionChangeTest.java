@@ -150,6 +150,25 @@ class DdmCreateSimpleSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - insert in")
+    public void checkStatementsInsertIn() {
+        change.setName("change");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setSearchType("in");
+        change.setSearchColumn(column);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(2, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateSimpleSearchConditionStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('searchCondition', 'change', 'inColumn', 'column');\n\n",
+                ((RawSqlStatement) statements[1]).getSql());
+    }
+
+    @Test
     @DisplayName("Check statements - insert startsWith")
     public void checkStatementsInsertStartsWith() {
         DdmColumnConfig column = new DdmColumnConfig();
