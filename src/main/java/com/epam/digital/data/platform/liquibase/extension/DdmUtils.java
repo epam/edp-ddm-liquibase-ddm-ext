@@ -20,8 +20,10 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange;
@@ -54,6 +56,10 @@ public class DdmUtils {
         + "cannot be mixed with each other or other change types in a single changeset. "
         + "Please put them in separate changesets.";
 
+    private static final Map<String, String> mapSearchTypeToMetadata = new HashMap<>();
+
+    private static final Set<String> textCastableTypes = new HashSet<>();
+
     static {
         masterChanges.add(DdmCreateSearchConditionChange.class);
         masterChanges.add(DdmCreateSimpleSearchConditionChange.class);
@@ -67,6 +73,16 @@ public class DdmUtils {
         replicaChanges.add(DdmGrantAllChange.class);
         replicaChanges.add(DdmRevokeChange.class);
         replicaChanges.add(DdmRevokeAllChange.class);
+
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_EQUAL, DdmConstants.ATTRIBUTE_EQUAL_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_CONTAINS, DdmConstants.ATTRIBUTE_CONTAINS_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_STARTS_WITH, DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_IN, DdmConstants.ATTRIBUTE_IN_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_BETWEEN, DdmConstants.ATTRIBUTE_BETWEEN_COLUMN);
+
+        textCastableTypes.add(DdmConstants.ATTRIBUTE_EQUAL);
+        textCastableTypes.add(DdmConstants.ATTRIBUTE_IN);
+        textCastableTypes.add(DdmConstants.ATTRIBUTE_BETWEEN);
     }
 
     public static RawSqlStatement insertMetadataSql(String changeType, String changeName, String attributeName, String attributeValue) {
@@ -155,21 +171,11 @@ public class DdmUtils {
     }
 
     public static String mapLiquibaseSearchTypeToMetadataType(DdmColumnConfig column) {
-        if (DdmConstants.ATTRIBUTE_EQUAL.equals(column.getSearchType())) {
-            return DdmConstants.ATTRIBUTE_EQUAL_COLUMN;
-        } else if (DdmConstants.ATTRIBUTE_CONTAINS.equals(column.getSearchType())) {
-            return DdmConstants.ATTRIBUTE_CONTAINS_COLUMN;
-        } else if (DdmConstants.ATTRIBUTE_STARTS_WITH.equals(column.getSearchType())) {
-            return DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN;
-        } else {
-            return DdmConstants.ATTRIBUTE_IN_COLUMN;
-        }
+        return mapSearchTypeToMetadata.get(column.getSearchType());
     }
 
     public static boolean isColumnAvailableForCasting(DdmColumnConfig column) {
-        boolean isSearchTypeCastable = column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_EQUAL)
-                || column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_IN);
-        return isSearchTypeCastable &&
+        return textCastableTypes.contains(column.getSearchType()) &&
                 Arrays.stream(DdmTypesForIndexCast.values())
                         .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }

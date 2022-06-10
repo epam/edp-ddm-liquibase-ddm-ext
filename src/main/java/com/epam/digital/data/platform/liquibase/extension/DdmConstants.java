@@ -48,10 +48,12 @@ public class DdmConstants {
     public static final String ATTRIBUTE_CONTAINS = "contains";
     public static final String ATTRIBUTE_STARTS_WITH = "startsWith";
     public static final String ATTRIBUTE_IN = "in";
+    public static final String ATTRIBUTE_BETWEEN = "between";
     public static final String ATTRIBUTE_EQUAL_COLUMN = "equalColumn";
     public static final String ATTRIBUTE_CONTAINS_COLUMN = "containsColumn";
     public static final String ATTRIBUTE_STARTS_WITH_COLUMN = "startsWithColumn";
     public static final String ATTRIBUTE_IN_COLUMN = "inColumn";
+    public static final String ATTRIBUTE_BETWEEN_COLUMN = "betweenColumn";
     public static final String ATTRIBUTE_JOIN = "join";
     public static final String ATTRIBUTE_WHERE = "where";
     public static final String ATTRIBUTE_LEFT = "left";
