@@ -23,10 +23,13 @@ import liquibase.changelog.ChangeSet;
 import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
 import liquibase.statement.SqlStatement;
+import liquibase.statement.core.RawSqlStatement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DdmDropSearchConditionChangeTest {
     private DdmDropSearchConditionChange change;
@@ -58,9 +61,13 @@ class DdmDropSearchConditionChangeTest {
     @Test
     @DisplayName("Check statements")
     public void checkStatements() {
+        change.setName("sc_name");
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(1, statements.length);
+        Assertions.assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmDropSearchConditionStatement);
+        Assertions.assertEquals("delete from ddm_liquibase_metadata where" +
+                        " (change_type = 'nestedRead') and (change_name = 'sc_name');\n\n",
+                ((RawSqlStatement) statements[1]).getSql());
     }
 
     @Test

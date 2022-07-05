@@ -16,6 +16,7 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import liquibase.change.AbstractChange;
 import liquibase.change.DatabaseChange;
@@ -50,7 +51,9 @@ public class DdmDropSearchConditionChange extends AbstractChange {
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
-        return new SqlStatement[]{ new DdmDropSearchConditionStatement(getName()) };
+        DdmDropSearchConditionStatement dropSearchConditionStatement = new DdmDropSearchConditionStatement(getName());
+        SqlStatement dropNestedReadStatement = DdmUtils.deleteMetadataSql(DdmConstants.SEARCH_METADATA_NESTED_READ, getName());
+        return new SqlStatement[]{dropSearchConditionStatement, dropNestedReadStatement};
     }
 
     @Override

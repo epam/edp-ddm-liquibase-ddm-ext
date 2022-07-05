@@ -62,7 +62,7 @@ public class DdmCreateMany2ManyChange extends AbstractChange {
 
     private String findPKColumnName(String referenceTableName) {
         List<DdmCreateTableChange> tableChanges =
-            DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
+            DdmUtils.getCreateTableChangesFromChangeLog(this.getChangeSet(),
                 Collections.singletonList(referenceTableName));
 
         return tableChanges.stream()

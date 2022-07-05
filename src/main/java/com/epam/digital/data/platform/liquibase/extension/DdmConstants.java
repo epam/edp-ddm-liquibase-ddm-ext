@@ -84,6 +84,9 @@ public class DdmConstants {
     public static final String ATTRIBUTE_REALM = "realm";
     public static final String ATTRIBUTE_VIEW = "view";
     public static final String ATTRIBUTE_NESTED = "nested";
+    public static final String ATTRIBUTE_FETCH_TYPE = "fetchType";
+    public static final String ATTRIBUTE_FETCH_TYPE_ID = "id";
+    public static final String ATTRIBUTE_FETCH_TYPE_ENTITY = "entity";
     public static final String ATTRIBUTE_ASYNC = "async";
     public static final String ATTRIBUTE_EXPOSE_TREMBITA = "trembita";
     public static final String ATTRIBUTE_EXPOSE_PLATFORM = "platform";
@@ -130,6 +133,7 @@ public class DdmConstants {
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION = "pagination";
+    public static final String SEARCH_METADATA_NESTED_READ = "nestedRead";
 
     public static final String TYPE_METADATA_CHANGE_TYPE_VALUE = "type";
     public static final String TYPE_METADATA_ATTRIBUTE_NAME_LABEL = "label";

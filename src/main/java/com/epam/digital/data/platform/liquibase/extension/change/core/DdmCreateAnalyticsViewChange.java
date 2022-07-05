@@ -56,12 +56,12 @@ public class DdmCreateAnalyticsViewChange extends DdmAbstractViewChange {
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
+        updateColumnData();
+
         if (DdmUtils.hasPubContext(this.getChangeSet())){
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
-
-        updateColumnTypes();
 
         List<SqlStatement> statements = new ArrayList<>();
         DdmCreateAbstractViewStatement statement = generateCreateAbstractViewStatement();

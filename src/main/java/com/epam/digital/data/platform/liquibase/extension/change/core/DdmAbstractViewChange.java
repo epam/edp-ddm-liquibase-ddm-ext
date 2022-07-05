@@ -38,7 +38,6 @@ import liquibase.resource.ResourceAccessor;
 
 import java.util.ArrayList;
 import java.util.List;
-import liquibase.util.StringUtil;
 
 /**
  * Describes a parent entity for search conditions and analytics views.
@@ -129,19 +128,19 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
     }
   }
 
-  public void updateColumnTypes() {
+  public void updateColumnData() {
     List<String> tableNames = getTables().stream().map(DdmTableConfig::getName)
         .collect(Collectors.toList());
     List<DdmCreateTableChange> tableChanges =
-        DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(), tableNames);
+        DdmUtils.getCreateTableChangesFromChangeLog(this.getChangeSet(), tableNames);
     List<AddColumnChange> columnChanges =
         DdmUtils.getColumnChangesFromChangeLog(this.getChangeSet(), tableNames);
 
-    updateColumnTypeFromCreateTableChanges(tableChanges);
-    updateColumnTypeFromAddColumnChanges(columnChanges);
+    updateColumnDataFromCreateTableChanges(tableChanges);
+    updateColumnDataFromAddColumnChanges(columnChanges);
   }
 
-  private void updateColumnTypeFromCreateTableChanges(List<DdmCreateTableChange> tableChanges) {
+  private void updateColumnDataFromCreateTableChanges(List<DdmCreateTableChange> tableChanges) {
     for (DdmTableConfig table : getTables()) {
       for (DdmCreateTableChange tableChange : tableChanges) {
         if (tableChange.getTableName().equals(table.getName())) {
@@ -149,6 +148,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
             for (ColumnConfig changeColumn : tableChange.getColumns()) {
               if (tableColumn.getName().equals(changeColumn.getName())) {
                 tableColumn.setType(changeColumn.getType().toLowerCase());
+                tableColumn.setConstraints(changeColumn.getConstraints());
               }
             }
           }
@@ -157,7 +157,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
     }
   }
 
-  private void updateColumnTypeFromAddColumnChanges(List<AddColumnChange> columnChanges) {
+  private void updateColumnDataFromAddColumnChanges(List<AddColumnChange> columnChanges) {
     for (DdmTableConfig table : getTables()) {
       for (AddColumnChange columnChange : columnChanges) {
         if (columnChange.getTableName().equals(table.getName())) {
@@ -165,6 +165,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
             for (AddColumnConfig changeColumn : columnChange.getColumns()) {
               if (tableColumn.getName().equals(changeColumn.getName())) {
                 tableColumn.setType(changeColumn.getType().toLowerCase());
+                tableColumn.setConstraints(changeColumn.getConstraints());
               }
             }
           }

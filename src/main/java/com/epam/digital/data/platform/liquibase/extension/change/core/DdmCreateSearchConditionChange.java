@@ -31,6 +31,7 @@ import liquibase.statement.core.RawSqlStatement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates a new search condition.
@@ -55,17 +56,24 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
         if (!DdmUtils.isSearchConditionChangeSet(this.getChangeSet())){
             validationErrors.addError(DdmUtils.printConsistencyChangeSetError(getChangeSet().getId()));
         }
+        for (DdmTableConfig table : getTables()) {
+            for (DdmColumnConfig column : table.getColumns()) {
+                if (DdmConstants.ATTRIBUTE_FETCH_TYPE_ENTITY.equals(column.getFetchType())) {
+                    validationErrors.addAll(DdmUtils.validationForNestedReadColumn(getChangeSet(), table.getName(), column));
+                }
+            }
+        }
         return validationErrors;
     }
 
     @Override
     public SqlStatement[] generateStatements(Database database) {
+        updateColumnData();
+
         if (DdmUtils.hasSubContext(this.getChangeSet())){
             this.getChangeSet().setIgnore(true);
             return new SqlStatement[0];
         }
-
-        updateColumnTypes();
 
         List<SqlStatement> statements = new ArrayList<>();
         DdmCreateAbstractViewStatement statement = generateCreateAbstractViewStatement();
@@ -88,6 +96,9 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
 
                 if (Boolean.TRUE.equals(column.getReturning())) {
                     statements.add(DdmUtils.insertMetadataSql(getName(), table.getName(), column.getName(), column.getAliasOrName()));
+                    if (!Objects.isNull(column.getFetchType())) {
+                        statements.addAll(createStatementForColumnFetchType(table, column));
+                    }
                 }
 
                 if (column.getSearchType() != null) {
@@ -114,6 +125,22 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
 
     private RawSqlStatement insertSearchConditionMetadata(String attributeName, String attributeValue) {
         return DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), attributeName, attributeValue);
+    }
+
+    private List<RawSqlStatement> createStatementForColumnFetchType(DdmTableConfig table, DdmColumnConfig column) {
+        List<RawSqlStatement> statements = new ArrayList<>();
+        if (DdmConstants.ATTRIBUTE_FETCH_TYPE_ENTITY.equals(column.getFetchType())) {
+            DdmCreateMany2ManyChange m2mChange = DdmUtils.getM2mChangeFromChangelogForNestedRead(
+                    getChangeSet(), table.getName(), column.getName());
+            if (m2mChange != null) {
+                statements.add(DdmUtils.insertMetadataSql(
+                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), m2mChange.getReferenceTableName(), column.getName()));
+            } else if (column.getConstraints() != null && column.getConstraints().getForeignKeyName() != null) {
+                statements.add(DdmUtils.insertMetadataSql(
+                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), column.getConstraints().getReferencedTableName(), column.getName()));
+            }
+        }
+        return statements;
     }
 
     @Override

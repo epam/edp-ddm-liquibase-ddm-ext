@@ -89,7 +89,7 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         .collect(Collectors.toList());
     populateEntityTable(requiredEntities);
     List<DdmCreateTableChange> tableChangesWithLinks =
-        DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
+        DdmUtils.getCreateTableChangesFromChangeLog(this.getChangeSet(),
         requiredEntities.stream().map(DdmNestedEntityConfig::getTable)
             .collect(Collectors.toList()));
     List<DdmNestedEntityConfig> requiredEntitiesFromChangelog = tableChangesWithLinks.stream()

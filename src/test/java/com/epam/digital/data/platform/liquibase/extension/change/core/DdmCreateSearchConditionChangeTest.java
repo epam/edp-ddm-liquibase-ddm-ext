@@ -29,6 +29,7 @@ import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.Change;
+import liquibase.change.ConstraintsConfig;
 import liquibase.changelog.ChangeLogIterator;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.ChangeSet;
@@ -50,6 +51,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DdmCreateSearchConditionChangeTest {
     private DdmCreateSearchConditionChange change;
@@ -75,7 +78,7 @@ class DdmCreateSearchConditionChangeTest {
     @DisplayName("Check statements")
     public void checkStatements() {
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(2, statements.length);
+        assertEquals(2, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
     }
@@ -86,7 +89,7 @@ class DdmCreateSearchConditionChangeTest {
         change.setReadMode("async");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(3, statements.length);
+        assertEquals(3, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  readMode metadata
@@ -99,7 +102,7 @@ class DdmCreateSearchConditionChangeTest {
         contexts.add("sub");
         changeLogParameters.setContexts(contexts);
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(0, statements.length);
+        assertEquals(0, statements.length);
         Assertions.assertTrue(change.getChangeSet().isIgnore());
     }
 
@@ -122,13 +125,16 @@ class DdmCreateSearchConditionChangeTest {
         DdmColumnConfig column1 = new DdmColumnConfig();
         column1.setName("column_id");
         column1.setType("UUID");
+        ConstraintsConfig constraints = new ConstraintsConfig();
+        column1.setConstraints(constraints);
 
         tableChange.addColumn(column1);
         changeSet.addChange(tableChange);
 
-        change.updateColumnTypes();
+        change.updateColumnData();
 
-        Assertions.assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
+        assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
+        assertEquals(constraints, change.getTables().get(0).getColumns().get(0).getConstraints());
     }
 
     @Test
@@ -154,9 +160,9 @@ class DdmCreateSearchConditionChangeTest {
         columnChange.addColumn(column1);
         changeSet.addChange(columnChange);
 
-        change.updateColumnTypes();
+        change.updateColumnData();
 
-        Assertions.assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
+        assertEquals("uuid", change.getTables().get(0).getColumns().get(0).getType());
     }
 
     @Test
@@ -172,7 +178,7 @@ class DdmCreateSearchConditionChangeTest {
         change.addTable(table);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(5, statements.length);
+        assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
@@ -194,15 +200,76 @@ class DdmCreateSearchConditionChangeTest {
         change.addTable(table);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(5, statements.length);
+        assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
         Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  searchType
-        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+        assertEquals("insert into ddm_liquibase_metadata" +
                 "(change_type, change_name, attribute_name, attribute_value) values " +
                 "('searchCondition', 'change', 'inColumn', 'column');\n\n",
+                ((RawSqlStatement) statements[4]).getSql());
+    }
+
+    @Test
+    @DisplayName("Check statements fetchType")
+    public void checkStatementsFetchTypeM2m() {
+        DdmCreateMany2ManyChange many2ManyChange = new DdmCreateMany2ManyChange();
+        many2ManyChange.setMainTableName("table");
+        many2ManyChange.setReferenceTableName("ref_table");
+        many2ManyChange.setReferenceKeysArray("column");
+        changeSet.addChange(many2ManyChange);
+        change.setName("change");
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setReturning(true);
+        column.setFetchType("entity");
+        table.addColumn(column);
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        assertEquals(5, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  nestedRead
+        assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('nestedRead', 'change', 'ref_table', 'column');\n\n",
+                ((RawSqlStatement) statements[4]).getSql());
+    }
+
+    @Test
+    @DisplayName("Check statements fetchType")
+    public void checkStatementsFetchTypeO2m() {
+        change.setName("change");
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setReturning(true);
+        column.setFetchType("entity");
+        ConstraintsConfig constraints = new ConstraintsConfig();
+        constraints.setForeignKeyName("fk");
+        constraints.setReferencedTableName("ref_table");
+        column.setConstraints(constraints);
+        table.addColumn(column);
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        assertEquals(5, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  nestedRead
+        assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('nestedRead', 'change', 'ref_table', 'column');\n\n",
                 ((RawSqlStatement) statements[4]).getSql());
     }
 
@@ -225,7 +292,7 @@ class DdmCreateSearchConditionChangeTest {
         change.addTable(table);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(6, statements.length);
+        assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  function
@@ -247,7 +314,7 @@ class DdmCreateSearchConditionChangeTest {
         change.setLimit("20");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(6, statements.length);
+        assertEquals(6, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
@@ -260,13 +327,13 @@ class DdmCreateSearchConditionChangeTest {
     @DisplayName("Validate change")
     public void validateChange() {
         change.setName("name");
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
     @DisplayName("Validate change - name is required")
     public void validateChangeName() {
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -277,7 +344,7 @@ class DdmCreateSearchConditionChangeTest {
         join.addLeftColumn("leftColumn");
         join.addRightColumn("rightColumn");
         change.addJoin(join);
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -287,7 +354,7 @@ class DdmCreateSearchConditionChangeTest {
         change.setConditions(new ArrayList<>());
         change.setTables(new ArrayList<>());
         change.setJoins(new ArrayList<>());
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -297,7 +364,7 @@ class DdmCreateSearchConditionChangeTest {
         DdmJoinConfig join = new DdmJoinConfig();
         join.addLeftColumn("leftColumn");
         change.addJoin(join);
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -311,7 +378,7 @@ class DdmCreateSearchConditionChangeTest {
         column.setSearchType("startsWith");
         table.addColumn(column);
         change.addTable(table);
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -331,7 +398,7 @@ class DdmCreateSearchConditionChangeTest {
 
         change1.setLimit("all");
         change1.setIndexing(true);
-        Assertions.assertEquals(1, change1.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change1.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -344,7 +411,22 @@ class DdmCreateSearchConditionChangeTest {
         column.setName("column");
         table.addColumn(column);
         change.addTable(table);
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Validate change - fetch type without m2m or o2m")
+    public void validateColumnFetchType() {
+        change.setName("name");
+        change.setIndexing(true);
+        DdmTableConfig table = new DdmTableConfig("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setSearchType("in");
+        column.setFetchType("entity");
+        table.addColumn(column);
+        change.addTable(table);
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -352,7 +434,7 @@ class DdmCreateSearchConditionChangeTest {
     public void confirmationMessage() {
         change.setName("name");
 
-        Assertions.assertEquals("Search Condition name created", change.getConfirmationMessage());
+        assertEquals("Search Condition name created", change.getConfirmationMessage());
     }
 
     @Test
@@ -360,7 +442,7 @@ class DdmCreateSearchConditionChangeTest {
     public void validateChangePagination() {
         change.setName("name");
         change.setPagination(true);
-        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -375,7 +457,7 @@ class DdmCreateSearchConditionChangeTest {
         change.setPagination(true);
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(5, statements.length);
+        assertEquals(5, statements.length);
         Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
@@ -405,7 +487,7 @@ class DdmCreateSearchConditionChangeTest {
             }
         }, new RuntimeEnvironment(new MockDatabase(), new Contexts(), new LabelExpression()));
 
-        Assertions.assertEquals(1, changeSets.size());
+        assertEquals(1, changeSets.size());
     }
 
     @Test
@@ -414,7 +496,7 @@ class DdmCreateSearchConditionChangeTest {
         change.setName("name");
         Change[] changes = change.createInverses();
         changes[0].setChangeSet(change.getChangeSet());
-        Assertions.assertEquals(0, changes[0].validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(0, changes[0].validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -446,7 +528,7 @@ class DdmCreateSearchConditionChangeTest {
         table.setFunctions(functions);
         change.addTable(table);
 
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -479,7 +561,7 @@ class DdmCreateSearchConditionChangeTest {
         table.setFunctions(functions);
         change.addTable(table);
 
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
     @Test
@@ -490,6 +572,6 @@ class DdmCreateSearchConditionChangeTest {
         analyticsChange.setName("name");
         changeSet.addChange(analyticsChange);
         changeSet.addChange(change);
-        Assertions.assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+        assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 }

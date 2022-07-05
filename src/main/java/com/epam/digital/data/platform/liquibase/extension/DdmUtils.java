@@ -17,6 +17,8 @@
 package com.epam.digital.data.platform.liquibase.extension;
 
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmAddColumnChange;
+import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateMany2ManyChange;
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateTableChange;
 
 import java.util.Arrays;
@@ -40,6 +42,7 @@ import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropAna
 
 import java.util.stream.Collectors;
 import liquibase.change.AbstractChange;
+import liquibase.change.ColumnConfig;
 import liquibase.change.core.AddColumnChange;
 import liquibase.changelog.ChangeSet;
 import liquibase.statement.core.RawSqlStatement;
@@ -98,6 +101,27 @@ public class DdmUtils {
             "'" + attributeValue + "');\n\n");
     }
 
+    public static RawSqlStatement deleteMetadataSql(String changeType, String changeName) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("delete from ").append(DdmConstants.METADATA_TABLE);
+        builder.append(" where (").append(DdmConstants.METADATA_CHANGE_TYPE).append(" = '")
+                .append(changeType).append("') and (");
+        builder.append(DdmConstants.METADATA_CHANGE_NAME).append(" = '").append(changeName).append("');\n\n");
+
+        return new RawSqlStatement(builder.toString());
+    }
+
+    public static RawSqlStatement deleteMetadataSql(String changeType, String changeName, String attributeValue) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("delete from ").append(DdmConstants.METADATA_TABLE);
+        builder.append(" where (").append(DdmConstants.METADATA_CHANGE_TYPE).append(" = '")
+                .append(changeType).append("') and (");
+        builder.append(DdmConstants.METADATA_CHANGE_NAME).append(" = '").append(changeName).append("') and (");
+        builder.append(DdmConstants.METADATA_ATTRIBUTE_VALUE).append(" = '").append(attributeValue).append("');\n\n");
+
+        return new RawSqlStatement(builder.toString());
+    }
+
     public static RawSqlStatement deleteMetadataByChangeTypeAndChangeNameSql(String changeType, String changeName) {
         return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
             DdmConstants.METADATA_CHANGE_TYPE + " = '" + changeType + "' and " +
@@ -152,13 +176,49 @@ public class DdmUtils {
         return string == null || string.trim().isEmpty();
     }
 
-    public static List<DdmCreateTableChange> getTableChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
+    public static List<DdmCreateTableChange> getCreateTableChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
         return changeSet.getChangeLog().getRootChangeLog().getChangeSets().stream()
             .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
                 .filter(tableName -> change instanceof DdmCreateTableChange &&
                     ((DdmCreateTableChange) change).getTableName().equals(tableName))
                 .map(tableName -> (DdmCreateTableChange) change).collect(Collectors.toList()).stream())
             .collect(Collectors.toList());
+    }
+
+    public static List<DdmAddColumnChange> getAddColumnChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {
+        return changeSet.getChangeLog().getRootChangeLog().getChangeSets().stream()
+                .flatMap(set -> set.getChanges().stream()).flatMap(change -> tableNames.stream()
+                        .filter(tableName -> change instanceof DdmAddColumnChange &&
+                                ((DdmAddColumnChange) change).getTableName().equals(tableName))
+                        .map(tableName -> (DdmAddColumnChange) change).collect(Collectors.toList()).stream())
+                .collect(Collectors.toList());
+    }
+
+    public static DdmCreateMany2ManyChange getM2mChangeFromChangelogForNestedRead(
+            ChangeSet changeSet, String tableName, String columnName) {
+        return changeSet.getChangeLog().getRootChangeLog().getChangeSets().stream()
+                .flatMap(set -> set.getChanges().stream())
+                .filter(DdmCreateMany2ManyChange.class::isInstance)
+                .map(DdmCreateMany2ManyChange.class::cast)
+                .filter(change -> change.getMainTableName().equals(tableName)
+                        && change.getReferenceKeysArray().equals(columnName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static ValidationErrors validationForNestedReadColumn(ChangeSet changeSet, String tableName, ColumnConfig column) {
+        boolean columnNotContainsM2m = DdmUtils.getM2mChangeFromChangelogForNestedRead(
+                changeSet, tableName, column.getName()) == null;
+        boolean columnIsNotForeignKey = column.getConstraints() == null
+                || column.getConstraints().getForeignKeyName() == null;
+        if (columnNotContainsM2m && columnIsNotForeignKey) {
+            return new ValidationErrors().addError(
+                    String.format("Column %s.%s should have many to many " +
+                                    "or one to many relation to perform entity fetch from column",
+                            tableName, column.getName()));
+        } else {
+            return new ValidationErrors();
+        }
     }
 
     public static List<AddColumnChange> getColumnChangesFromChangeLog(ChangeSet changeSet, List<String> tableNames) {

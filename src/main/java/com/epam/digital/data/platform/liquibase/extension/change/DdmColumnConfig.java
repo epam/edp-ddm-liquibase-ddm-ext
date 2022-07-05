@@ -32,6 +32,7 @@ public class DdmColumnConfig extends ColumnConfig {
     private Boolean read;
     private Boolean update;
     private Boolean returning;
+    private String fetchType;
     private String classify;
 
     public DdmColumnConfig() {
@@ -48,6 +49,7 @@ public class DdmColumnConfig extends ColumnConfig {
         setRead(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_READ, Boolean.class));
         setUpdate(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_UPDATE, Boolean.class));
         setReturning(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_RETURNING, Boolean.class));
+        setFetchType(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_FETCH_TYPE, String.class));
         setClassify(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_CLASSIFY, String.class));
     }
 
@@ -123,6 +125,14 @@ public class DdmColumnConfig extends ColumnConfig {
 
     public void setReturning(Boolean returning) {
         this.returning = returning;
+    }
+
+    public String getFetchType() {
+        return fetchType;
+    }
+
+    public void setFetchType(String fetchType) {
+        this.fetchType = fetchType;
     }
 
     public String getClassify() {

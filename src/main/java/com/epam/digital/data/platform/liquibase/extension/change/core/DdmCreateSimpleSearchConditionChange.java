@@ -143,7 +143,7 @@ public class DdmCreateSimpleSearchConditionChange extends AbstractChange {
 
     protected void updateColumnTypes() {
         List<DdmCreateTableChange> tableChanges =
-            DdmUtils.getTableChangesFromChangeLog(this.getChangeSet(),
+            DdmUtils.getCreateTableChangesFromChangeLog(this.getChangeSet(),
                 Collections.singletonList(getTable().getName()));
         List<AddColumnChange> columnChanges =
             DdmUtils.getColumnChangesFromChangeLog(this.getChangeSet(),
