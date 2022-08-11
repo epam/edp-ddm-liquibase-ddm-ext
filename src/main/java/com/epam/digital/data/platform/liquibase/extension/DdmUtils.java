@@ -82,10 +82,12 @@ public class DdmUtils {
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_STARTS_WITH, DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_IN, DdmConstants.ATTRIBUTE_IN_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_BETWEEN, DdmConstants.ATTRIBUTE_BETWEEN_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_NOT_IN, DdmConstants.ATTRIBUTE_NOT_IN_COLUMN);
 
         textCastableTypes.add(DdmConstants.ATTRIBUTE_EQUAL);
         textCastableTypes.add(DdmConstants.ATTRIBUTE_IN);
         textCastableTypes.add(DdmConstants.ATTRIBUTE_BETWEEN);
+        textCastableTypes.add(DdmConstants.ATTRIBUTE_NOT_IN);
     }
 
     public static RawSqlStatement insertMetadataSql(String changeType, String changeName, String attributeName, String attributeValue) {
