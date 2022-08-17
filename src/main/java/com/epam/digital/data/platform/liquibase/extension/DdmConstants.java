@@ -81,6 +81,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_READ = "read";
     public static final String ATTRIBUTE_EXPOSE = "expose";
     public static final String ATTRIBUTE_CLASSIFY = "classify";
+    public static final String ATTRIBUTE_AUTOGENERATE = "autoGenerate";
     public static final String ATTRIBUTE_MAIN_TABLE_COLUMNS = "mainTableColumns";
     public static final String ATTRIBUTE_REFERENCE_TABLE_COLUMNS = "referenceTableColumns";
     public static final String ATTRIBUTE_REALM = "realm";

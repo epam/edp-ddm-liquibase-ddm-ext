@@ -12,3 +12,4 @@ com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmPartialU
 com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmReferenceTableGenerator
 com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmTruncateLocalDataAfterDistributingTableGenerator
 com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmUndistributeTableGenerator
+com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core.DdmCreateSequenceGenerator

@@ -34,6 +34,7 @@ public class DdmColumnConfig extends ColumnConfig {
     private Boolean returning;
     private String fetchType;
     private String classify;
+    private String autoGenerate;
 
     public DdmColumnConfig() {
         super();
@@ -51,6 +52,7 @@ public class DdmColumnConfig extends ColumnConfig {
         setReturning(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_RETURNING, Boolean.class));
         setFetchType(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_FETCH_TYPE, String.class));
         setClassify(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_CLASSIFY, String.class));
+        setAutoGenerate(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_AUTOGENERATE, String.class));
     }
 
     public String getAliasOrName() {
@@ -141,5 +143,13 @@ public class DdmColumnConfig extends ColumnConfig {
 
     public void setClassify(String classify) {
         this.classify = classify;
+    }
+
+    public String getAutoGenerate() {
+        return autoGenerate;
+    }
+
+    public void setAutoGenerate(String autoGenerate) {
+        this.autoGenerate = autoGenerate;
     }
 }
