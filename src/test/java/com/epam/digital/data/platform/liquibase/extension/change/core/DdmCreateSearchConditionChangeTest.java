@@ -239,6 +239,32 @@ class DdmCreateSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Check statements - insert NOT EQUAL")
+    public void checkStatementsInsertNotEqual() {
+        change.setName("change");
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setReturning(true);
+        column.setSearchType("notEqual");
+        table.addColumn(column);
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        assertEquals(5, statements.length);
+        Assertions.assertTrue(statements[0] instanceof DdmCreateAbstractViewStatement);
+        Assertions.assertTrue(statements[1] instanceof RawSqlStatement);  //  grant select to view
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);  //  column or alias
+        Assertions.assertTrue(statements[3] instanceof RawSqlStatement);  //  mapping column
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  searchType
+        assertEquals("insert into ddm_liquibase_metadata" +
+                "(change_type, change_name, attribute_name, attribute_value) values " +
+                "('searchCondition', 'change', 'notEqualColumn', 'column');\n\n",
+            ((RawSqlStatement) statements[4]).getSql());
+    }
+
+    @Test
     @DisplayName("Check statements fetchType")
     public void checkStatementsFetchTypeM2m() {
         DdmCreateMany2ManyChange many2ManyChange = new DdmCreateMany2ManyChange();
