@@ -100,7 +100,7 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
   }
 
   private boolean tableExistsInChangeLog(String tableName) {
-    return this.getChangeSet().getChangeLog().getChangeSets().stream().anyMatch(
+    return this.getChangeSet().getChangeLog().getRootChangeLog().getChangeSets().stream().anyMatch(
         changeSet -> changeSet.getChanges().stream()
             .filter(change -> change instanceof DdmCreateTableChange)
             .map(change -> (DdmCreateTableChange) change)
