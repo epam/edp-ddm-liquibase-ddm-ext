@@ -80,6 +80,7 @@ public class DdmUtils {
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_EQUAL, DdmConstants.ATTRIBUTE_EQUAL_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_CONTAINS, DdmConstants.ATTRIBUTE_CONTAINS_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_STARTS_WITH, DdmConstants.ATTRIBUTE_STARTS_WITH_COLUMN);
+        mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_STARTS_WITH_ARRAY, DdmConstants.ATTRIBUTE_STARTS_WITH_ARRAY_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_IN, DdmConstants.ATTRIBUTE_IN_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_BETWEEN, DdmConstants.ATTRIBUTE_BETWEEN_COLUMN);
         mapSearchTypeToMetadata.put(DdmConstants.ATTRIBUTE_NOT_IN, DdmConstants.ATTRIBUTE_NOT_IN_COLUMN);

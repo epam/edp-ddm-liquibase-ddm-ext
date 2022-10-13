@@ -63,7 +63,9 @@ public class DdmCreateSimpleSearchConditionGenerator extends AbstractSqlGenerato
             buffer.append(" as varchar))");
         }
 
-        if (searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS) || searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
+        if (searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS) ||
+                searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH) ||
+                searchType.equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH_ARRAY)) {
             buffer.append(" ");
 
             if (statement.getSearchColumn().getType().equalsIgnoreCase(DdmConstants.TYPE_CHAR)) {
