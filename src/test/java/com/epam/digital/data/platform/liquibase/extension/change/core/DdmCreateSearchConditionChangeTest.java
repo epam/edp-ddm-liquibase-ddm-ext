@@ -434,6 +434,20 @@ class DdmCreateSearchConditionChangeTest {
     }
 
     @Test
+    @DisplayName("Validate change - search column and type are defined")
+    public void validateChangeIndexingArray() {
+        change.setName("name");
+        change.setIndexing(true);
+        DdmTableConfig table = new DdmTableConfig("table");
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName("column");
+        column.setSearchType("startsWithArray");
+        table.addColumn(column);
+        change.addTable(table);
+        assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
     @DisplayName("Validate change - search column is not defined")
     public void validateChangeIndexingColumn() {
         DatabaseChangeLog changeLog1 = new DatabaseChangeLog("path");

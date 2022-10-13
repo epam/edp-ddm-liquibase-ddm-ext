@@ -144,7 +144,8 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
                     boolean isColumnCastable = DdmUtils.isColumnAvailableForCasting(column);
                     if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_CONTAINS)) {
                         columnName += " gin_trgm_ops";
-                    } else if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH)) {
+                    } else if (column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH) ||
+                            column.getSearchType().equalsIgnoreCase(DdmConstants.ATTRIBUTE_STARTS_WITH_ARRAY)) {
                         columnName += " ";
 
                         if (column.getType().equalsIgnoreCase(DdmConstants.TYPE_CHAR)) {

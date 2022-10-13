@@ -28,3 +28,4 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmRevokeChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmTruncateLocalDataAfterDistributingTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmUndistributeTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmTableReadParametersChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmRlsRuleChange

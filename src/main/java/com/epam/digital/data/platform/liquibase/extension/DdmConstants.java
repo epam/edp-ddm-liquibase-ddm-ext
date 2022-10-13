@@ -38,6 +38,10 @@ public class DdmConstants {
     public static final String ATTRIBUTE_LINK = "link";
     public static final String ATTRIBUTE_ENTITY = "entity";
     public static final String ATTRIBUTE_TABLE = "table";
+    public static final String ATTRIBUTE_ADD_READ_RULE = "addReadRule";
+    public static final String ATTRIBUTE_ADD_WRITE_RULE = "addWriteRule";
+    public static final String ATTRIBUTE_REMOVE_READ_RULE = "removeReadRule";
+    public static final String ATTRIBUTE_REMOVE_WRITE_RULE = "removeWriteRule";
     public static final String ATTRIBUTE_CTE = "cte";
     public static final String ATTRIBUTE_ALIAS = "alias";
     public static final String ATTRIBUTE_TABLE_ALIAS = "tableAlias";
@@ -47,6 +51,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_EQUAL = "equal";
     public static final String ATTRIBUTE_CONTAINS = "contains";
     public static final String ATTRIBUTE_STARTS_WITH = "startsWith";
+    public static final String ATTRIBUTE_STARTS_WITH_ARRAY = "startsWithArray";
     public static final String ATTRIBUTE_IN = "in";
     public static final String ATTRIBUTE_NOT_IN = "notIn";
     public static final String ATTRIBUTE_BETWEEN = "between";
@@ -54,6 +59,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_EQUAL_COLUMN = "equalColumn";
     public static final String ATTRIBUTE_CONTAINS_COLUMN = "containsColumn";
     public static final String ATTRIBUTE_STARTS_WITH_COLUMN = "startsWithColumn";
+    public static final String ATTRIBUTE_STARTS_WITH_ARRAY_COLUMN = "startsWithArrayColumn";
     public static final String ATTRIBUTE_IN_COLUMN = "inColumn";
     public static final String ATTRIBUTE_NOT_IN_COLUMN = "notInColumn";
     public static final String ATTRIBUTE_BETWEEN_COLUMN = "betweenColumn";
@@ -96,6 +102,9 @@ public class DdmConstants {
     public static final String ATTRIBUTE_EXPOSE_TREMBITA = "trembita";
     public static final String ATTRIBUTE_EXPOSE_PLATFORM = "platform";
     public static final String ATTRIBUTE_EXPOSE_EXTERNAL_SYSTEM = "externalSystem";
+    public static final String ATTRIBUTE_JWT_ATTRIBUTE = "jwtAttribute";
+    public static final String ATTRIBUTE_CHECK_COLUMN = "checkColumn";
+    public static final String ATTRIBUTE_CHECK_TABLE = "checkTable";
 
     public static final String XML_TAG_HISTORY_FLAG = "ext:historyFlag";
     public static final String XML_TAG_TABLE_SUFFIX = "ext:tableSuffix";
@@ -129,6 +138,14 @@ public class DdmConstants {
     public static final String ROLE_PERMISSION_OPERATION = "operation";
 
     public static final String METADATA_TABLE = "ddm_liquibase_metadata";
+    public static final String METADATA_RLS_TABLE = "ddm_rls_metadata";
+    public static final String METADATA_FIELD_NAME = "name";
+    public static final String METADATA_FIELD_TYPE = "type";
+    public static final String METADATA_TYPE_READ = "read";
+    public static final String METADATA_TYPE_WRITE = "write";
+    public static final String METADATA_FIELD_JWT_ATTRIBUTE = "jwt_attribute";
+    public static final String METADATA_FIELD_CHECK_COLUMN = "check_column";
+    public static final String METADATA_FIELD_CHECK_TABLE = "check_table";
     public static final String METADATA_CHANGE_TYPE = "change_type";
     public static final String METADATA_CHANGE_NAME = "change_name";
     public static final String METADATA_ATTRIBUTE_NAME = "attribute_name";
