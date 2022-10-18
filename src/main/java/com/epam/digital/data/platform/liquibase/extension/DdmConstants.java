@@ -99,6 +99,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_FETCH_TYPE_ID = "id";
     public static final String ATTRIBUTE_FETCH_TYPE_ENTITY = "entity";
     public static final String ATTRIBUTE_ASYNC = "async";
+    public static final String ATTRIBUTE_BULK_LOAD = "bulkLoad";
     public static final String ATTRIBUTE_EXPOSE_TREMBITA = "trembita";
     public static final String ATTRIBUTE_EXPOSE_PLATFORM = "platform";
     public static final String ATTRIBUTE_EXPOSE_EXTERNAL_SYSTEM = "externalSystem";

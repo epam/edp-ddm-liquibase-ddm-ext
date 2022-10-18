@@ -587,6 +587,27 @@ class DdmCreateTableChangeTest {
     }
 
     @Test
+    @DisplayName("Check bulkLoad")
+    public void checkBulkLoad() {
+
+        change.setHistoryFlag(true);
+        change.setBulkLoad(true);
+
+        SqlStatement[] statements = change.generateStatements(new PostgresDatabase());
+        Assertions.assertEquals(6, statements.length);
+        Assertions.assertTrue(statements[0] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[1] instanceof DropPrimaryKeyStatement);
+        Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[3] instanceof CreateTableStatement);
+        Assertions.assertTrue(statements[4] instanceof RawSqlStatement);
+        Assertions.assertTrue(statements[5] instanceof RawSqlStatement);
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                        "(change_type, change_name, attribute_name, attribute_value) values " +
+                        "('bulkLoad', 'table', 'bulkLoad', 'true');\n\n",
+                ((RawSqlStatement) statements[5]).getSql());
+    }
+
+    @Test
     @DisplayName("Check inverse")
     public void checkInverse() {
         Change[] changes = change.createInverses();
