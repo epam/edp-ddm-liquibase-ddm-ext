@@ -507,7 +507,7 @@ class DdmCreateSearchConditionChangeTest {
     @DisplayName("Validate change - pagination")
     public void validateChangePagination() {
         change.setName("name");
-        change.setPagination(true);
+        change.setPagination("true");
         assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
     }
 
@@ -520,7 +520,7 @@ class DdmCreateSearchConditionChangeTest {
         column.setReturning(true);
         table.addColumn(column);
         change.addTable(table);
-        change.setPagination(true);
+        change.setPagination("page");
 
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
         assertEquals(5, statements.length);

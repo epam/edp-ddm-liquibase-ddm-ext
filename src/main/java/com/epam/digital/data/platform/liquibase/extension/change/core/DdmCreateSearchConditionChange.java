@@ -112,8 +112,9 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
             statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT, getLimit()));
         }
 
-        if (Boolean.TRUE.equals(getPagination())) {
-            statements.add(insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, Boolean.toString(true)));
+        if (getPagination() != null) {
+            statements.add(
+                    insertSearchConditionMetadata(DdmConstants.SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION, getPagination()));
         }
 
         if (DdmConstants.ATTRIBUTE_ASYNC.equals(getReadMode())){
