@@ -50,7 +50,7 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
   private String name;
   private Boolean indexing;
   private String limit;
-  private Boolean pagination;
+  private String pagination;
   private List<DdmConditionConfig> conditions;
 
   public DdmAbstractViewChange() {
@@ -242,11 +242,11 @@ public abstract class DdmAbstractViewChange extends AbstractChange {
     this.conditions = conditions;
   }
 
-  public Boolean getPagination() {
+  public String getPagination() {
     return pagination;
   }
 
-  public void setPagination(Boolean pagination) {
+  public void setPagination(String pagination) {
     this.pagination = pagination;
   }
 }
