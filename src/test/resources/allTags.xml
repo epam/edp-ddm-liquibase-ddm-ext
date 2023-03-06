@@ -316,4 +316,11 @@
         </ext:createCompositeEntity>
     </changeSet>
 
+    <changeSet author="registry owner" id="alter_table_api_dictionary">
+        <ext:alterTableApi table="dictionary">
+            <ext:attribute name="bulkLoad" value="true"/>
+            <ext:attribute name="readMode" value="async"/>
+        </ext:alterTableApi>
+    </changeSet>
+
 </databaseChangeLog>
