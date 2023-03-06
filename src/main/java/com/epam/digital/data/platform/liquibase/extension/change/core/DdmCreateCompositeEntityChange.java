@@ -76,7 +76,7 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         .map(DdmNestedEntityConfig::getTable)
         .collect(Collectors.toList());
     List<String> requiredTablesInChangeLog = requiredTables.stream()
-        .filter(this::tableExistsInChangeLog)
+        .filter(table -> DdmUtils.tableExistsInChangeLog(this.getChangeSet(), table))
         .collect(Collectors.toList());
     return requiredTables.stream()
         .filter(requiredTable -> !requiredTablesInChangeLog.contains(requiredTable))
@@ -97,14 +97,6 @@ public class DdmCreateCompositeEntityChange extends AbstractChange {
         .map(this::convertChangeToConfig)
         .collect(Collectors.toList());
     return requiredEntitiesFromChangelog.containsAll(requiredEntities);
-  }
-
-  private boolean tableExistsInChangeLog(String tableName) {
-    return this.getChangeSet().getChangeLog().getRootChangeLog().getChangeSets().stream().anyMatch(
-        changeSet -> changeSet.getChanges().stream()
-            .filter(change -> change instanceof DdmCreateTableChange)
-            .map(change -> (DdmCreateTableChange) change)
-            .anyMatch(tableChange -> tableChange.getTableName().equals(tableName)));
   }
 
   private void populateEntityTable(List<DdmNestedEntityConfig> requiredEntities) {

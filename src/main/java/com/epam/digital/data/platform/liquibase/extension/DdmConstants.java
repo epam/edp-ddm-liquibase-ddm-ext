@@ -23,6 +23,7 @@ public class DdmConstants {
     public static final String FIELD_CLASSIFICATION = "dcm_classification";
     public static final String DISALLOW_DOCTYPE_DECLARATION = "http://apache.org/xml/features/disallow-doctype-decl";
 
+    public static final String ATTRIBUTE = "attribute";
     public static final String ATTRIBUTE_NAME = "name";
     public static final String ATTRIBUTE_TYPE = "type";
     public static final String ATTRIBUTE_SCOPE = "scope";
@@ -99,6 +100,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_FETCH_TYPE_ID = "id";
     public static final String ATTRIBUTE_FETCH_TYPE_ENTITY = "entity";
     public static final String ATTRIBUTE_ASYNC = "async";
+    public static final String ATTRIBUTE_SYNC = "sync";
     public static final String ATTRIBUTE_BULK_LOAD = "bulkLoad";
     public static final String ATTRIBUTE_EXPOSE_TREMBITA = "trembita";
     public static final String ATTRIBUTE_EXPOSE_PLATFORM = "platform";
@@ -153,6 +155,7 @@ public class DdmConstants {
     public static final String METADATA_ATTRIBUTE_VALUE = "attribute_value";
 
     public static final String READ_MODE_CHANGE_TYPE = "readMode";
+    public static final String CREATE_TABLE_CHANGE_NAME = "createTable";
     public static final String SEARCH_METADATA_CHANGE_TYPE_VALUE = "searchCondition";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_LIMIT = "limit";
     public static final String SEARCH_METADATA_ATTRIBUTE_NAME_PAGINATION = "pagination";

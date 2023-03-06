@@ -1,4 +1,5 @@
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmAddColumnChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmAlterTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateDomainChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateMany2ManyChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateSearchConditionChange

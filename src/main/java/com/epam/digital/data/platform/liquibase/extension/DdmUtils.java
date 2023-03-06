@@ -127,6 +127,14 @@ public class DdmUtils {
         return new RawSqlStatement(builder.toString());
     }
 
+  public static RawSqlStatement deleteMetadataByChangeTypeChangeNameAttrNameSql(String changeType,
+      String changeName, String attributeName) {
+    return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
+        DdmConstants.METADATA_CHANGE_TYPE + " = '" + changeType + "' and " +
+        DdmConstants.METADATA_CHANGE_NAME + " = '" + changeName + "' and " +
+        DdmConstants.METADATA_ATTRIBUTE_NAME + " = '" + attributeName + "';\n\n");
+  }
+
     public static RawSqlStatement deleteMetadataByChangeTypeAndChangeNameSql(String changeType, String changeName) {
         return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
             DdmConstants.METADATA_CHANGE_TYPE + " = '" + changeType + "' and " +
@@ -244,4 +252,12 @@ public class DdmUtils {
                 Arrays.stream(DdmTypesForIndexCast.values())
                         .anyMatch(type -> type.getValue().equalsIgnoreCase(column.getType()));
     }
+
+  public static boolean tableExistsInChangeLog(ChangeSet baseChangeSet, String tableName) {
+    return baseChangeSet.getChangeLog().getRootChangeLog().getChangeSets().stream().anyMatch(
+        changeSet -> changeSet.getChanges().stream()
+            .filter(DdmCreateTableChange.class::isInstance)
+            .map(DdmCreateTableChange.class::cast)
+            .anyMatch(tableChange -> tableChange.getTableName().equals(tableName)));
+  }
 }
