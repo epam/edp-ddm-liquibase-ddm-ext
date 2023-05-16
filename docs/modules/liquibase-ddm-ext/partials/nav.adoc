@@ -1,4 +1,0 @@
-**** xref:liquibase-ddm-ext:library-overview.adoc[liquibase-ddm-ext]
-***** xref:liquibase-ddm-ext:library-design.adoc[Низькорівневий дизайн]
-***** xref:liquibase-ddm-ext:library-extension-catalogue.adoc[Каталог розширень]
-***** xref:liquibase-ddm-ext:library-technologies.adoc[Технологічний стек]
