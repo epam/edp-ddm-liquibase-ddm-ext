@@ -45,6 +45,7 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
     private Boolean trembita;
     private Boolean platform;
     private Boolean externalSystem;
+    private Boolean publicAccess;
 
     private boolean existsInChangeLog() {
         boolean scExists = false;
@@ -109,12 +110,21 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
         if (Boolean.TRUE.equals(getExternalSystem())) {
             statements.add(insertMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_EXTERNAL_SYSTEM));
         }
+        if (Boolean.TRUE.equals(getPublicAccess())) {
+            statements.add(insertMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_PUBLIC_ACCESS));
+        } else if (Boolean.FALSE.equals(getPublicAccess())) {
+            statements.add(deleteMetadataForExposedSc(DdmConstants.ATTRIBUTE_EXPOSE_PUBLIC_ACCESS));
+        }
         return statements.toArray(new SqlStatement[0]);
     }
 
     private SqlStatement insertMetadataForExposedSc(String consumer) {
         return DdmUtils.insertMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, consumer,
                 DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName());
+    }
+
+    private SqlStatement deleteMetadataForExposedSc(String consumer) {
+        return DdmUtils.deleteMetadataSql(DdmConstants.ATTRIBUTE_EXPOSE, consumer, getName());
     }
 
     @Override
@@ -157,5 +167,13 @@ public class DdmExposeSearchConditionChange extends AbstractChange {
 
     public void setExternalSystem(Boolean externalSystem) {
         this.externalSystem = externalSystem;
+    }
+
+    public Boolean getPublicAccess() {
+        return publicAccess;
+    }
+
+    public void setPublicAccess(Boolean publicAccess) {
+        this.publicAccess = publicAccess;
     }
 }
