@@ -46,7 +46,7 @@ class DdmExposeSearchConditionChangeTest {
 
     @Test
     @DisplayName("Check statements")
-    public void checkStatements() {
+    void checkStatements() {
         change.setName("name");
         change.setTrembita(true);
         change.setPlatform(false);
@@ -60,13 +60,14 @@ class DdmExposeSearchConditionChangeTest {
 
     @Test
     @DisplayName("Check expose all statements")
-    public void checkExposeAllStatements() {
+    void checkExposeAllStatements() {
         change.setName("name");
         change.setTrembita(true);
         change.setPlatform(true);
         change.setExternalSystem(true);
+        change.setPublicAccess(true);
         SqlStatement[] statements = change.generateStatements(new MockDatabase());
-        Assertions.assertEquals(3, statements.length);
+        Assertions.assertEquals(4, statements.length);
         Assertions.assertEquals("insert into ddm_liquibase_metadata" +
                         "(change_type, change_name, attribute_name, attribute_value) values " +
                         "('expose', 'trembita', 'searchCondition', 'name');\n\n",
@@ -79,11 +80,27 @@ class DdmExposeSearchConditionChangeTest {
                         "(change_type, change_name, attribute_name, attribute_value) values " +
                         "('expose', 'externalSystem', 'searchCondition', 'name');\n\n",
                 ((RawSqlStatement) statements[2]).getSql());
+        Assertions.assertEquals("insert into ddm_liquibase_metadata" +
+                "(change_type, change_name, attribute_name, attribute_value) values " +
+                "('expose', 'publicAccess', 'searchCondition', 'name');\n\n",
+            ((RawSqlStatement) statements[3]).getSql());
     }
+
+  @Test
+  @DisplayName("Check delete expose publicAccess statement")
+  void checkDeleteExposePublicAccess() {
+    change.setName("name");
+    change.setPublicAccess(false);
+    SqlStatement[] statements = change.generateStatements(new MockDatabase());
+    Assertions.assertEquals(1, statements.length);
+    Assertions.assertEquals("delete from ddm_liquibase_metadata "
+            + "where (change_type = 'expose') and (change_name = 'publicAccess') and (attribute_value = 'name');\n\n",
+        ((RawSqlStatement) statements[0]).getSql());
+  }
 
     @Test
     @DisplayName("Check ignore")
-    public void checkIgnoreChangeSetForContextSub() {
+    void checkIgnoreChangeSetForContextSub() {
         Contexts contexts = new Contexts();
         contexts.add("sub");
         changeLogParameters.setContexts(contexts);
@@ -94,7 +111,7 @@ class DdmExposeSearchConditionChangeTest {
 
     @Test
     @DisplayName("Validate change")
-    public void validateChange() {
+    void validateChange() {
         DatabaseChangeLog changeLog = new DatabaseChangeLog("path");
         ChangeSet changeSet = new ChangeSet(changeLog);
 
@@ -119,7 +136,7 @@ class DdmExposeSearchConditionChangeTest {
 
     @Test
     @DisplayName("Validate change - only search condition tags allowed")
-    public void validateAllowedTags() {
+    void validateAllowedTags() {
         change.setName("name");
         DdmCreateAnalyticsViewChange analyticsChange = new DdmCreateAnalyticsViewChange();
         analyticsChange.setName("name");
