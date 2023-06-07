@@ -287,7 +287,7 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
                 CreateTableStatement createHstTableStatement = new CreateTableStatement(null, null, snapshotTable.getName(), snapshotTable.getRemarks());
 
                 for (Column column : snapshotTable.getColumns()) {
-                    LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(column.getType().getTypeName(), database);
+                    LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(column.getType().toString(), database);
                     createHstTableStatement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
 
                     if (!column.isNullable()) {
