@@ -47,6 +47,8 @@ public class DdmTest {
     public static final String TEST_REVOKE_ALL_FILE_NAME = "revokeAllChangelog.xml";
     public static final String TEST_REVOKE_FILE_NAME = "revokeChangelog.xml";
     public static final String TEST_COMPOSITE_NESTED_ENTITY_FILE_NAME = "createCompositeEntityChangelog.xml";
+    public static final String TEST_CREATE_ASYNC_LOAD_FILE_NAME = "createAsyncLoadChangelog.xml";
+    public static final String TEST_DELETE_ASYNC_LOAD_FILE_NAME = "deleteAsyncLoadChangelog.xml";
     public static final String TEST_TABLE_READ_PARAMETERS_FILE_NAME = "tableReadParametersChangelog.xml";
     public static final String TEST_ALTER_TABLE_API_FILE_NAME = "alterTableApiChangelog.xml";
 

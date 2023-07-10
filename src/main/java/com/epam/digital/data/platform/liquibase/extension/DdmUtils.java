@@ -135,6 +135,11 @@ public class DdmUtils {
         DdmConstants.METADATA_ATTRIBUTE_NAME + " = '" + attributeName + "';\n\n");
   }
 
+  public static RawSqlStatement deleteMetadataByAttrNameSql(String attributeName) {
+    return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
+        DdmConstants.METADATA_ATTRIBUTE_NAME + " = '" + attributeName + "';\n\n");
+  }
+
     public static RawSqlStatement deleteMetadataByChangeTypeAndChangeNameSql(String changeType, String changeName) {
         return new RawSqlStatement("delete from " + DdmConstants.METADATA_TABLE + " where " +
             DdmConstants.METADATA_CHANGE_TYPE + " = '" + changeType + "' and " +

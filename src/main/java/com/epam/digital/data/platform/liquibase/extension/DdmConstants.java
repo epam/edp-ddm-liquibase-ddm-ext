@@ -99,6 +99,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_FETCH_TYPE = "fetchType";
     public static final String ATTRIBUTE_FETCH_TYPE_ID = "id";
     public static final String ATTRIBUTE_FETCH_TYPE_ENTITY = "entity";
+    public static final String CREATE_ASYNC_LOAD = "create_async_load";
     public static final String ATTRIBUTE_ASYNC = "async";
     public static final String ATTRIBUTE_SYNC = "sync";
     public static final String ATTRIBUTE_BULK_LOAD = "bulkLoad";
