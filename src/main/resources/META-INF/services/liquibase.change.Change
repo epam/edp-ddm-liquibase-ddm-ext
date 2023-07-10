@@ -30,3 +30,5 @@ com.epam.digital.data.platform.liquibase.extension.change.core.DdmTruncateLocalD
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmUndistributeTableChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmTableReadParametersChange
 com.epam.digital.data.platform.liquibase.extension.change.core.DdmRlsRuleChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateAsyncLoadChange
+com.epam.digital.data.platform.liquibase.extension.change.core.DdmDeleteAsyncLoadChange

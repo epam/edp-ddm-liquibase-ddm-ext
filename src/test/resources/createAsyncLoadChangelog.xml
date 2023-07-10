@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.2.xsd">
+
+
+    <changeSet author="Tester" id="composite_nested_entities">
+        <ext:createAsyncLoad name="allowedAsyncLoads">
+            <ext:entityList>
+                <ext:entity name="item" limit="100"/>
+                <ext:entity name="item_with_references" limit="1000"/>
+            </ext:entityList>
+        </ext:createAsyncLoad>
+        <ext:createAsyncLoad name="allowedAsyncLoads2">
+            <ext:entityList>
+                <ext:entity name="item2" limit="20"/>
+                <ext:entity name="item_with_references2" limit="200"/>
+                <ext:entity name="demo_entity2" limit="2000"/>
+            </ext:entityList>
+        </ext:createAsyncLoad>
+    </changeSet>
+
+</databaseChangeLog>
