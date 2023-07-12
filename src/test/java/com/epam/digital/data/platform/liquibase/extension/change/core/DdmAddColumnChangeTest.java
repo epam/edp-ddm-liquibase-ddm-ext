@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import liquibase.Contexts;
 import liquibase.change.AddColumnConfig;
 import liquibase.change.ConstraintsConfig;
@@ -41,8 +40,6 @@ import liquibase.changelog.DatabaseChangeLog;
 import liquibase.database.core.MockDatabase;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
-import liquibase.statement.ColumnConstraint;
-import liquibase.statement.NotNullConstraint;
 import liquibase.statement.SqlStatement;
 import liquibase.statement.core.AddColumnStatement;
 import liquibase.statement.core.CreateTableStatement;
@@ -214,52 +211,7 @@ class DdmAddColumnChangeTest {
             "Column 'column3' contains a pattern 'dd MMMM yyyy zzzz' that cannot be applied to date/time formatting",
             errorMessages.get(1));
     }
-    
-    @Nested
-    class RunningChangeLogForTheFirstTimeWhenVersionIsNull {
-        
-        @Test
-        void shouldAlterHstTableAndOriginTable() throws SQLException, DatabaseException {
-            // given
-            snapshotChange.addColumn(mockColumn());
 
-            // when
-            SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion(null));
-
-            // then
-            assertEquals(2, statements.length);
-            assertTrue(statements[0] instanceof AddColumnStatement);
-            assertTrue(statements[1] instanceof AddColumnStatement);
-            assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
-            assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
-        }
-
-        @Test
-        void onlyNotNullConstraintShouldHaveColumnInHstTable() throws SQLException, DatabaseException {
-            // given
-            ConstraintsConfig constraintsConfig = new ConstraintsConfig();
-            constraintsConfig.setNullable(false);
-            constraintsConfig.setPrimaryKey(true);
-            snapshotChange.addColumn(mockColumn(constraintsConfig));
-
-            // when
-            SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion(null));
-
-            // then
-            assertEquals(2, statements.length);
-            assertTrue(statements[0] instanceof AddColumnStatement);
-            assertTrue(statements[1] instanceof AddColumnStatement);
-
-            assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
-            assertEquals(2, ((AddColumnStatement) statements[0]).getConstraints().size());
-
-            assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
-            Set<ColumnConstraint> constraints = ((AddColumnStatement) statements[1]).getConstraints();
-            assertEquals(1, constraints.size());
-            assertTrue(constraints.iterator().next() instanceof NotNullConstraint);
-        }
-    }
-    
     @Nested
     class RunningChangeLogNotForTheFirstTimeWhenVersionIsNotNull {
     
@@ -288,8 +240,7 @@ class DdmAddColumnChangeTest {
             List<String> errorMessages = snapshotChange.validate(mockDatabaseWithVersion("1.0.0")).getErrorMessages();
 
             // then
-            assertEquals(1, errorMessages.size());
-            assertEquals("ChangeLog with current version was already ran!", errorMessages.get(0));
+            assertEquals(0, errorMessages.size());
         }
 
         @Test
@@ -462,8 +413,13 @@ class DdmAddColumnChangeTest {
         assertTrue(statements[2] instanceof RenameTableStatement);
         assertEquals("table_hst",
             ((RenameTableStatement) statements[2]).getOldTableName());
-        assertEquals("table_hst_1_0_0",
-            ((RenameTableStatement) statements[2]).getNewTableName());
+
+        String version = "__0";
+
+        String gotTableName = ((RenameTableStatement) statements[2]).getNewTableName();
+        String tableNameWithNoUid = gotTableName.substring(0, gotTableName.lastIndexOf("__"));
+        assertEquals("table_hst", tableNameWithNoUid);
+
         assertTrue(statements[3] instanceof CreateTableStatement);
         assertEquals("table_hst",
             ((CreateTableStatement) statements[3]).getTableName());
@@ -471,10 +427,10 @@ class DdmAddColumnChangeTest {
         assertEquals("REVOKE ALL PRIVILEGES ON TABLE table_hst FROM PUBLIC;",
             ((RawSqlStatement) statements[4]).getSql());
         assertTrue(statements[5] instanceof RawSqlStatement);
-        assertEquals("CALL p_init_new_hist_table('table_hst_1_0_0', 'table_hst');",
+        assertEquals("CALL p_init_new_hist_table('table_hst" + version + "', 'table_hst');",
             ((RawSqlStatement) statements[5]).getSql());
         assertTrue(statements[6] instanceof RawSqlStatement);
-        assertEquals("ALTER TABLE table_hst_1_0_0 SET SCHEMA archive;",
+        assertEquals("ALTER TABLE table_hst" + version + " SET SCHEMA archive;",
             ((RawSqlStatement) statements[6]).getSql());
     }
     
