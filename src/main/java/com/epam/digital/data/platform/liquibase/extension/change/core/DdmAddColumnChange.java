@@ -130,12 +130,14 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
 
         String version = getVersion(database);
         if (version != null) {
-            Boolean tableAlreadyPresentInArchiveSchema = isTablePresentInArchiveSchema(database, version);
+            Boolean tableAlreadyPresentInArchiveSchema =
+                isTablePresentInArchiveSchema(database, version);
             if (tableAlreadyPresentInArchiveSchema == null) {
                 validationErrors.addError("Cannot select table!");
-            } 
+            }
             if (Boolean.TRUE.equals(tableAlreadyPresentInArchiveSchema)) {
-                validationErrors.addError("ChangeLog with current version was already ran!");
+                validationErrors.addError(
+                    "ChangeLog with current version : "+version+" was already ran");
             }
         }
         return validationErrors;
@@ -211,21 +213,20 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
 
         if (database.getConnection() instanceof JdbcConnection) {
             try {
-                statement = ((JdbcConnection) database.getConnection()).createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                statement = ((JdbcConnection) database.getConnection()).createStatement(
+                    ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
-                String sql = "SELECT " + DdmConstants.METADATA_ATTRIBUTE_VALUE + " FROM " + DdmConstants.METADATA_TABLE +
-                    " WHERE " + DdmConstants.METADATA_CHANGE_TYPE + " = '" + DdmConstants.VERSIONING_METADATA_CHANGE_TYPE_VALUE + "'" +
-                    " AND " + DdmConstants.METADATA_CHANGE_NAME + " = '" + DdmConstants.VERSIONING_METADATA_CHANGE_NAME_VALUE + "'" +
-                    " AND " + DdmConstants.METADATA_ATTRIBUTE_NAME + " = '" + DdmConstants.VERSIONING_METADATA_ATTRIBUTE_NAME_CURRENT + "'";
+                String sql = "SELECT count(*) FROM pg_catalog.pg_tables where schemaname='" +
+                    ARCHIVE_SCHEMA + "' and tablename like '" + getTableName() + "__%';";
 
                 resultSet = statement.executeQuery(sql);
 
                 if (resultSet.next()) {
-                    version = resultSet.getString(DdmConstants.METADATA_ATTRIBUTE_VALUE);
-                    version = "_" + version.replace(".", "_");
+                    version = "__" + resultSet.getInt("count");
                 }
             } catch (SQLException | DatabaseException e) {
-                Scope.getCurrentScope().getLog(database.getClass()).info("Cannot select version", e);
+                Scope.getCurrentScope().getLog(database.getClass())
+                    .info("Cannot select version", e);
             } finally {
                 JdbcUtils.close(resultSet, statement);
             }
@@ -256,9 +257,7 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
             
             isHistoryTable = true;
             
-            boolean firstRun = version == null;
-
-            if (firstRun || !firstChange) {
+            if (!firstChange) {
                 AddColumnChange addHstColumn = recreateAddColumnChangeWithNotNullConstraint(this);
                 statements.addAll(Arrays.asList(addHstColumn.generateStatements(database)));
                 isHistoryTable = false;

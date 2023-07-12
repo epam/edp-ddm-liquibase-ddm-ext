@@ -150,21 +150,6 @@ class DdmMakeObjectChangeTest {
     }
     
     @Test
-    @DisplayName("Check statements with null version")
-    void checkStatementsWithNullVersion() throws SQLException, DatabaseException {
-        MockDatabase database = new MockDatabase();
-        database.setConnection(mockJdbcConnection(null));
-        
-        SqlStatement[] statements = snapshotChange.generateStatements(database);
-        
-        Assertions.assertEquals(2, statements.length);
-        Assertions.assertTrue(statements[0] instanceof AddColumnStatement);
-        Assertions.assertTrue(statements[1] instanceof AddColumnStatement);
-        Assertions.assertEquals("table", ((AddColumnStatement) statements[0]).getTableName());
-        Assertions.assertEquals("table_hst", ((AddColumnStatement) statements[1]).getTableName());
-    }
-
-    @Test
     @DisplayName("Check messages")
     void checkMessages() {
         Assertions.assertEquals("Objects have been made", snapshotChange.getConfirmationMessage());
