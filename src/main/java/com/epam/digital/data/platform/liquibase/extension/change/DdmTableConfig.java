@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@ import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import liquibase.parser.core.ParsedNode;
 import liquibase.parser.core.ParsedNodeException;
 import liquibase.resource.ResourceAccessor;
+import liquibase.serializer.AbstractLiquibaseSerializable;
+import liquibase.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import liquibase.serializer.AbstractLiquibaseSerializable;
-import liquibase.util.StringUtil;
 
 public class DdmTableConfig extends AbstractLiquibaseSerializable {
 
@@ -38,6 +38,7 @@ public class DdmTableConfig extends AbstractLiquibaseSerializable {
     private Boolean roleCanDelete;
     private Boolean roleCanRead;
     private Boolean roleCanUpdate;
+    private DdmLogicOperatorTableConfig tableLogicOperator;
 
     public DdmTableConfig() {
         this.columns = new ArrayList<>();
@@ -59,6 +60,7 @@ public class DdmTableConfig extends AbstractLiquibaseSerializable {
         setRoleCanDelete(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_DELETE, Boolean.class));
         setRoleCanRead(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_READ, Boolean.class));
         setRoleCanUpdate(parsedNode.getChildValue(null, DdmConstants.ATTRIBUTE_UPDATE, Boolean.class));
+        setTableLogicOperator(loadTableLogicOperator(parsedNode, resourceAccessor));
 
         for (ParsedNode xmlColumn : parsedNode.getChildren(null, DdmConstants.ATTRIBUTE_COLUMN)) {
             DdmColumnConfig column = new DdmColumnConfig();
@@ -74,7 +76,21 @@ public class DdmTableConfig extends AbstractLiquibaseSerializable {
         }
     }
 
-    public boolean hasAlias() { return !StringUtil.isEmpty(getAlias()); }
+    private DdmLogicOperatorTableConfig loadTableLogicOperator(ParsedNode parsedNode, ResourceAccessor resourceAccessor)
+            throws ParsedNodeException {
+        DdmLogicOperatorTableConfig tableLogicOperator = null;
+        List<DdmLogicOperatorConfig> logicOperators = DdmLogicOperatorConfig.loadLogicOperators(parsedNode, resourceAccessor);
+        if (!logicOperators.isEmpty()) {
+            tableLogicOperator = new DdmLogicOperatorTableConfig();
+            tableLogicOperator.setTableName(getAliasOrName());
+            tableLogicOperator.setLogicOperators(logicOperators);
+        }
+        return tableLogicOperator;
+    }
+
+    public boolean hasAlias() {
+        return !StringUtil.isEmpty(getAlias());
+    }
 
     public String getSchemaName() {
         return schemaName;
@@ -172,5 +188,17 @@ public class DdmTableConfig extends AbstractLiquibaseSerializable {
 
     public void setRoleCanUpdate(Boolean roleCanUpdate) {
         this.roleCanUpdate = roleCanUpdate;
+    }
+
+    public DdmLogicOperatorTableConfig getTableLogicOperator() {
+        return tableLogicOperator;
+    }
+
+    public void setTableLogicOperator(DdmLogicOperatorTableConfig tableLogicOperator) {
+        this.tableLogicOperator = tableLogicOperator;
+    }
+
+    public String getAliasOrName() {
+        return hasAlias() ? getAlias() : getName();
     }
 }

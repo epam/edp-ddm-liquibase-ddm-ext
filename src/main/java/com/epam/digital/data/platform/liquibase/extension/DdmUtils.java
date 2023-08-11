@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,9 @@ import com.epam.digital.data.platform.liquibase.extension.change.core.DdmCreateA
 import com.epam.digital.data.platform.liquibase.extension.change.core.DdmDropAnalyticsViewChange;
 
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import liquibase.change.AbstractChange;
 import liquibase.change.ColumnConfig;
 import liquibase.change.core.AddColumnChange;
@@ -53,6 +56,7 @@ public class DdmUtils {
     private DdmUtils() {
     }
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Set<Class<? extends AbstractChange>> masterChanges = new HashSet<>();
     private static final Set<Class<? extends AbstractChange>> replicaChanges = new HashSet<>();
     public static final String CONSISTENCY_CHANGESET_ERROR = "Error. ChangeSet %s. Analytics and Search Condition changes "
@@ -265,4 +269,12 @@ public class DdmUtils {
             .map(DdmCreateTableChange.class::cast)
             .anyMatch(tableChange -> tableChange.getTableName().equals(tableName)));
   }
+
+    public static String convertObjectToString(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Unable to convert object to string", e);
+        }
+    }
 }
