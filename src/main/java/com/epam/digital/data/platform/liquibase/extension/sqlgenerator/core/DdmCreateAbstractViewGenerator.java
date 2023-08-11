@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,15 @@
 
 package com.epam.digital.data.platform.liquibase.extension.sqlgenerator.core;
 
-import com.epam.digital.data.platform.liquibase.extension.DdmPair;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
+import com.epam.digital.data.platform.liquibase.extension.DdmPair;
 import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmLogicOperatorConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.database.Database;
@@ -40,6 +33,15 @@ import liquibase.sql.Sql;
 import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.AbstractSqlGenerator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCreateAbstractViewStatement> {
 
@@ -172,7 +174,7 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
 
     private StringBuilder generateSelectSql(List<DdmTableConfig> tables, List<DdmJoinConfig> joins, List<DdmConditionConfig> conditions) {
         StringBuilder buffer = new StringBuilder();
-        List<String> columns = new ArrayList<>();
+        List<String> viewResultColumns = new ArrayList<>();
         List<String> orderColumns = new ArrayList<>();
         List<String> groupColumns = new ArrayList<>();
         boolean hasNonWindowFunctions = false;
@@ -180,18 +182,11 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
         buffer.append("SELECT ");
 
         for (DdmTableConfig table : tables) {
-            for (DdmColumnConfig column : table.getColumns()) {
-                    columns.add((table.hasAlias() ? table.getAlias() + "." : "") +
-                        column.getName() +
-                        (column.hasAlias() ? " AS " + column.getAlias() : ""));
-
-                groupColumns.add((table.hasAlias() ? table.getAlias() + "." : "") + column.getName());
-
-                if (column.getSorting() != null) {
-                    orderColumns.add((table.hasAlias() ? table.getAlias() + "." : "") +
-                            column.getName() +
-                            (column.getSorting().equalsIgnoreCase(DdmConstants.ATTRIBUTE_DESC) ? " " + column.getSorting().toUpperCase() : ""));
-                }
+            String tableAlias = table.hasAlias() ? table.getAlias() + "." : "";
+            processTableColumns(table.getColumns(), viewResultColumns, orderColumns, groupColumns, tableAlias);
+            if (Objects.nonNull(table.getTableLogicOperator())) {
+                processNestedColumnsFromLogicOperators(table.getTableLogicOperator().getLogicOperators(), viewResultColumns,
+                        orderColumns, groupColumns, tableAlias);
             }
 
             for (DdmFunctionConfig function : table.getFunctions()) {
@@ -212,17 +207,17 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
                     }
                     functionContent.append(") ");
                 }
-                columns.add(functionContent + "AS " + function.getAlias());
+                viewResultColumns.add(functionContent + "AS " + function.getAlias());
 
                 groupColumns.remove((function.hasTableAlias() ? function.getTableAlias() + "." : "") +
                         function.getColumnName());
 
-                columns.remove((function.hasTableAlias() ? function.getTableAlias() + "." : "") +
+                viewResultColumns.remove((function.hasTableAlias() ? function.getTableAlias() + "." : "") +
                         function.getColumnName());
             }
         }
 
-        buffer.append(String.join(", ", columns));
+        buffer.append(String.join(", ", viewResultColumns));
 
         DdmTableConfig firstTable = tables.get(0);
         buffer.append(" FROM ");
@@ -279,6 +274,30 @@ public class DdmCreateAbstractViewGenerator extends AbstractSqlGenerator<DdmCrea
         }
 
         return buffer;
+    }
+
+    private void processTableColumns(List<DdmColumnConfig> columnObjects, List<String> viewResultColumns,
+                                     List<String> orderColumns, List<String> groupColumns, String tableAlias) {
+        for (DdmColumnConfig column : columnObjects) {
+            viewResultColumns.add(tableAlias + column.getName() + (column.hasAlias() ? " AS " + column.getAlias() : ""));
+            groupColumns.add(tableAlias + column.getName());
+
+            if (column.getSorting() != null) {
+                orderColumns.add(tableAlias + column.getName() +
+                        (column.getSorting().equalsIgnoreCase(DdmConstants.ATTRIBUTE_DESC) ? " " + column.getSorting().toUpperCase() : ""));
+            }
+        }
+    }
+
+    private void processNestedColumnsFromLogicOperators(List<DdmLogicOperatorConfig> logicOperators,
+                                                        List<String> viewResultColumns, List<String> orderColumns,
+                                                        List<String> groupColumns, String tableAlias) {
+        for (DdmLogicOperatorConfig logicOperator : logicOperators) {
+            processTableColumns(logicOperator.getColumns(), viewResultColumns, orderColumns, groupColumns, tableAlias);
+            if (Objects.nonNull(logicOperator.getLogicOperators()) && !logicOperator.getLogicOperators().isEmpty()) {
+                processNestedColumnsFromLogicOperators(logicOperator.getLogicOperators(), viewResultColumns, orderColumns, groupColumns, tableAlias);
+            }
+        }
     }
 
     @Override

@@ -25,6 +25,8 @@ import com.epam.digital.data.platform.liquibase.extension.change.DdmConditionCon
 import com.epam.digital.data.platform.liquibase.extension.change.DdmCteConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmLogicOperatorConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmLogicOperatorTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
 import liquibase.database.core.MockDatabase;
@@ -1265,6 +1267,7 @@ class DdmCreateAbstractViewGeneratorTest {
                 "WHERE " +
                 "(t1.column11 < 1);", sqls[0].toSql());
     }
+
     @Test
     @DisplayName("Validate SQL - where operator le")
     public void validateSQLWhereOperatorLE() {
@@ -1384,6 +1387,7 @@ class DdmCreateAbstractViewGeneratorTest {
                 "WHERE " +
                 "(t1.column11 ~ '{80}');", sqls[0].toSql());
     }
+
     @Test
     @DisplayName("Validate SQL - where operator like")
     public void validateSQLWhereOperatorLike() {
@@ -1837,5 +1841,43 @@ class DdmCreateAbstractViewGeneratorTest {
 
         Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
         assertEquals("CREATE OR REPLACE VIEW name_v AS WITH cte_table AS (SELECT t1.column2, ROW_NUMBER() OVER (window) AS rn FROM table1 AS t1) SELECT ct.cnt, ct.column2 FROM cte_table AS ct;", sqls[0].toSql());
+    }
+
+    @Test
+    @DisplayName("Validate SQL - logic operator columns")
+    public void validateLogicOperatorColumns() {
+        DdmCreateAbstractViewStatement statement = new DdmCreateAbstractViewStatement("name");
+        column = new DdmColumnConfig();
+        column.setName("column2");
+        column.setReturning(true);
+        table.addColumn(column);
+
+        DdmLogicOperatorTableConfig logicOperatorTable = new DdmLogicOperatorTableConfig();
+        DdmLogicOperatorConfig logicOperator = new DdmLogicOperatorConfig();
+        DdmColumnConfig firstNameColumn = new DdmColumnConfig();
+        firstNameColumn.setName("first_name");
+        firstNameColumn.setReturning(true);
+        DdmColumnConfig lastNameColumn = new DdmColumnConfig();
+        lastNameColumn.setName("last_name");
+        lastNameColumn.setReturning(true);
+        logicOperator.setColumns(Arrays.asList(firstNameColumn, lastNameColumn));
+
+        DdmLogicOperatorConfig nestedLogicOperator = new DdmLogicOperatorConfig();
+        DdmColumnConfig ageColumn = new DdmColumnConfig();
+        ageColumn.setName("age");
+        ageColumn.setReturning(true);
+        DdmColumnConfig statusColumn = new DdmColumnConfig();
+        statusColumn.setName("status");
+        statusColumn.setReturning(true);
+        nestedLogicOperator.setColumns(Arrays.asList(ageColumn, statusColumn));
+
+        logicOperator.setLogicOperators(Collections.singletonList(nestedLogicOperator));
+        logicOperatorTable.setLogicOperators(Collections.singletonList(logicOperator));
+
+        table.setTableLogicOperator(logicOperatorTable);
+        statement.addTable(table);
+
+        Sql[] sqls = generator.generateSql(statement, new MockDatabase(), null);
+        assertEquals("CREATE OR REPLACE VIEW name_v AS SELECT t1.column11, t1.column2, t1.first_name, t1.last_name, t1.age, t1.status FROM table1 AS t1;", sqls[0].toSql());
     }
 }

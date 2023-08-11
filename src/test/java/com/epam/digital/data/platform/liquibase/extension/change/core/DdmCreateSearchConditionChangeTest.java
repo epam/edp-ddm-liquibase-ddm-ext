@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,25 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
 import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmFunctionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmJoinConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmLogicOperatorConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmLogicOperatorTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.statement.core.DdmCreateAbstractViewStatement;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import liquibase.Contexts;
-import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
 import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
 import liquibase.change.AddColumnConfig;
@@ -47,12 +57,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DdmCreateSearchConditionChangeTest {
     private DdmCreateSearchConditionChange change;
@@ -639,5 +643,64 @@ class DdmCreateSearchConditionChangeTest {
         changeSet.addChange(analyticsChange);
         changeSet.addChange(change);
         assertEquals(1, change.validate(new MockDatabase()).getErrorMessages().size());
+    }
+
+    @Test
+    @DisplayName("Check statements - insert logic operators")
+    public void checkCreateSearchConditionLogicOperators() {
+        change.setName("searchConditionLogicOperator");
+        DdmTableConfig table = new DdmTableConfig();
+        table.setName("users");
+
+        DdmColumnConfig column = prepareColumn("user_first_name", "first_name", "notEqual");
+
+        DdmLogicOperatorTableConfig tableLogicOperator = new DdmLogicOperatorTableConfig();
+        tableLogicOperator.setTableName("users");
+        DdmLogicOperatorConfig nestedTableLogicOperators = new DdmLogicOperatorConfig();
+        nestedTableLogicOperators.setType("or");
+        DdmColumnConfig nestedColumn = prepareColumn("user_last_name", "last_name", "equal");
+        DdmColumnConfig nestedColumn2 = prepareColumn("user_age", "", "equal");
+        nestedTableLogicOperators.setColumns(Arrays.asList(nestedColumn, nestedColumn2));
+
+        DdmLogicOperatorConfig nestedLogicOperators = new DdmLogicOperatorConfig();
+        nestedLogicOperators.setType("and");
+        DdmColumnConfig nestedLogicOperatorsColumn = prepareColumn("user_status", "status", "equal");
+        DdmColumnConfig nestedLogicOperatorsColumn2 = prepareColumn("user_email", "email", "equal");
+        nestedLogicOperators.setColumns(Arrays.asList(nestedLogicOperatorsColumn, nestedLogicOperatorsColumn2));
+
+        nestedTableLogicOperators.setLogicOperators(Collections.singletonList(nestedLogicOperators));
+        tableLogicOperator.setLogicOperators(Collections.singletonList(nestedTableLogicOperators));
+
+        table.addColumn(column);
+        table.setTableLogicOperator(tableLogicOperator);
+
+        change.addTable(table);
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        assertEquals(18, statements.length);
+        assertEquals("insert into ddm_liquibase_metadata"
+                        + "(change_type, change_name, attribute_name, attribute_value) values "
+                        + "('searchCondition', 'searchconditionlogicoperator', 'logicOperator', "
+                        + "'{\"operations\":[{"
+                        +          "\"tableName\":\"users\","
+                        +          "\"logicOperators\":["
+                        +             "{"
+                        +                "\"type\":\"or\","
+                        +                "\"columns\":[\"last_name\",\"user_age\"],"
+                        +                "\"logicOperators\":["
+                        +                   "{"
+                        +                      "\"type\":\"and\","
+                        +                      "\"columns\":[\"status\",\"email\"],"
+                        +                      "\"logicOperators\":[]}]}]}]}');\n\n",
+                ((RawSqlStatement) statements[17]).getSql());
+    }
+
+    private DdmColumnConfig prepareColumn(String name, String alias, String searchType) {
+        DdmColumnConfig column = new DdmColumnConfig();
+        column.setName(name);
+        column.setAlias(alias);
+        column.setReturning(true);
+        column.setSearchType(searchType);
+        return column;
     }
 }
