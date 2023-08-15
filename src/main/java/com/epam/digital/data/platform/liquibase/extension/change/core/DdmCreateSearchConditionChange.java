@@ -221,10 +221,10 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
                     getChangeSet(), tableName, column.getName());
             if (m2mChange != null) {
                 statements.add(DdmUtils.insertMetadataSql(
-                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), m2mChange.getReferenceTableName(), column.getName()));
+                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), m2mChange.getReferenceTableName(), column.getAliasOrName()));
             } else if (column.getConstraints() != null && column.getConstraints().getForeignKeyName() != null) {
                 statements.add(DdmUtils.insertMetadataSql(
-                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), column.getConstraints().getReferencedTableName(), column.getName()));
+                        DdmConstants.SEARCH_METADATA_NESTED_READ, getName(), column.getConstraints().getReferencedTableName(), column.getAliasOrName()));
             }
         }
         return statements;

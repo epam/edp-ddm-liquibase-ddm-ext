@@ -281,6 +281,7 @@ class DdmCreateSearchConditionChangeTest {
         table.setName("table");
         DdmColumnConfig column = new DdmColumnConfig();
         column.setName("column");
+        column.setAlias("alias");
         column.setReturning(true);
         column.setFetchType("entity");
         table.addColumn(column);
@@ -295,7 +296,7 @@ class DdmCreateSearchConditionChangeTest {
         Assertions.assertTrue(statements[4] instanceof RawSqlStatement);  //  nestedRead
         assertEquals("insert into ddm_liquibase_metadata" +
                         "(change_type, change_name, attribute_name, attribute_value) values " +
-                        "('nestedRead', 'change', 'ref_table', 'column');\n\n",
+                        "('nestedRead', 'change', 'ref_table', 'alias');\n\n",
                 ((RawSqlStatement) statements[4]).getSql());
     }
 
