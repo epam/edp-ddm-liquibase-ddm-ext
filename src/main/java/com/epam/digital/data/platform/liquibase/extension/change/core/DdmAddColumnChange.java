@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 EPAM Systems.
+ * Copyright 2023 EPAM Systems.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,7 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
 
     private static final String GRANT_USAGE_ON_SEQUENCE = "GRANT USAGE ON SEQUENCE %s_%s_seq TO %s;";
     private static final String ARCHIVE_SCHEMA = "archive";
+    private static final String CHAR_TYPE = "bpchar";
     private Boolean historyFlag;
     private final DdmParameters parameters = new DdmParameters();
     private boolean isHistoryTable;
@@ -286,7 +287,9 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
                 CreateTableStatement createHstTableStatement = new CreateTableStatement(null, null, snapshotTable.getName(), snapshotTable.getRemarks());
 
                 for (Column column : snapshotTable.getColumns()) {
-                    LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(column.getType().toString(), database);
+                    String columnTypeName = column.getType().getTypeName();
+                    String columnDataType = CHAR_TYPE.equals(columnTypeName) ? column.getType().toString() : columnTypeName;
+                    LiquibaseDataType columnType = DataTypeFactory.getInstance().fromDescription(columnDataType, database);
                     createHstTableStatement.addColumn(column.getName(), columnType, column.getDefaultValueConstraintName(), column.getDefaultValue(), column.getRemarks());
 
                     if (!column.isNullable()) {
