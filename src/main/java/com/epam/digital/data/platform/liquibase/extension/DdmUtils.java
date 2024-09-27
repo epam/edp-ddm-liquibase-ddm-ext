@@ -150,18 +150,21 @@ public class DdmUtils {
             DdmConstants.METADATA_CHANGE_NAME + " = '" + changeName + "';\n\n");
     }
 
-    public static RawSqlStatement insertRolePermissionSql(String role, String table, String column, String operation) {
-        return new RawSqlStatement("insert into " + DdmConstants.ROLE_PERMISSION_TABLE + "(" +
-            DdmConstants.ROLE_PERMISSION_ROLE_NAME + ", " +
-            DdmConstants.ROLE_PERMISSION_OBJECT_NAME + ", " +
-            DdmConstants.ROLE_PERMISSION_COLUMN_NAME + ", " +
-            DdmConstants.ROLE_PERMISSION_OPERATION +
-            ") values (" +
-            "'" + role + "', " +
-            "'" + table + "', " +
-            (Objects.isNull(column) ? "null" : "'" + column + "'") + ", " +
-            "'" + operation + "');\n\n");
-    }
+  public static RawSqlStatement insertRolePermissionSql(String role, String table, String column, String operation, String objetType) {
+    return new RawSqlStatement("insert into " + DdmConstants.ROLE_PERMISSION_TABLE + "(" +
+        DdmConstants.ROLE_PERMISSION_ROLE_NAME + ", " +
+        DdmConstants.ROLE_PERMISSION_OBJECT_NAME + ", " +
+        DdmConstants.ROLE_PERMISSION_COLUMN_NAME + ", " +
+        DdmConstants.ROLE_PERMISSION_OPERATION + ", " +
+        DdmConstants.ROLE_PERMISSION_OBJECT_TYPE +
+        ") values (" +
+        "'" + role + "', " +
+        "'" + table + "', " +
+        (Objects.isNull(column) ? "null" : "'" + column + "'") + ", " +
+        "'" + operation + "', " +
+        "'" + objetType +
+        "');\n\n");
+  }
 
     public static boolean hasContext(ChangeSet changeSet, String context) {
         return Boolean.TRUE.equals(changeSet.getChangeLog().getChangeLogParameters().getContexts().getContexts().contains(context));

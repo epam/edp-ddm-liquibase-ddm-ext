@@ -39,6 +39,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_LINK = "link";
     public static final String ATTRIBUTE_ENTITY = "entity";
     public static final String ATTRIBUTE_TABLE = "table";
+    public static final String ATTRIBUTE_SEARCH_CONDITION = "searchCondition";
     public static final String ATTRIBUTE_ADD_READ_RULE = "addReadRule";
     public static final String ATTRIBUTE_ADD_WRITE_RULE = "addWriteRule";
     public static final String ATTRIBUTE_REMOVE_READ_RULE = "removeReadRule";
@@ -53,6 +54,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_CONTAINS = "contains";
     public static final String ATTRIBUTE_STARTS_WITH = "startsWith";
     public static final String ATTRIBUTE_STARTS_WITH_ARRAY = "startsWithArray";
+    public static final String ATTRIBUTE_REQUIRED = "required";
     public static final String ATTRIBUTE_IN = "in";
     public static final String ATTRIBUTE_NOT_IN = "notIn";
     public static final String ATTRIBUTE_BETWEEN = "between";
@@ -61,6 +63,7 @@ public class DdmConstants {
     public static final String ATTRIBUTE_CONTAINS_COLUMN = "containsColumn";
     public static final String ATTRIBUTE_STARTS_WITH_COLUMN = "startsWithColumn";
     public static final String ATTRIBUTE_STARTS_WITH_ARRAY_COLUMN = "startsWithArrayColumn";
+    public static final String ATTRIBUTE_REQUIRED_COLUMN = "requiredColumn";
     public static final String ATTRIBUTE_IN_COLUMN = "inColumn";
     public static final String ATTRIBUTE_NOT_IN_COLUMN = "notInColumn";
     public static final String ATTRIBUTE_BETWEEN_COLUMN = "betweenColumn";
@@ -141,6 +144,10 @@ public class DdmConstants {
     public static final String ROLE_PERMISSION_OBJECT_NAME = "object_name";
     public static final String ROLE_PERMISSION_COLUMN_NAME = "column_name";
     public static final String ROLE_PERMISSION_OPERATION = "operation";
+    public static final String ROLE_PERMISSION_OBJECT_TYPE = "object_type";
+
+    public static final String ROLE_OBJECT_TABLE_TYPE = "table";
+    public static final String ROLE_OBJECT_SEARCH_CONDITION_TYPE = "search_condition";
 
     public static final String METADATA_TABLE = "ddm_liquibase_metadata";
     public static final String METADATA_RLS_TABLE = "ddm_rls_metadata";

@@ -207,6 +207,9 @@ public class DdmCreateSearchConditionChange extends DdmAbstractViewChange {
                 String metadataAttribute = DdmUtils.mapLiquibaseSearchTypeToMetadataType(column);
                 statements.add(insertSearchConditionMetadata(metadataAttribute, column.getAliasOrName()));
             }
+            if (Boolean.TRUE.equals(column.getRequired())) {
+                statements.add(DdmUtils.insertMetadataSql(DdmConstants.SEARCH_METADATA_CHANGE_TYPE_VALUE, getName(), DdmConstants.ATTRIBUTE_REQUIRED_COLUMN, column.getAliasOrName()));
+            }
         }
     }
 

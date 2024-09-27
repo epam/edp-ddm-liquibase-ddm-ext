@@ -34,6 +34,7 @@ public class DdmRoleConfig extends AbstractLiquibaseSerializable {
     private String name;
     private String realm;
     private List<DdmTableConfig> tables = new ArrayList<>();
+    private List<DdmSearchConditionConfig> searchConditions;
 
     public DdmRoleConfig() {
         super();
@@ -63,6 +64,20 @@ public class DdmRoleConfig extends AbstractLiquibaseSerializable {
         }
     }
 
+    public static List<DdmSearchConditionConfig> loadSearchConditions(ParsedNode parsedNode, ResourceAccessor resourceAccessor) throws ParsedNodeException {
+        List<DdmSearchConditionConfig> searchConditionConfig = new ArrayList<>();
+        if (Objects.nonNull(parsedNode)) {
+            for (ParsedNode child : parsedNode.getChildren()) {
+                if (child.getName().equalsIgnoreCase(DdmConstants.ATTRIBUTE_SEARCH_CONDITION)) {
+                    DdmSearchConditionConfig searchCondition = new DdmSearchConditionConfig();
+                    searchCondition.load(child, resourceAccessor);
+                    searchConditionConfig.add(searchCondition);
+                }
+            }
+        }
+        return searchConditionConfig;
+    }
+
     public String getRealmAndName() {
         return (getRealm() != null ? getRealm() + "." : "") + getName();
     }
@@ -71,8 +86,15 @@ public class DdmRoleConfig extends AbstractLiquibaseSerializable {
         return this.tables;
     }
 
+    public List<DdmSearchConditionConfig> getSearchConditions() {
+        return this.searchConditions;
+    }
+
     public void setTables(List<DdmTableConfig> tables) {
         this.tables = tables;
+    }
+    public void setSearchConditions(List<DdmSearchConditionConfig> searchConditions) {
+        this.searchConditions = searchConditions;
     }
 
     public void addTable(DdmTableConfig table) {
