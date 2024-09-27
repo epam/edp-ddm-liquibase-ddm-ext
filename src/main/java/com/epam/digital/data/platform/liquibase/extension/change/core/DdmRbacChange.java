@@ -20,8 +20,10 @@ import com.epam.digital.data.platform.liquibase.extension.DdmUtils;
 import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmRoleConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmSearchConditionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
 import com.epam.digital.data.platform.liquibase.extension.DdmPair;
+import java.util.Optional;
 import liquibase.change.AbstractChange;
 import liquibase.change.ChangeMetaData;
 import liquibase.change.DatabaseChange;
@@ -99,31 +101,37 @@ public class DdmRbacChange extends AbstractChange {
         for (DdmRoleConfig role : getRoles()) {
             for (DdmTableConfig table : role.getTables()) {
                 if (Boolean.TRUE.equals(table.getRoleCanInsert())) {
-                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "I"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "I", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanDelete())) {
-                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "D"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "D", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanRead())) {
-                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "S"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "S", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                 }
 
                 if (Boolean.TRUE.equals(table.getRoleCanUpdate())) {
-                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "U"));
+                    statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), null, "U", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                 }
 
                 for (DdmColumnConfig column : table.getColumns()) {
                     if (Boolean.TRUE.equals(column.getRoleCanRead())) {
-                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "S"));
+                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "S", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                     }
 
                     if (Boolean.TRUE.equals(column.getRoleCanUpdate())) {
-                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "U"));
+                        statements.add(DdmUtils.insertRolePermissionSql(role.getName(), table.getName(), column.getName(), "U", DdmConstants.ROLE_OBJECT_TABLE_TYPE));
                     }
                 }
             }
+      Optional.ofNullable(role.getSearchConditions())
+          .ifPresent(searchConditions -> {
+                for (DdmSearchConditionConfig searchCondition : searchConditions) {
+                  statements.add(DdmUtils.insertRolePermissionSql(role.getName(), searchCondition.getName(), null, "S", DdmConstants.ROLE_OBJECT_SEARCH_CONDITION_TYPE));
+                }
+              });
         }
 
         return statements.toArray(new SqlStatement[0]);
@@ -143,6 +151,10 @@ public class DdmRbacChange extends AbstractChange {
                 DdmRoleConfig role = new DdmRoleConfig();
                 role.load(child, resourceAccessor);
                 addRole(role);
+                List searchConditions = DdmRoleConfig.loadSearchConditions(child, resourceAccessor);
+                if (!searchConditions.isEmpty()){
+                    role.setSearchConditions(searchConditions);
+                }
             }
         }
     }

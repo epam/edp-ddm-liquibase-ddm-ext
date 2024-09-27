@@ -16,11 +16,14 @@
 
 package com.epam.digital.data.platform.liquibase.extension.change.core;
 
+import com.epam.digital.data.platform.liquibase.extension.DdmConstants;
 import com.epam.digital.data.platform.liquibase.extension.DdmResourceAccessor;
 import com.epam.digital.data.platform.liquibase.extension.DdmTest;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmColumnConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmRoleConfig;
+import com.epam.digital.data.platform.liquibase.extension.change.DdmSearchConditionConfig;
 import com.epam.digital.data.platform.liquibase.extension.change.DdmTableConfig;
+import java.util.Arrays;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.RuntimeEnvironment;
@@ -112,6 +115,43 @@ class DdmRbacChangeTest {
         Assertions.assertTrue(statements[0] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[1] instanceof RawSqlStatement);
         Assertions.assertTrue(statements[2] instanceof RawSqlStatement);
+    }
+
+    @Test
+    @DisplayName("Validate - query to add read permissions for searchCondition type")
+    public void validateSearchCondition() {
+        String tableName = "test_table";
+        DdmSearchConditionConfig searchConditionConfig = new DdmSearchConditionConfig();
+        searchConditionConfig.setName(tableName);
+
+        String roleName = "test_role";
+        DdmRoleConfig roleConfig = new DdmRoleConfig();
+        roleConfig.setName(roleName);
+        roleConfig.setSearchConditions(Arrays.asList(searchConditionConfig));
+
+        String expectedDeleteQuery = "DELETE FROM ddm_role_permission";
+        String expectedInsertQuery = "insert into " + DdmConstants.ROLE_PERMISSION_TABLE + "(" +
+            DdmConstants.ROLE_PERMISSION_ROLE_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_OBJECT_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_COLUMN_NAME + ", " +
+            DdmConstants.ROLE_PERMISSION_OPERATION + ", " +
+            DdmConstants.ROLE_PERMISSION_OBJECT_TYPE +
+            ") values (" +
+            "'" + roleName + "', " +
+            "'" + tableName + "', " +
+            "null" + ", " +
+            "'" + "S" + "', " +
+            "'" + "search_condition" +
+            "');\n\n";
+
+        change.addRole(roleConfig);
+
+        Assertions.assertEquals(0, change.validate(new MockDatabase()).getErrorMessages().size());
+
+        SqlStatement[] statements = change.generateStatements(new MockDatabase());
+        Assertions.assertEquals(2, statements.length);
+        Assertions.assertEquals(statements[0].toString(), expectedDeleteQuery);
+        Assertions.assertEquals(statements[1].toString(), expectedInsertQuery);
     }
 
     @Test

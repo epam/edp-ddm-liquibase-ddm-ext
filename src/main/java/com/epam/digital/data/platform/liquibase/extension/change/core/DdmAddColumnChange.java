@@ -316,7 +316,9 @@ public class DdmAddColumnChange extends AddColumnChange implements DdmArchiveAff
 
                 statements.add(createHstTableStatement);
                 statements.addAll(createTableAccessStatements(snapshotTable.getName()));
-                statements.add(new RawSqlStatement("CALL p_init_new_hist_table('" + newTableName + "', '" + snapshotTable.getName() + "');"));
+                if (!DdmUtils.hasSubContext(this.getChangeSet())) {
+                    statements.add(new RawSqlStatement("CALL p_init_new_hist_table('" + newTableName + "', '" + snapshotTable.getName() + "');"));
+                }
                 statements.add(new RawSqlStatement("ALTER TABLE " + newTableName + " SET SCHEMA " + ARCHIVE_SCHEMA + ";"));
             }
             isHistoryTable = false;

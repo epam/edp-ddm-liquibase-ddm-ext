@@ -391,7 +391,7 @@ class DdmAddColumnChangeTest {
         SqlStatement[] statements = snapshotChange.generateStatements(mockDatabaseWithVersion("1.0.0"));
 
         // then
-        assertEquals(8, statements.length);
+        assertEquals(7, statements.length);
         assertTrue(statements[0] instanceof AddColumnStatement);
         assertTrue(statements[1] instanceof DropUniqueConstraintStatement);
         assertTrue(statements[2] instanceof RenameTableStatement);
@@ -401,7 +401,6 @@ class DdmAddColumnChangeTest {
         assertEquals("GRANT SELECT ON table_hst TO historical_data_role;",
             ((RawSqlStatement) statements[5]).getSql());
         assertTrue(statements[6] instanceof RawSqlStatement);
-        assertTrue(statements[7] instanceof RawSqlStatement);
     }
 
     private void checkRecreatingAndMovingToArchiveHstTable(SqlStatement[] statements) {
